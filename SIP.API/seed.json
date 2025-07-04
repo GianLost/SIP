@@ -1,0 +1,1001 @@
+﻿{
+    "sectors": [
+        {
+            "name": "Secretaria Municipal de Meio Ambiente",
+            "acronym": "SEMEIA",
+            "phone": "(38) 3754-8960",
+            "createdAt": "2025-07-02T22:50:18.408453",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Planejamento",
+            "acronym": "SEPLAN",
+            "phone": "(38) 3754-8984",
+            "createdAt": "2025-07-02T22:42:32.332587",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Cultura, Esportes e Turismo",
+            "acronym": "SECETUR",
+            "phone": "(38) 3754-8817",
+            "createdAt": "2025-07-02T22:51:10.659983",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Saúde",
+            "acronym": "SESAU",
+            "phone": "(38) 3754-8901",
+            "createdAt": "2025-07-02T22:52:00.000000",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Educação",
+            "acronym": "SEDUC",
+            "phone": "(38) 3754-8902",
+            "createdAt": "2025-07-02T22:52:10.000000",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Assistência Social",
+            "acronym": "SEMAS",
+            "phone": "(38) 3754-8903",
+            "createdAt": "2025-07-02T22:52:20.000000",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Obras",
+            "acronym": "SEMOB",
+            "phone": "(38) 3754-8904",
+            "createdAt": "2025-07-02T22:52:30.000000",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Finanças",
+            "acronym": "SEFIN",
+            "phone": "(38) 3754-8905",
+            "createdAt": "2025-07-02T22:52:40.000000",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Administração",
+            "acronym": "SEMAD",
+            "phone": "(38) 3754-8906",
+            "createdAt": "2025-07-02T22:52:50.000000",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Agricultura",
+            "acronym": "SEMAG",
+            "phone": "(38) 3754-8907",
+            "createdAt": "2025-07-02T22:53:00.000000",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Transporte",
+            "acronym": "SETRAN",
+            "phone": "(38) 3754-8908",
+            "createdAt": "2025-07-02T22:53:10.000000",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Esportes",
+            "acronym": "SEMESP",
+            "phone": "(38) 3754-8909",
+            "createdAt": "2025-07-02T22:53:20.000000",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Turismo",
+            "acronym": "SETUR",
+            "phone": "(38) 3754-8910",
+            "createdAt": "2025-07-02T22:53:30.000000",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Tecnologia",
+            "acronym": "SETI",
+            "phone": "(38) 3754-8911",
+            "createdAt": "2025-07-02T22:53:40.000000",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Habitação",
+            "acronym": "SEHAB",
+            "phone": "(38) 3754-8912",
+            "createdAt": "2025-07-02T22:53:50.000000",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Desenvolvimento",
+            "acronym": "SEDE",
+            "phone": "(38) 3754-8913",
+            "createdAt": "2025-07-02T22:54:00.000000",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Juventude",
+            "acronym": "SEJUV",
+            "phone": "(38) 3754-8914",
+            "createdAt": "2025-07-02T22:54:10.000000",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Mulher",
+            "acronym": "SEMUL",
+            "phone": "(38) 3754-8915",
+            "createdAt": "2025-07-02T22:54:20.000000",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Trabalho",
+            "acronym": "SETRAB",
+            "phone": "(38) 3754-8916",
+            "createdAt": "2025-07-02T22:54:30.000000",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Defesa Civil",
+            "acronym": "SEDEC",
+            "phone": "(38) 3754-8917",
+            "createdAt": "2025-07-02T22:54:40.000000",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Comunicação",
+            "acronym": "SECOM",
+            "phone": "(38) 3754-8918",
+            "createdAt": "2025-07-02T22:54:50.000000",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Direitos Humanos",
+            "acronym": "SEDH",
+            "phone": "(38) 3754-8919",
+            "createdAt": "2025-07-02T22:55:00.000000",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Mobilidade",
+            "acronym": "SEMOBI",
+            "phone": "(38) 3754-8920",
+            "createdAt": "2025-07-02T22:55:10.000000",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Energia",
+            "acronym": "SENERG",
+            "phone": "(38) 3754-8921",
+            "createdAt": "2025-07-02T22:55:20.000000",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Pesca",
+            "acronym": "SEPES",
+            "phone": "(38) 3754-8922",
+            "createdAt": "2025-07-02T22:55:30.000000",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Indústria",
+            "acronym": "SEIND",
+            "phone": "(38) 3754-8923",
+            "createdAt": "2025-07-02T22:55:40.000000",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Comércio",
+            "acronym": "SECOMER",
+            "phone": "(38) 3754-8924",
+            "createdAt": "2025-07-02T22:55:50.000000",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Ciência",
+            "acronym": "SECIE",
+            "phone": "(38) 3754-8925",
+            "createdAt": "2025-07-02T22:56:00.000000",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Relações Internacionais",
+            "acronym": "SERI",
+            "phone": "(38) 3754-8926",
+            "createdAt": "2025-07-02T22:56:10.000000",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Políticas Públicas",
+            "acronym": "SEPP",
+            "phone": "(38) 3754-8927",
+            "createdAt": "2025-07-02T22:56:20.000000",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Segurança",
+            "acronym": "SES",
+            "phone": "(38) 3754-8928",
+            "createdAt": "2025-07-02T22:56:30.000000",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Cultura",
+            "acronym": "SECULT",
+            "phone": "(38) 3754-8929",
+            "createdAt": "2025-07-02T22:56:40.000000",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Esporte e Lazer",
+            "acronym": "SEMEL",
+            "phone": "(38) 3754-8930",
+            "createdAt": "2025-07-02T22:56:50.000000",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Inclusão Social",
+            "acronym": "SEIS",
+            "phone": "(38) 3754-8931",
+            "createdAt": "2025-07-02T22:57:00.000000",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Juventude",
+            "acronym": "SEJUV",
+            "phone": "(38) 3754-8932",
+            "createdAt": "2025-07-02T22:57:10.000000",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Meio Rural",
+            "acronym": "SEMRUR",
+            "phone": "(38) 3754-8933",
+            "createdAt": "2025-07-02T22:57:20.000000",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Urbanismo",
+            "acronym": "SEURB",
+            "phone": "(38) 3754-8934",
+            "createdAt": "2025-07-02T22:57:30.000000",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Patrimônio",
+            "acronym": "SEPAT",
+            "phone": "(38) 3754-8935",
+            "createdAt": "2025-07-02T22:57:40.000000",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Recursos Hídricos",
+            "acronym": "SERH",
+            "phone": "(38) 3754-8936",
+            "createdAt": "2025-07-02T22:57:50.000000",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Defesa do Consumidor",
+            "acronym": "SEDECON",
+            "phone": "(38) 3754-8937",
+            "createdAt": "2025-07-02T22:58:00.000000",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Proteção Animal",
+            "acronym": "SEPA",
+            "phone": "(38) 3754-8938",
+            "createdAt": "2025-07-02T22:58:10.000000",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Tecnologia da Informação",
+            "acronym": "SETINF",
+            "phone": "(38) 3754-8939",
+            "createdAt": "2025-07-02T22:58:20.000000",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Inovação",
+            "acronym": "SEINOV",
+            "phone": "(38) 3754-8940",
+            "createdAt": "2025-07-02T22:58:30.000000",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Relações Comunitárias",
+            "acronym": "SERCOM",
+            "phone": "(38) 3754-8941",
+            "createdAt": "2025-07-02T22:58:40.000000",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Políticas para Mulheres",
+            "acronym": "SEPMUL",
+            "phone": "(38) 3754-8942",
+            "createdAt": "2025-07-02T22:58:50.000000",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Igualdade Racial",
+            "acronym": "SEIR",
+            "phone": "(38) 3754-8943",
+            "createdAt": "2025-07-02T22:59:00.000000",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Direitos da Pessoa com Deficiência",
+            "acronym": "SEDPD",
+            "phone": "(38) 3754-8944",
+            "createdAt": "2025-07-02T22:59:10.000000",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Segurança Alimentar",
+            "acronym": "SEALIM",
+            "phone": "(38) 3754-8945",
+            "createdAt": "2025-07-02T22:59:20.000000",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Defesa Agropecuária",
+            "acronym": "SEAGRO",
+            "phone": "(38) 3754-8946",
+            "createdAt": "2025-07-02T22:59:30.000000",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Desenvolvimento Econômico",
+            "acronym": "SEDEC",
+            "phone": "(38) 3754-8947",
+            "createdAt": "2025-07-02T22:59:40.000000",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Desenvolvimento Urbano",
+            "acronym": "SEDU",
+            "phone": "(38) 3754-8948",
+            "createdAt": "2025-07-02T22:59:50.000000",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Desenvolvimento Rural",
+            "acronym": "SEDRU",
+            "phone": "(38) 3754-8949",
+            "createdAt": "2025-07-02T23:00:00.000000",
+            "updatedAt": null
+        },
+        {
+            "name": "Secretaria Municipal de Políticas Públicas",
+            "acronym": "SEPP",
+            "phone": "(38) 3754-8950",
+            "createdAt": "2025-07-02T23:00:10.000000",
+            "updatedAt": null
+        }
+    ],
+    "users": [
+        {
+            "fullName": "Jean de Almeida Jesuíno",
+            "login": "jean.jesuíno",
+            "masp": 21504,
+            "email": "jean@gmail.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:13:30.715865",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "SectorManager",
+            "isActive": true
+        },
+        {
+            "fullName": "Gianluca Vialli Ribeiro Vieira",
+            "login": "gianluca.vialli",
+            "masp": 14205,
+            "email": "gianluca19993m@gmail.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:00:36.495831",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Admin",
+            "isActive": true
+        },
+        {
+            "fullName": "Maria Clara Souza",
+            "login": "maria.souza",
+            "masp": 30001,
+            "email": "maria.souza@email.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:14:00.000000",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Common",
+            "isActive": true
+        },
+        {
+            "fullName": "João Pedro Lima",
+            "login": "joao.lima",
+            "masp": 30002,
+            "email": "joao.lima@email.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:14:10.000000",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Common",
+            "isActive": true
+        },
+        {
+            "fullName": "Ana Paula Ribeiro",
+            "login": "ana.ribeiro",
+            "masp": 30003,
+            "email": "ana.ribeiro@email.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:14:20.000000",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Common",
+            "isActive": true
+        },
+        {
+            "fullName": "Carlos Eduardo Silva",
+            "login": "carlos.silva",
+            "masp": 30004,
+            "email": "carlos.silva@email.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:14:30.000000",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Common",
+            "isActive": true
+        },
+        {
+            "fullName": "Fernanda Lima",
+            "login": "fernanda.lima",
+            "masp": 30005,
+            "email": "fernanda.lima@email.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:14:40.000000",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Common",
+            "isActive": true
+        },
+        {
+            "fullName": "Lucas Henrique Silva",
+            "login": "lucas.henrique",
+            "masp": 30006,
+            "email": "lucas.henrique@email.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:14:50.000000",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Common",
+            "isActive": true
+        },
+        {
+            "fullName": "Patrícia Gomes",
+            "login": "patricia.gomes",
+            "masp": 30007,
+            "email": "patricia.gomes@email.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:15:00.000000",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Common",
+            "isActive": true
+        },
+        {
+            "fullName": "Rafael Souza",
+            "login": "rafael.souza",
+            "masp": 30008,
+            "email": "rafael.souza@email.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:15:10.000000",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Common",
+            "isActive": true
+        },
+        {
+            "fullName": "Juliana Alves",
+            "login": "juliana.alves",
+            "masp": 30009,
+            "email": "juliana.alves@email.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:15:20.000000",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Common",
+            "isActive": true
+        },
+        {
+            "fullName": "Bruno Fernandes",
+            "login": "bruno.fernandes",
+            "masp": 30010,
+            "email": "bruno.fernandes@email.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:15:30.000000",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Common",
+            "isActive": true
+        },
+        {
+            "fullName": "Camila Rocha",
+            "login": "camila.rocha",
+            "masp": 30011,
+            "email": "camila.rocha@email.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:15:40.000000",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Common",
+            "isActive": true
+        },
+        {
+            "fullName": "Eduardo Martins",
+            "login": "eduardo.martins",
+            "masp": 30012,
+            "email": "eduardo.martins@email.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:15:50.000000",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Common",
+            "isActive": true
+        },
+        {
+            "fullName": "Gabriela Dias",
+            "login": "gabriela.dias",
+            "masp": 30013,
+            "email": "gabriela.dias@email.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:16:00.000000",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Common",
+            "isActive": true
+        },
+        {
+            "fullName": "Henrique Pinto",
+            "login": "henrique.pinto",
+            "masp": 30014,
+            "email": "henrique.pinto@email.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:16:10.000000",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Common",
+            "isActive": true
+        },
+        {
+            "fullName": "Isabela Martins",
+            "login": "isabela.martins",
+            "masp": 30015,
+            "email": "isabela.martins@email.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:16:20.000000",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Common",
+            "isActive": true
+        },
+        {
+            "fullName": "João Pedro",
+            "login": "joao.pedro",
+            "masp": 30016,
+            "email": "joao.pedro@email.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:16:30.000000",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Common",
+            "isActive": true
+        },
+        {
+            "fullName": "Karen Ramos",
+            "login": "karen.ramos",
+            "masp": 30017,
+            "email": "karen.ramos@email.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:16:40.000000",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Common",
+            "isActive": true
+        },
+        {
+            "fullName": "Lucas Ferreira",
+            "login": "lucas.ferreira",
+            "masp": 30018,
+            "email": "lucas.ferreira@email.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:16:50.000000",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Common",
+            "isActive": true
+        },
+        {
+            "fullName": "Mariana Gomes",
+            "login": "mariana.gomes",
+            "masp": 30019,
+            "email": "mariana.gomes@email.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:17:00.000000",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Common",
+            "isActive": true
+        },
+        {
+            "fullName": "Nicolas Barros",
+            "login": "nicolas.barros",
+            "masp": 30020,
+            "email": "nicolas.barros@email.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:17:10.000000",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Common",
+            "isActive": true
+        },
+        {
+            "fullName": "Olivia Teixeira",
+            "login": "olivia.teixeira",
+            "masp": 30021,
+            "email": "olivia.teixeira@email.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:17:20.000000",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Common",
+            "isActive": true
+        },
+        {
+            "fullName": "Paulo Henrique",
+            "login": "paulo.henrique",
+            "masp": 30022,
+            "email": "paulo.henrique@email.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:17:30.000000",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Common",
+            "isActive": true
+        },
+        {
+            "fullName": "Quésia Farias",
+            "login": "quesia.farias",
+            "masp": 30023,
+            "email": "quesia.farias@email.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:17:40.000000",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Common",
+            "isActive": true
+        },
+        {
+            "fullName": "Rafael Cardoso",
+            "login": "rafael.cardoso",
+            "masp": 30024,
+            "email": "rafael.cardoso@email.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:17:50.000000",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Common",
+            "isActive": true
+        },
+        {
+            "fullName": "Sabrina Lopes",
+            "login": "sabrina.lopes",
+            "masp": 30025,
+            "email": "sabrina.lopes@email.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:18:00.000000",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Common",
+            "isActive": true
+        },
+        {
+            "fullName": "Thiago Nunes",
+            "login": "thiago.nunes",
+            "masp": 30026,
+            "email": "thiago.nunes@email.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:18:10.000000",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Common",
+            "isActive": true
+        },
+        {
+            "fullName": "Ursula Mendes",
+            "login": "ursula.mendes",
+            "masp": 30027,
+            "email": "ursula.mendes@email.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:18:20.000000",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Common",
+            "isActive": true
+        },
+        {
+            "fullName": "Vinicius Castro",
+            "login": "vinicius.castro",
+            "masp": 30028,
+            "email": "vinicius.castro@email.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:18:30.000000",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Common",
+            "isActive": true
+        },
+        {
+            "fullName": "Wesley Moura",
+            "login": "wesley.moura",
+            "masp": 30029,
+            "email": "wesley.moura@email.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:18:40.000000",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Common",
+            "isActive": true
+        },
+        {
+            "fullName": "Xuxa Silva",
+            "login": "xuxa.silva",
+            "masp": 30030,
+            "email": "xuxa.silva@email.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:18:50.000000",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Common",
+            "isActive": true
+        },
+        {
+            "fullName": "Yasmin Oliveira",
+            "login": "yasmin.oliveira",
+            "masp": 30031,
+            "email": "yasmin.oliveira@email.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:19:00.000000",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Common",
+            "isActive": true
+        },
+        {
+            "fullName": "Zeca Brito",
+            "login": "zeca.brito",
+            "masp": 30032,
+            "email": "zeca.brito@email.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:19:10.000000",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Common",
+            "isActive": true
+        },
+        {
+            "fullName": "Ana Paula",
+            "login": "ana.paula",
+            "masp": 30033,
+            "email": "ana.paula@email.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:19:20.000000",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Common",
+            "isActive": true
+        },
+        {
+            "fullName": "Bruna Reis",
+            "login": "bruna.reis",
+            "masp": 30034,
+            "email": "bruna.reis@email.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:19:30.000000",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Common",
+            "isActive": true
+        },
+        {
+            "fullName": "Carlos Eduardo",
+            "login": "carlos.eduardo",
+            "masp": 30035,
+            "email": "carlos.eduardo@email.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:19:40.000000",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Common",
+            "isActive": true
+        },
+        {
+            "fullName": "Débora Lima",
+            "login": "debora.lima",
+            "masp": 30036,
+            "email": "debora.lima@email.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:19:50.000000",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Common",
+            "isActive": true
+        },
+        {
+            "fullName": "Elisa Souza",
+            "login": "elisa.souza",
+            "masp": 30037,
+            "email": "elisa.souza@email.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:20:00.000000",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Common",
+            "isActive": true
+        },
+        {
+            "fullName": "Fábio Lima",
+            "login": "fabio.lima",
+            "masp": 30038,
+            "email": "fabio.lima@email.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:20:10.000000",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Common",
+            "isActive": true
+        },
+        {
+            "fullName": "Gustavo Silva",
+            "login": "gustavo.silva",
+            "masp": 30039,
+            "email": "gustavo.silva@email.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:20:20.000000",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Common",
+            "isActive": true
+        },
+        {
+            "fullName": "Helena Costa",
+            "login": "helena.costa",
+            "masp": 30040,
+            "email": "helena.costa@email.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:20:30.000000",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Common",
+            "isActive": true
+        },
+        {
+            "fullName": "Igor Martins",
+            "login": "igor.martins",
+            "masp": 30041,
+            "email": "igor.martins@email.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:20:40.000000",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Common",
+            "isActive": true
+        },
+        {
+            "fullName": "Jéssica Souza",
+            "login": "jessica.souza",
+            "masp": 30042,
+            "email": "jessica.souza@email.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:20:50.000000",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Common",
+            "isActive": true
+        },
+        {
+            "fullName": "Kleber Lima",
+            "login": "kleber.lima",
+            "masp": 30043,
+            "email": "kleber.lima@email.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:21:00.000000",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Common",
+            "isActive": true
+        },
+        {
+            "fullName": "Larissa Souza",
+            "login": "larissa.souza",
+            "masp": 30044,
+            "email": "larissa.souza@email.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:21:10.000000",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Common",
+            "isActive": true
+        },
+        {
+            "fullName": "Marcelo Lima",
+            "login": "marcelo.lima",
+            "masp": 30045,
+            "email": "marcelo.lima@email.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:21:20.000000",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Common",
+            "isActive": true
+        },
+        {
+            "fullName": "Natália Souza",
+            "login": "natalia.souza",
+            "masp": 30046,
+            "email": "natalia.souza@email.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:21:30.000000",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Common",
+            "isActive": true
+        },
+        {
+            "fullName": "Otávio Souza",
+            "login": "otavio.souza",
+            "masp": 30047,
+            "email": "otavio.souza@email.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:21:40.000000",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Common",
+            "isActive": true
+        },
+        {
+            "fullName": "Paula Souza",
+            "login": "paula.souza",
+            "masp": 30048,
+            "email": "paula.souza@email.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:21:50.000000",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Common",
+            "isActive": true
+        },
+        {
+            "fullName": "Quirino Souza",
+            "login": "quirino.souza",
+            "masp": 30049,
+            "email": "quirino.souza@email.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:22:00.000000",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Common",
+            "isActive": true
+        },
+        {
+            "fullName": "Lucas Henrique Silva",
+            "login": "lucas.silva",
+            "masp": 30050,
+            "email": "lucas.silva@email.com",
+            "passwordHash": "123456789",
+            "createdAt": "2025-07-02T23:22:10.000000",
+            "lastLoginAt": null,
+            "updatedAt": null,
+            "role": "Common",
+            "isActive": true
+        }
+    ]
+}

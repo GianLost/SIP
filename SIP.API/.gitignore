@@ -1,0 +1,41 @@
+# Build results
+bin/
+obj/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Visual Studio settings
+.vscode/
+.vs/
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# Configuration files
+appsettings.Development.json
+appsettings.Local.json
+appsettings.*.local.json
+
+# Logs
+*.log
+
+# Entity Framework Migrations
+Migrations/
+
+# Dotnet tools
+*.dbmdl
+
+# Publish output
+publish/
+out/
+
+# Rider
+.idea/
+
+# OS generated files
+.DS_Store
+Thumbs.db
