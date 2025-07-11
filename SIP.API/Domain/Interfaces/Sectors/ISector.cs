@@ -9,6 +9,17 @@ namespace SIP.API.Domain.Interfaces.Sectors;
 public interface ISector
 {
     /// <summary>
+    /// Asynchronously retrieves the total number of sectors that match the given search criteria.
+    /// </summary>
+    /// <param name="searchString">
+    /// A keyword used to filter the sectors by name or other relevant fields. If <c>null</c> or empty, all sectors are counted.
+    /// </param>
+    /// <returns>
+    /// A task that represents the asynchronous operation. The task result contains the total number of matching sectors as an integer.
+    /// </returns>
+    Task<int> GetTotalSectorsCountAsync(string? searchString);
+
+    /// <summary>
     /// Asynchronously creates a new sector in the database.
     /// </summary>
     /// <param name="dto">A data transfer object containing the sector's information.</param>
@@ -27,14 +38,22 @@ public interface ISector
     Task<Sector?> GetByIdAsync(Guid id);
 
     /// <summary>
-    /// Asynchronously retrieves a paginated list of sectors from the database.
+    /// Asynchronously retrieves a paginated list of sectors, optionally sorted and filtered.
     /// </summary>
     /// <param name="pageNumber">The page number to retrieve (starting from 1).</param>
     /// <param name="pageSize">The number of records per page.</param>
+    /// <param name="sortLabel">The field name used to sort the results (optional).</param>
+    /// <param name="sortDirection">
+    /// The sort direction: "asc" for ascending or "desc" for descending order (optional).
+    /// </param>
+    /// <param name="searchString">
+    /// A keyword used to filter the sectors by name or other relevant fields (optional).
+    /// </param>
     /// <returns>
-    /// A task that represents the asynchronous operation. The task result contains a collection of <see cref="Sector"/> entities.
+    /// A task that represents the asynchronous operation. The task result contains a list of <see cref="Sector"/> entities
+    /// that match the given pagination, sorting, and filtering criteria.
     /// </returns>
-    Task<IEnumerable<Sector>> GetAllAsync(int pageNumber, int pageSize);
+    Task<List<Sector>> GetAllAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection, string? searchString);
 
     /// <summary>
     /// Asynchronously updates an existing sector in the database.

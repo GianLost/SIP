@@ -14,6 +14,23 @@ public class SectorService(ApplicationContext context) : ISector
     private readonly ApplicationContext _context = context;
 
     /// <inheritdoc/>
+    public async Task<int> GetTotalSectorsCountAsync(string? searchString)
+    {
+        IQueryable<Sector> query = _context.Sectors;
+
+        if (!string.IsNullOrWhiteSpace(searchString))
+        {
+            query = query.Where(s =>
+                s.Name.Contains(searchString) ||
+                s.Acronym.Contains(searchString) ||
+                s.Phone.Contains(searchString));
+        }
+
+        return await query.CountAsync();
+    }
+
+
+    /// <inheritdoc/>
     public async Task<Sector> CreateAsync(SectorCreateDTO dto)
     {
         var sector = new Sector
@@ -36,15 +53,45 @@ public class SectorService(ApplicationContext context) : ISector
     }
 
     /// <inheritdoc/>
-    public async Task<IEnumerable<Sector>> GetAllAsync(int pageNumber, int pageSize)
+    public async Task<List<Sector>> GetAllAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection, string? searchString)
     {
-        return await _context.Sectors
-        .AsNoTracking()
-        .Include(s => s.Users)
-        .OrderBy(s => s.Name)
-        .Skip((pageNumber - 1) * pageSize)
-        .Take(pageSize)
-        .ToListAsync();
+        IQueryable<Sector> query = _context.Sectors.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(searchString))
+        {
+            query = query.Where(s =>
+                s.Name.Contains(searchString) ||
+                s.Acronym.Contains(searchString) ||
+                s.Phone.Contains(searchString));
+        }
+
+        // Dinamic sorting
+        // If sortLabel or sortDirection is provided, apply sorting
+        if (!string.IsNullOrWhiteSpace(sortLabel) && !string.IsNullOrWhiteSpace(sortDirection))
+        {
+            var property = typeof(Sector).GetProperty(sortLabel, System.Reflection.BindingFlags.IgnoreCase | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+            if (property != null)
+            {
+                query = sortDirection.Trim().Equals("asc", StringComparison.CurrentCultureIgnoreCase)
+                    ? query.OrderBy(e => EF.Property<object>(e, property.Name))
+                    : query.OrderByDescending(e => EF.Property<object>(e, property.Name));
+            }
+            else
+            {
+                query = query.OrderBy(s => s.Name); // default sorting if property not found
+            }
+        }
+        else
+        {
+            query = query.OrderBy(s => s.Name); // default sorting if no sorting parameters are provided
+        }
+
+        var result = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return result;
     }
 
     /// <inheritdoc/>
@@ -74,8 +121,8 @@ public class SectorService(ApplicationContext context) : ISector
         if (sector == null)
             return false;
 
-        if(sector.Users.Count > 0)
-            throw new InvalidOperationException("Cannot delete a sector that has associated users.");
+        if (sector.Users.Count > 0)
+            throw new InvalidOperationException("Não é possível excluir uma secretaria que possua um ou mais usuários vinculados.");
 
         _context.Sectors.Remove(sector);
         await _context.SaveChangesAsync();

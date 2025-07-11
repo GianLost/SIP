@@ -1,0 +1,48 @@
+﻿@using SIP.UI.Models.Sectors
+@using MudBlazor
+
+@* Diálogo para exclusão de setor *@
+<MudDialog MaxWidth="false" FullWidth="false" Style="width:450px">
+
+    <DialogContent>
+
+        <MudStack AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center" Class="mb-4">
+            <MudIcon Icon="@Icons.Material.Filled.Warning" Color="Color.Warning" Size="Size.Large" Class="mb-2" />
+        </MudStack>
+
+        <MudText Typo="Typo.body2" Class="mt-4 text-start p-0">
+            Você tem certeza que deseja excluir a secretaria <b>@SectorToDelete?.Name</b> (@SectorToDelete?.Acronym)? Esta ação <span class="text-danger"><b>não poderá ser desfeita</b></span>.
+        </MudText>
+
+    </DialogContent>
+
+    <DialogActions>
+
+        <MudStack Row="true" Class="justify-content-start pa-4" FullWidth="true">
+            <MudButton Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete" OnClick="Submit" Class="mr-3">Excluir</MudButton>
+            <MudButton Color="Color.Secondary" Variant="Variant.Outlined" OnClick="Cancel">Cancelar</MudButton>
+        </MudStack>
+
+    </DialogActions>
+
+</MudDialog>
+
+@code {
+
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter] public Sector? SectorToDelete { get; set; }
+
+    private void Submit()
+    {
+		// Retorna true para indicar que a exclusão foi confirmada
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    private void Cancel()
+    {
+		// Retorna false para cancelar a exclusão
+        MudDialog.Cancel();
+    }
+
+}

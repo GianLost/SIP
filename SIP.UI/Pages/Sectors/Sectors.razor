@@ -1,0 +1,305 @@
+﻿@page "/sectors"
+
+@using SIP.UI.Domain.Services
+@using SIP.UI.Models.Sectors
+@using MudBlazor
+@using MudBlazor.Utilities
+
+@inject SectorService _sectorService
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+@* Container Principal *@
+<MudContainer MaxWidth="MaxWidth.Large" Class="my-8 px-4">
+
+    <MudStack Row="true" AlignItems="AlignItems.Stretch" Class="mb-6">
+
+        @* Ícone de prédio *@
+        <MudText Typo="Typo.h4" Color="Color.Primary" Class="d-flex align-items-center">
+            <MudIcon Icon="@Icons.Material.Filled.Business" Class="mr-3" />
+        </MudText>
+
+        @* Botão para adicionar nova secretaria *@
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ShowAddDialog" StartIcon="@Icons.Material.Filled.Add" Size="Size.Medium" Class="mud-elevation-3 rounded-pill px-6 py-3">
+            Nova Secretaria
+        </MudButton>
+
+    </MudStack>
+
+    @* Componente para agrupamento dos sub-componentes da tabela de setores. *@
+    <MudPaper Class="pa-6 ma-2" Elevation="1">
+
+        @* Tabela com os registros de setores cadastrados. *@
+        <MudTable T="Sector" ServerData="LoadServerData" Dense="true" Hover="true" Bordered="false" Striped="true" @ref="table" RowsPerPage="pageSize" LoadingProgressColor="Color.Primary" SortLabel="sortLabel">
+
+            @* Barra de ferramentas com a filtragem por busca e botões de exportação. *@
+            <ToolBarContent>
+
+                @* Campo para filtragem por busca. *@
+                <MudTextField T="string" ValueChanged="@OnSearch" Immediate="false" DebounceInterval="300" Placeholder="Buscar Secretaria..." Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0 mr-4" Clearable="true" Style="max-width: 300px;" />
+
+                @* Menu com opções de exportação. *@
+                <MudMenu Icon="@Icons.Material.Filled.MoreVert" Color="Color.Primary" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                    <MudMenuItem OnClick="ExportToCsv">Exportar CSV</MudMenuItem>
+                    <MudMenuItem OnClick="ExportToPdf">Exportar PDF</MudMenuItem>
+                </MudMenu>
+
+            </ToolBarContent>
+
+            @* Cabeçalho da tabela com as colunas e ordenação. *@
+            <HeaderContent>
+                @* Ordenação por nome *@
+                <MudTh>
+                    <MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<Sector, object>(x => x.Name)">Nome</MudTableSortLabel>
+                </MudTh>
+                @* Ordenação por nome *@
+                <MudTh>
+                    <MudTableSortLabel SortBy="new Func<Sector, object>(x => x.Acronym)">Sigla</MudTableSortLabel>
+                </MudTh>
+
+                <MudTh>Telefone</MudTh>
+                <MudTh Align="Align.Right"></MudTh>
+            </HeaderContent>
+
+            @* Corpo da tabela contentdo os dados recuperados do banco. *@
+            <RowTemplate>
+
+                <MudTd DataLabel="Nome">@context.Name</MudTd>
+                <MudTd DataLabel="Sigla">@context.Acronym</MudTd>
+                <MudTd DataLabel="Telefone">@FormatPhoneNumber(@context.Phone)</MudTd>
+
+                @* Botões de ação (editar e excluir). *@
+                <MudTd DataLabel="Ações" Align="Align.Right">
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Size="Size.Small" OnClick="@(() => ShowEditDialog(context))" aria-label="Editar Secretaria" Variant="Variant.Text" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => ShowDeleteDialog(context))" aria-label="Excluir Secretaria" Variant="Variant.Text" />
+                </MudTd>
+
+            </RowTemplate>
+
+            <NoRecordsContent>
+                <MudText Class="pa-6 text-center mud-text-secondary">Nenhuma secretaria encontrada para exibir.</MudText>
+            </NoRecordsContent>
+
+            <LoadingContent>
+                <MudText Class="pa-6 text-center mud-text-secondary">Carregando secretarias, por favor aguarde...</MudText>
+            </LoadingContent>
+
+            <PagerContent>
+                <MudTablePager PageSizeOptions="new int[] { 15, 25, 50, 100 }" />
+            </PagerContent>
+
+        </MudTable>
+
+    </MudPaper>
+
+</MudContainer>
+
+@code {
+
+    private MudTable<Sector>? table;
+    private bool isLoading = false;
+    private int pageSize = 15;
+    private int totalItems = 0;
+    private string searchString = string.Empty;
+    private string? lastSortLabel;
+
+
+    // Método chamado pelo MudTable para renderizar os dados do servidor
+    private async Task<TableData<Sector>> LoadServerData(TableState state, CancellationToken cancellationToken)
+    {
+        isLoading = true;
+        StateHasChanged();
+
+        // Força o sortLabel manualmente se vier nulo
+        string? sortLabel = state.SortLabel;
+
+        if (string.IsNullOrWhiteSpace(sortLabel))
+        {
+            if (state.SortDirection != SortDirection.None)
+                sortLabel = lastSortLabel ?? "Name"; 
+            else
+                sortLabel = "Name";
+        }
+
+        try
+        {
+            List<Sector>? sectors = await _sectorService.GetSectorsAsync(
+                state.Page + 1,
+                state.PageSize,
+                sortLabel,
+                GetSortDirectionString(state.SortDirection),
+                searchString);
+
+            totalItems = await _sectorService.GetTotalSectorsCountAsync(searchString);
+
+            return new TableData<Sector>
+            {
+                Items = sectors ?? [],
+                TotalItems = totalItems
+            };
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Erro ao carregar dados: {ex.Message}", Severity.Error);
+            return new TableData<Sector> { Items = [], TotalItems = 0 };
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void OnSortLabelChanged(string? label) => lastSortLabel = label;
+
+    // Método chamado quando o usuário digita no campo de busca
+    private async Task OnSearch(string text)
+    {
+        searchString = text;
+
+        if (table is not null)
+            await table.ReloadServerData();
+    }
+
+    // Método chamado para definir a ordenação por colunas
+    private string GetSortDirectionString(SortDirection direction) =>
+        direction switch
+        {
+            SortDirection.Ascending => "asc",
+            SortDirection.Descending => "desc",
+            _ => string.Empty
+        };
+
+    // Método para validar o número de telefone (XX) 9XXXX-XXXX ou (XX) XXXX-XXXX
+    private string FormatPhoneNumber(string? phoneNumber)
+    {
+        if (string.IsNullOrWhiteSpace(phoneNumber)) return string.Empty;
+        string digitsOnly = new string(phoneNumber.Where(char.IsDigit).ToArray());
+
+        // Verifica se o número contém apenas dígitos e tem o tamanho correto
+        return digitsOnly.Length switch
+        {
+            11 => $"({digitsOnly[..2]}) {digitsOnly.Substring(2, 5)}-{digitsOnly[7..]}",
+            10 => $"({digitsOnly[..2]}) {digitsOnly.Substring(2, 4)}-{digitsOnly[6..]}",
+            _ => phoneNumber
+        };
+    }
+
+    // --- Métodos de Diálogo Usando IDialogService ---
+
+    // Método para exibir o diálogo de adição de secretaria
+    private async Task ShowAddDialog()
+    {
+        DialogParameters<SectorEditDialog> parameters = new DialogParameters<SectorEditDialog>();
+
+        parameters.Add(x => x.Sector, new Sector { Id = Guid.Empty }); // Passa um setor vazio
+
+        IDialogReference dialog = await DialogService.ShowAsync<SectorEditDialog>("", parameters);
+        DialogResult? result = await dialog.Result;
+
+        if (result is not null && !result.Canceled) // Verifica se o usuário confirmou a criação
+        {
+            var savedSector = result.Data as Sector;
+
+            if (savedSector != null) // Verifica se o setor a ser salvo não é nulo
+            {
+                try
+                {
+                    await _sectorService.CreateSectorAsync(savedSector);
+                    Snackbar.Add("Secretaria criada com sucesso!", Severity.Success);
+
+                    if (table is not null)
+                        await table.ReloadServerData();
+                }
+                catch (Exception ex)
+                {
+                    Snackbar.Add($"Erro ao criar secretaria: {ex.Message}", Severity.Error);
+                }
+            }
+        }
+    }
+
+    // Método para exibir o diálogo de edição de secretaria
+    private async Task ShowEditDialog(Sector sector)
+    {
+        var parameters = new DialogParameters<SectorEditDialog>();
+
+        // Passa os dados do setor selecionado para o diálogo de edição
+        parameters.Add(x => x.Sector, new Sector
+        {
+            Id = sector.Id,
+            Name = sector.Name,
+            Acronym = sector.Acronym,
+            Phone = sector.Phone
+        });
+
+        var dialog = await DialogService.ShowAsync<SectorEditDialog>("", parameters);
+        var result = await dialog.Result;
+
+        if (result is not null && !result.Canceled) // Verifica se o usuário confirmou a edição
+        {
+            Sector? updatedSector = result.Data as Sector;
+
+            if (updatedSector != null) // Verifica se o setor atualizado não é nulo
+            {
+                try
+                {
+                    await _sectorService.UpdateSectorAsync(updatedSector);
+                    Snackbar.Add("Secretaria atualizada com sucesso!", Severity.Success);
+
+                    if (table is not null)
+                        await table.ReloadServerData();
+                }
+                catch (Exception ex)
+                {
+                    Snackbar.Add($"Erro ao atualizar secretaria: {ex.Message}", Severity.Error);
+                }
+            }
+        }
+    }
+
+    // Método para exibir o diálogo de confirmação de exclusão
+    private async Task ShowDeleteDialog(Sector sector)
+    {
+        var parameters = new DialogParameters<SectorDeleteConfirmDialog>();
+        parameters.Add(x => x.SectorToDelete, sector); // Passa o setor a ser excluído
+
+        var dialog = await DialogService.ShowAsync<SectorDeleteConfirmDialog>("", parameters);
+        var result = await dialog.Result;
+
+        if (result is not null && !result.Canceled) // Verifica se o usuário confirmou a exclusão
+        {
+            try
+            {
+                await _sectorService.DeleteSectorAsync(sector.Id);
+                Snackbar.Add("Secretaria excluída com sucesso!", Severity.Success);
+
+                if (table is not null)
+                    await table.ReloadServerData();
+            }
+            catch (InvalidOperationException ex) // Esta exceção virá do SectorService com a mensagem da API
+            {
+                Snackbar.Add($"Erro ao excluir secretaria: {ex.Message}", Severity.Error);
+            }
+            catch (HttpRequestException ex) // Para outros erros de comunicação HTTP não tratados especificamente
+            {
+                Snackbar.Add($"Erro de comunicação: {ex.Message}", Severity.Error);
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Ocorreu um erro inesperado: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+
+    // --- Métodos de Exportação ---
+    private void ExportToCsv()
+    {
+        Snackbar.Add("Exportação para CSV ainda não implementada.", Severity.Info);
+    }
+
+    private void ExportToPdf()
+    {
+        Snackbar.Add("Exportação para PDF ainda não implementada.", Severity.Info);
+    }
+}

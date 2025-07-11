@@ -46,7 +46,8 @@ public class SectorController(ISector sector) : ControllerBase
         }
         catch (Exception ex)
         {
-            return BadRequest(new { Error = ex.Message });
+            return BadRequest(new ErrorResponse(ex.Message));
+            
         }
     }
 
@@ -72,17 +73,41 @@ public class SectorController(ISector sector) : ControllerBase
     }
 
     /// <summary>
-    /// Retrieves a paginated list of sectors.
+    /// Retrieves a paginated, optionally sorted and filtered list of sectors.
     /// </summary>
-    /// <param name="pageNumber">The page number (default is 1).</param>
-    /// <param name="pageSize">The number of records per page (default is 20).</param>
-    /// <returns>A paginated list of sectors.</returns>
+    /// <param name="pageNumber">The page number to retrieve. Defaults to 1.</param>
+    /// <param name="pageSize">The number of sectors to include per page. Defaults to 20.</param>
+    /// <param name="sortLabel">The field name to sort by (optional).</param>
+    /// <param name="sortDirection">The direction of sorting: "asc" for ascending or "desc" for descending (optional).</param>
+    /// <param name="searchString">A keyword used to filter sectors by name or other relevant fields (optional).</param>
+    /// <returns>
+    /// Returns an <see cref="IActionResult"/> containing a list of sectors matching the criteria, wrapped in an HTTP 200 OK response.
+    /// </returns>
     [HttpGet("show")]
     [ProducesResponseType(typeof(IEnumerable<Sector>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 20)
+    public async Task<IActionResult> GetAll(
+    [FromQuery] int pageNumber = 1,
+    [FromQuery] int pageSize = 20,
+    [FromQuery] string? sortLabel = null,
+    [FromQuery] string? sortDirection = null,
+    [FromQuery] string? searchString = null)
     {
-        var sectors = await _sectorService.GetAllAsync(pageNumber, pageSize);
+        var sectors = await _sectorService.GetAllAsync(pageNumber, pageSize, sortLabel, sortDirection, searchString);
         return Ok(sectors);
+    }
+
+    /// <summary>
+    /// Retrieves the total number of sectors that match the given search criteria.
+    /// </summary>
+    /// <param name="searchString">A keyword used to filter sectors by name or other relevant fields (optional).</param>
+    /// <returns>
+    /// Returns an <see cref="ActionResult{T}"/> containing the total count of sectors as an integer, wrapped in an HTTP 200 OK response.
+    /// </returns>
+    [HttpGet("count")]
+    public async Task<ActionResult<int>> GetTotalCount([FromQuery] string? searchString = null)
+    {
+        var total = await _sectorService.GetTotalSectorsCountAsync(searchString);
+        return Ok(total);
     }
 
     /// <summary>
@@ -138,11 +163,11 @@ public class SectorController(ISector sector) : ControllerBase
             if (!deleted)
                 return NotFound();
 
-            return Ok(new { Message = "Sector was deleted with success." });
+            return Ok(new { Message = "Secretaria deletada com sucesso." });
         }
         catch (InvalidOperationException ex)
         {
-            return Conflict(new { Error = ex.Message });
+            return Conflict(new ErrorResponse(ex.Message));
         }
     }
 }

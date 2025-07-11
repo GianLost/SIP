@@ -8,13 +8,22 @@ using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowBlazorClient",
+        policy => policy
+            .WithOrigins("https://localhost:7236") // endereço do seu Blazor WebAssembly
+            .AllowAnyHeader()
+            .AllowAnyMethod());
+});
+
 builder.Services.AddScoped<IUser, UserService>();
 builder.Services.AddScoped<ISector, SectorService>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
 {
-    options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
+    options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
     options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.Never;
 });
 
@@ -42,6 +51,8 @@ builder.Services.AddDbContext<ApplicationContext>(options =>
 });
 
 var app = builder.Build();
+
+app.UseCors("AllowBlazorClient");
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36121.58
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SIP.API", "SIP.API\SIP.API.csproj", "{5893A6F3-8899-FE98-0649-3DABEDAC48E4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SIP.UI", "SIP.UI\SIP.UI.csproj", "{0C39B6EA-CAD8-AFB1-F416-E530F5D0EAAE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5893A6F3-8899-FE98-0649-3DABEDAC48E4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5893A6F3-8899-FE98-0649-3DABEDAC48E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5893A6F3-8899-FE98-0649-3DABEDAC48E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5893A6F3-8899-FE98-0649-3DABEDAC48E4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0C39B6EA-CAD8-AFB1-F416-E530F5D0EAAE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0C39B6EA-CAD8-AFB1-F416-E530F5D0EAAE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0C39B6EA-CAD8-AFB1-F416-E530F5D0EAAE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0C39B6EA-CAD8-AFB1-F416-E530F5D0EAAE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8EE3A948-859B-4013-B39C-B414D3D3BDBA}
+	EndGlobalSection
+EndGlobal

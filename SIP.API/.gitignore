@@ -15,16 +15,16 @@ obj/
 # ASP.NET Scaffolding
 ScaffoldingReadMe.txt
 
-# Configuration files
-appsettings.Development.json
-appsettings.Local.json
-appsettings.*.local.json
+## Configuration files
+# appsettings.Development.json
+# appsettings.Local.json
+# appsettings.*.local.json
 
 # Logs
 *.log
 
-# Entity Framework Migrations
-Migrations/
+## Entity Framework Migrations
+# Migrations/
 
 # Dotnet tools
 *.dbmdl
