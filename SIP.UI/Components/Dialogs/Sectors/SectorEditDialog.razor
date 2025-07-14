@@ -42,8 +42,12 @@
 </MudDialog>
 
 @code {
-    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
-    [Parameter] public Sector Sector { get; set; } = new Sector();
+
+    [CascadingParameter] 
+    IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter] 
+    public Sector Sector { get; set; } = new Sector();
 
     private MudForm? form;
     private bool isValid = false;
@@ -59,19 +63,18 @@
     private async Task Submit()
     {
         await form!.Validate();
+
         if (isValid)
             MudDialog.Close(DialogResult.Ok(Sector));
     }
 
-    private void Cancel()
-    {
-        MudDialog.Cancel();
-    }
+    private void Cancel() => MudDialog.Cancel();
 
     private bool IsValidPhoneNumber(string? phone)
     {
         if (string.IsNullOrWhiteSpace(phone)) return false;
-        var digits = new string(phone.Where(char.IsDigit).ToArray());
+            var digits = new string(phone.Where(char.IsDigit).ToArray());
+
         // Aceita (XX) XXXX-XXXX ou (XX) 9XXXX-XXXX
         return digits.Length == 10 || digits.Length == 11;
     }

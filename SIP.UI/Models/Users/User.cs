@@ -1,4 +1,5 @@
-﻿using SIP.UI.Models.Sectors;
+﻿using SIP.UI.Domain.Enums;
+using SIP.UI.Models.Sectors;
 
 namespace SIP.UI.Models.Users;
 

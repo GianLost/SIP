@@ -1,7 +1,24 @@
 ﻿@page "/"
+@using MudBlazor
 
-<PageTitle>Home</PageTitle>
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-10">
 
-<h1>Hello, world!</h1>
+    <MudPaper Elevation="4" Class="pa-6 d-flex flex-column align-items-center text-center">
+        <MudAvatar Icon="@Icons.Material.Filled.Workspaces" Size="Size.Large" Color="Color.Primary" Class="mb-4" />
 
-Welcome to your new app.
+        <MudText Typo="Typo.h4" GutterBottom="true" Color="Color.Primary">
+            SIP - Sistema Interno de Protocolo
+        </MudText>
+
+        <MudText Typo="Typo.body1" Class="mb-4">
+            O desenvolvimento do sistema já está em andamento. Em breve, esta plataforma estará disponível para uso.
+        </MudText>
+
+        <MudDivider Class="my-4" />
+
+        <MudButton Href="https://github.com/GianLost" Target="_blank" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Custom.Brands.GitHub">
+            Acessar o repositório no GitHub
+        </MudButton>
+    </MudPaper>
+
+</MudContainer>

@@ -11,7 +11,7 @@
         </MudStack>
 
         <MudText Typo="Typo.body2" Class="mt-4 text-start p-0">
-            Você tem certeza que deseja excluir a secretaria <b>@SectorToDelete?.Name</b> (@SectorToDelete?.Acronym)? Esta ação <span class="text-danger"><b>não poderá ser desfeita</b></span>.
+            Você tem certeza que deseja excluir a: <b>@SectorToDelete?.Name - (@SectorToDelete?.Acronym)</b>? Esta ação <span class="text-danger"><b>não poderá ser desfeita</b></span>.
         </MudText>
 
     </DialogContent>
@@ -29,20 +29,14 @@
 
 @code {
 
-    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+    [CascadingParameter] 
+    IMudDialogInstance MudDialog { get; set; } = default!;
 
-    [Parameter] public Sector? SectorToDelete { get; set; }
+    [Parameter] 
+    public Sector? SectorToDelete { get; set; }
 
-    private void Submit()
-    {
-		// Retorna true para indicar que a exclusão foi confirmada
-        MudDialog.Close(DialogResult.Ok(true));
-    }
+    private void Submit() => MudDialog.Close(DialogResult.Ok(true));
 
-    private void Cancel()
-    {
-		// Retorna false para cancelar a exclusão
-        MudDialog.Cancel();
-    }
+    private void Cancel() => MudDialog.Cancel();
 
 }

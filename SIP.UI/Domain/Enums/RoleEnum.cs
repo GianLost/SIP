@@ -1,4 +1,4 @@
-﻿namespace SIP.UI;
+﻿namespace SIP.UI.Domain.Enums;
 
 public enum RoleEnum
 {

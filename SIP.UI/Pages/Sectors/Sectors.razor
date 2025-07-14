@@ -1,6 +1,7 @@
 ﻿@page "/sectors"
 
-@using SIP.UI.Domain.Services
+@using SIP.UI.Components.Dialogs.Sectors
+@using SIP.UI.Domain.Services.Sectors
 @using SIP.UI.Models.Sectors
 @using MudBlazor
 @using MudBlazor.Utilities
@@ -27,22 +28,26 @@
     </MudStack>
 
     @* Componente para agrupamento dos sub-componentes da tabela de setores. *@
-    <MudPaper Class="pa-6 ma-2" Elevation="1">
+    <MudPaper Class="pa-4 ma-2" Elevation="1">
 
         @* Tabela com os registros de setores cadastrados. *@
-        <MudTable T="Sector" ServerData="LoadServerData" Dense="true" Hover="true" Bordered="false" Striped="true" @ref="table" RowsPerPage="pageSize" LoadingProgressColor="Color.Primary" SortLabel="sortLabel">
+        <MudTable T="Sector" ServerData="LoadServerData" Dense="true" Hover="true" Bordered="false" Striped="true" @ref="table" RowsPerPage="pageSize" LoadingProgressColor="Color.Primary" SortLabel="sortLabel" Elevation="0">
 
             @* Barra de ferramentas com a filtragem por busca e botões de exportação. *@
             <ToolBarContent>
 
-                @* Campo para filtragem por busca. *@
-                <MudTextField T="string" ValueChanged="@OnSearch" Immediate="false" DebounceInterval="300" Placeholder="Buscar Secretaria..." Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0 mr-4" Clearable="true" Style="max-width: 300px;" />
+                <MudTooltip Text="digite sua busca..." Arrow="true" Placement="Placement.Bottom">
+                    @* Campo para filtragem por busca. *@
+                    <MudTextField T="string" ValueChanged="@OnSearch" Immediate="false" DebounceInterval="300" Placeholder="Buscar Secretaria..." Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0 mr-4" Clearable="true" Style="max-width: 300px;" />
+                </MudTooltip>
 
-                @* Menu com opções de exportação. *@
-                <MudMenu Icon="@Icons.Material.Filled.MoreVert" Color="Color.Primary" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
-                    <MudMenuItem OnClick="ExportToCsv">Exportar CSV</MudMenuItem>
-                    <MudMenuItem OnClick="ExportToPdf">Exportar PDF</MudMenuItem>
-                </MudMenu>
+                <MudTooltip Text="Exportar para formatos compatíveis">
+                    @* Menu com opções de exportação. *@
+                    <MudMenu Icon="@Icons.Material.Filled.MoreVert" Color="Color.Primary" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                        <MudMenuItem OnClick="ExportToCsv">Exportar CSV</MudMenuItem>
+                        <MudMenuItem OnClick="ExportToPdf">Exportar PDF</MudMenuItem>
+                    </MudMenu>
+                </MudTooltip>
 
             </ToolBarContent>
 
@@ -70,8 +75,12 @@
 
                 @* Botões de ação (editar e excluir). *@
                 <MudTd DataLabel="Ações" Align="Align.Right">
-                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Size="Size.Small" OnClick="@(() => ShowEditDialog(context))" aria-label="Editar Secretaria" Variant="Variant.Text" />
-                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => ShowDeleteDialog(context))" aria-label="Excluir Secretaria" Variant="Variant.Text" />
+                    <MudTooltip Text="Editar">
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Size="Size.Small" OnClick="@(() => ShowEditDialog(context))" aria-label="Editar Secretaria" Variant="Variant.Text" />
+                    </MudTooltip>
+                   <MudTooltip Text="Excluir">
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => ShowDeleteDialog(context))" aria-label="Excluir Secretaria" Variant="Variant.Text" />
+                   </MudTooltip>
                 </MudTd>
 
             </RowTemplate>
@@ -109,6 +118,9 @@
     {
         isLoading = true;
         StateHasChanged();
+
+        // Atualiza o valor de pageSize com o valor atual do estado da tabela
+        pageSize = state.PageSize;
 
         // Força o sortLabel manualmente se vier nulo
         string? sortLabel = state.SortLabel;
@@ -261,10 +273,10 @@
     // Método para exibir o diálogo de confirmação de exclusão
     private async Task ShowDeleteDialog(Sector sector)
     {
-        var parameters = new DialogParameters<SectorDeleteConfirmDialog>();
+        var parameters = new DialogParameters<SectorDeleteDialog>();
         parameters.Add(x => x.SectorToDelete, sector); // Passa o setor a ser excluído
 
-        var dialog = await DialogService.ShowAsync<SectorDeleteConfirmDialog>("", parameters);
+        var dialog = await DialogService.ShowAsync<SectorDeleteDialog>("", parameters);
         var result = await dialog.Result;
 
         if (result is not null && !result.Canceled) // Verifica se o usuário confirmou a exclusão

@@ -9,36 +9,50 @@
 <MudPopoverProvider />
 
 <MudLayout>
+
     <MudAppBar Elevation="1">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
         <MudText Typo="Typo.h6" Class="ml-4">SIP - SISTEMA INTERNO DE PROTOCOLO</MudText>
         <MudSpacer />
-        <MudIconButton Icon="@Icons.Material.Filled.Brightness4" Color="Color.Inherit" Edge="Edge.End" OnClick="ToggleTheme" />
-        <MudIconButton Class="ms-4" Icon="@Icons.Material.Filled.Person" Color="Color.Inherit" Edge="Edge.End" />
+        <MudTooltip Text="Fazer login" Arrow="true" Placement="Placement.Bottom">
+            <MudIconButton Class="ms-4" Icon="@Icons.Material.Filled.Person" Color="Color.Inherit" Edge="Edge.End" />
+        </MudTooltip>
     </MudAppBar>
 
-    <MudDrawer @bind-Open="_drawerOpen" Elevation="2">
+    <MudDrawer @bind-Open="_isDrawerOpened" Elevation="2">
+
         <MudDrawerHeader>
             <MudStack Spacing="0">
                 <MudText Typo="Typo.h6">Menu Principal</MudText>
             </MudStack>
         </MudDrawerHeader>
-        <MudNavMenu>
-            <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Início</MudNavLink>
+
+        <MudNavMenu Color="Color.Primary" Bordered="true">
+            <MudNavLink Href="/" Class="navigate" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Início</MudNavLink>
             <MudNavLink Href="/sectors" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Business">Secretarias</MudNavLink>
             <MudNavLink Href="/users" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.People">Usuários</MudNavLink>
             <MudDivider Class="my-2" />
             <MudNavLink Href="/settings" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Settings">Configurações</MudNavLink>
         </MudNavMenu>
+
+        <MudSpacer />
+
+        <MudTooltip Text="Alterar tema" Arrow="true" Placement="Placement.Left">
+            <MudStack Row="true">
+                <MudIconButton Icon="@Icons.Material.Filled.Brightness4" Color="Color.Inherit" Edge="Edge.End" OnClick="ToggleTheme" />
+            </MudStack>
+        </MudTooltip>
+
     </MudDrawer>
 
     <MudMainContent>
         @Body
     </MudMainContent>
+
 </MudLayout>
 
 @code {
-    private bool _drawerOpen = true;
+    private bool _isDrawerOpened = true;
     private bool _isDarkMode = true;
     private MudThemeProvider? _mudThemeProvider;
 
@@ -85,7 +99,7 @@
     // Método para alternar o estado do drawer
     void DrawerToggle()
     {
-        _drawerOpen = !_drawerOpen;
+        _isDrawerOpened = !_isDrawerOpened;
     }
 
     // Método para alternar o tema entre claro e escuro

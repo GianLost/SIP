@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor.Services;
 using SIP.UI;
-using SIP.UI.Domain.Services;
+using SIP.UI.Domain.Services.Sectors;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 

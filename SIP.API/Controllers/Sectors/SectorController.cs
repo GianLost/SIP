@@ -87,7 +87,7 @@ public class SectorController(ISector sector) : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<Sector>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll(
     [FromQuery] int pageNumber = 1,
-    [FromQuery] int pageSize = 20,
+    [FromQuery] int pageSize = 15,
     [FromQuery] string? sortLabel = null,
     [FromQuery] string? sortDirection = null,
     [FromQuery] string? searchString = null)
