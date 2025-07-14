@@ -13,5 +13,7 @@ public class Sector
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
 
+    public bool ShowUsers { get; set; }
+
     public ICollection<User> Users { get; set; } = [];
 }

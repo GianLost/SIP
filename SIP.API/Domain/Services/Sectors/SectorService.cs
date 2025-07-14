@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using SIP.API.Domain.DTOs.Sectors;
 using SIP.API.Domain.Entities.Sectors;
 using SIP.API.Domain.Interfaces.Sectors;
@@ -9,9 +10,11 @@ namespace SIP.API.Domain.Services.Sectors;
 /// <summary>
 /// Service implementation for managing sector entities in the database.
 /// </summary>
-public class SectorService(ApplicationContext context) : ISector
+public class SectorService(ApplicationContext context, IMemoryCache cache) : ISector
 {
     private readonly ApplicationContext _context = context;
+    private readonly IMemoryCache _cache = cache;
+    private const int MaxPageSize = 100;
 
     /// <inheritdoc/>
     public async Task<int> GetTotalSectorsCountAsync(string? searchString)
@@ -28,7 +31,6 @@ public class SectorService(ApplicationContext context) : ISector
 
         return await query.CountAsync();
     }
-
 
     /// <inheritdoc/>
     public async Task<Sector> CreateAsync(SectorCreateDTO dto)
@@ -55,7 +57,7 @@ public class SectorService(ApplicationContext context) : ISector
     /// <inheritdoc/>
     public async Task<List<Sector>> GetAllAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection, string? searchString)
     {
-        IQueryable<Sector> query = _context.Sectors.AsQueryable();
+        IQueryable<Sector> query = _context.Sectors.Include(s => s.Users).AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(searchString))
         {
@@ -92,6 +94,62 @@ public class SectorService(ApplicationContext context) : ISector
             .ToListAsync();
 
         return result;
+    }
+
+    /// <inheritdoc/>
+    public async Task<SectorPagedResultDTO> GetPagedAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection, string? searchString)
+    {
+        pageSize = Math.Min(pageSize, MaxPageSize); // Limite máximo
+
+        IQueryable<Sector> query = _context.Sectors.Include(s => s.Users);
+
+        if (!string.IsNullOrWhiteSpace(searchString))
+        {
+            query = query.Where(s =>
+                s.Name.Contains(searchString) ||
+                s.Acronym.Contains(searchString) ||
+                s.Phone.Contains(searchString));
+        }
+
+        // Cache da contagem
+        string cacheKey = $"SectorCount_{searchString}";
+        int totalCount;
+        if (!_cache.TryGetValue(cacheKey, out totalCount))
+        {
+            totalCount = await query.CountAsync();
+            _cache.Set(cacheKey, totalCount, TimeSpan.FromMinutes(2));
+        }
+
+        // Ordenação dinâmica (igual ao seu código atual)
+        if (!string.IsNullOrWhiteSpace(sortLabel) && !string.IsNullOrWhiteSpace(sortDirection))
+        {
+            var property = typeof(Sector).GetProperty(sortLabel, System.Reflection.BindingFlags.IgnoreCase | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+            if (property != null)
+            {
+                query = sortDirection.Trim().Equals("asc", StringComparison.CurrentCultureIgnoreCase)
+                    ? query.OrderBy(e => EF.Property<object>(e, property.Name))
+                    : query.OrderByDescending(e => EF.Property<object>(e, property.Name));
+            }
+            else
+            {
+                query = query.OrderBy(s => s.Name);
+            }
+        }
+        else
+        {
+            query = query.OrderBy(s => s.Name);
+        }
+
+        var items = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return new SectorPagedResultDTO
+        {
+            Items = items,
+            TotalCount = totalCount
+        };
     }
 
     /// <inheritdoc/>

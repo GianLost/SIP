@@ -38,6 +38,17 @@ public interface ISector
     Task<Sector?> GetByIdAsync(Guid id);
 
     /// <summary>
+    /// Retorna setores paginados, com filtro, ordenação e total de registros.
+    /// </summary>
+    /// <param name="pageNumber">Número da página (iniciando em 1).</param>
+    /// <param name="pageSize">Quantidade de registros por página.</param>
+    /// <param name="sortLabel">Campo para ordenação.</param>
+    /// <param name="sortDirection">Direção da ordenação ("asc" ou "desc").</param>
+    /// <param name="searchString">Texto para filtro de pesquisa.</param>
+    /// <returns>Objeto SectorPagedResultDTO.</returns>
+    Task<SectorPagedResultDTO> GetPagedAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection, string? searchString);
+
+    /// <summary>
     /// Asynchronously retrieves a paginated list of sectors, optionally sorted and filtered.
     /// </summary>
     /// <param name="pageNumber">The page number to retrieve (starting from 1).</param>

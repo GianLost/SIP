@@ -3,30 +3,43 @@
 
 @inject IJSRuntime JS
 
+@* Importação dos componentes do MudBlazor *@
 <MudThemeProvider @ref="_mudThemeProvider" IsDarkMode="@_isDarkMode" Theme="@(_isDarkMode? DarkTheme : LightTheme)" />
 <MudDialogProvider />
 <MudSnackbarProvider />
 <MudPopoverProvider />
 
+@* Layout principal *@
 <MudLayout>
 
+    @* AppBar *@
     <MudAppBar Elevation="1">
+
+        @* Ícone de barras do menu lateral retrátil *@
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+
         <MudText Typo="Typo.h6" Class="ml-4">SIP - SISTEMA INTERNO DE PROTOCOLO</MudText>
+
         <MudSpacer />
+
+        @* Ícone de login *@
         <MudTooltip Text="Fazer login" Arrow="true" Placement="Placement.Bottom">
             <MudIconButton Class="ms-4" Icon="@Icons.Material.Filled.Person" Color="Color.Inherit" Edge="Edge.End" />
         </MudTooltip>
+
     </MudAppBar>
 
+    @* Menu lateral retrátil *@
     <MudDrawer @bind-Open="_isDrawerOpened" Elevation="2">
 
+        @* Cabeçalho do menu lateral retrátil *@
         <MudDrawerHeader>
             <MudStack Spacing="0">
                 <MudText Typo="Typo.h6">Menu Principal</MudText>
             </MudStack>
         </MudDrawerHeader>
 
+        @* Opções de navegação do menu *@
         <MudNavMenu Color="Color.Primary" Bordered="true">
             <MudNavLink Href="/" Class="navigate" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Início</MudNavLink>
             <MudNavLink Href="/sectors" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Business">Secretarias</MudNavLink>
@@ -37,6 +50,7 @@
 
         <MudSpacer />
 
+        @* Ícone para alteração de tema *@
         <MudTooltip Text="Alterar tema" Arrow="true" Placement="Placement.Left">
             <MudStack Row="true">
                 <MudIconButton Icon="@Icons.Material.Filled.Brightness4" Color="Color.Inherit" Edge="Edge.End" OnClick="ToggleTheme" />
@@ -45,6 +59,7 @@
 
     </MudDrawer>
 
+    @* Renderização do conteúdo *@
     <MudMainContent>
         @Body
     </MudMainContent>

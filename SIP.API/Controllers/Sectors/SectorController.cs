@@ -97,6 +97,22 @@ public class SectorController(ISector sector) : ControllerBase
     }
 
     /// <summary>
+    /// Gets a paginated list of sectors, including related users, with optional sorting and filtering.
+    /// </summary>
+    /// <param name="pageNumber">The page number (starting from 1).</param>
+    /// <param name="pageSize">The number of records per page.</param>
+    /// <param name="sortLabel">The property name to sort by.</param>
+    /// <param name="sortDirection">The sort direction ("asc" or "desc").</param>
+    /// <param name="searchString">Optional search string to filter sectors.</param>
+    /// <returns>A paged result DTO containing the sectors and total count.</returns>
+    [HttpGet("show_paged")]
+    public async Task<IActionResult> GetPaged([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 15, [FromQuery] string? sortLabel = null, [FromQuery] string? sortDirection = null, [FromQuery] string? searchString = null)
+    {
+        var result = await _sectorService.GetPagedAsync(pageNumber, pageSize, sortLabel, sortDirection, searchString);
+        return Ok(result);
+    }
+
+    /// <summary>
     /// Retrieves the total number of sectors that match the given search criteria.
     /// </summary>
     /// <param name="searchString">A keyword used to filter sectors by name or other relevant fields (optional).</param>

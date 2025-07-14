@@ -1,13 +1,28 @@
-﻿using SIP.UI.Domain.Helpers.Endpoints;
+﻿using SIP.UI.Domain.DTOs.Sectors;
+using SIP.UI.Domain.Helpers.Endpoints;
 using SIP.UI.Models.Sectors;
 using System.Net.Http.Json;
 
 namespace SIP.UI.Domain.Services.Sectors;
 
+/// <summary>
+/// Service for interacting with the Sector API endpoints.
+/// Initializes a new instance of the <see cref="SectorService"/> class.
+/// </summary>
+/// <param name="http">The HTTP client used for API requests.</param>
 public class SectorService(HttpClient http)
 {
     private readonly HttpClient _http = http;
 
+    /// <summary>
+    /// Gets a paginated list of sectors from the API.
+    /// </summary>
+    /// <param name="pageNumber">The page number (starting from 1).</param>
+    /// <param name="pageSize">The number of records per page.</param>
+    /// <param name="sortLabel">The property name to sort by.</param>
+    /// <param name="sortDirection">The sort direction ("asc" or "desc").</param>
+    /// <param name="searchString">Optional search string to filter sectors.</param>
+    /// <returns>A list of sectors for the specified page, or null if not found.</returns>
     public async Task<List<Sector>?> GetSectorsAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection = null, string? searchString = null)
     {
         var queryParams = new List<string>
@@ -38,6 +53,31 @@ public class SectorService(HttpClient http)
         }
     }
 
+    /// <summary>
+    /// Gets a paginated result of sectors from the API, including total count.
+    /// </summary>
+    /// <param name="pageNumber">The page number (starting from 1).</param>
+    /// <param name="pageSize">The number of records per page (limited to 100).</param>
+    /// <param name="sortLabel">The property name to sort by.</param>
+    /// <param name="sortDirection">The sort direction ("asc" or "desc").</param>
+    /// <param name="searchString">Optional search string to filter sectors.</param>
+    /// <returns>A paged result DTO containing the sectors and total count.</returns>
+    public async Task<SectorPagedResultDTO> GetPagedSectorsAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection, string? searchString)
+    {
+        pageSize = Math.Min(pageSize, 100);
+
+        var url = $"{SectorsEndpoints._sectorsPaginationFull}pageNumber={pageNumber}&pageSize={pageSize}&sortLabel={sortLabel}&sortDirection={sortDirection}&searchString={searchString}";
+
+        var response = await _http.GetFromJsonAsync<SectorPagedResultDTO>(url);
+
+        return response ?? new SectorPagedResultDTO();
+    }
+
+    /// <summary>
+    /// Gets the total count of sectors from the API, optionally filtered by a search string.
+    /// </summary>
+    /// <param name="searchString">Optional search string to filter sectors.</param>
+    /// <returns>The total number of sectors matching the filter.</returns>
     public async Task<int> GetTotalSectorsCountAsync(string? searchString = null)
     {
         var url = SectorsEndpoints._sectorsCounter;
@@ -56,21 +96,40 @@ public class SectorService(HttpClient http)
         }
     }
 
+    /// <summary>
+    /// Gets a sector by its unique identifier from the API.
+    /// </summary>
+    /// <param name="id">The unique identifier of the sector.</param>
+    /// <returns>The sector entity if found; otherwise, null.</returns>
     public async Task<Sector?> GetSetorAsync(Guid id)
         => await _http.GetFromJsonAsync<Sector>($"{SectorsEndpoints._getSectorsById}{id}");
 
+    /// <summary>
+    /// Creates a new sector via the API.
+    /// </summary>
+    /// <param name="setor">The sector entity to create.</param>
     public async Task CreateSectorAsync(Sector setor)
     {
         var response = await _http.PostAsJsonAsync(SectorsEndpoints._createSector, setor);
         response.EnsureSuccessStatusCode();
     }
 
+    /// <summary>
+    /// Updates an existing sector via the API.
+    /// </summary>
+    /// <param name="setor">The sector entity to update.</param>
     public async Task UpdateSectorAsync(Sector setor)
     {
         var response = await _http.PutAsJsonAsync($"{SectorsEndpoints._updateSector}{setor.Id}", setor);
         response.EnsureSuccessStatusCode();
     }
 
+    /// <summary>
+    /// Deletes a sector by its unique identifier via the API.
+    /// </summary>
+    /// <param name="id">The unique identifier of the sector to delete.</param>
+    /// <exception cref="InvalidOperationException">Thrown if the sector cannot be deleted due to business rules.</exception>
+    /// <exception cref="HttpRequestException">Thrown if the request fails.</exception>
     public async Task DeleteSectorAsync(Guid id)
     {
         var response = await _http.DeleteAsync($"{SectorsEndpoints._deleteSector}{id}");
@@ -104,7 +163,13 @@ public class SectorService(HttpClient http)
     }
 }
 
+/// <summary>
+/// Model for error responses from the API.
+/// </summary>
 public class ErrorResponse
 {
+    /// <summary>
+    /// The error message returned by the API.
+    /// </summary>
     public string? Error { get; set; }
 }

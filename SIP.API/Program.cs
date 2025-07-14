@@ -17,6 +17,8 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod());
 });
 
+builder.Services.AddMemoryCache();
+
 builder.Services.AddScoped<IUser, UserService>();
 builder.Services.AddScoped<ISector, SectorService>();
 
