@@ -1,0 +1,246 @@
+﻿@page "/users"
+
+@using SIP.UI.Components.Dialogs.Users
+@using SIP.UI.Domain.DTOs.Users
+@using SIP.UI.Domain.Services.Users
+@using SIP.UI.Models.Users
+@using MudBlazor
+@using MudBlazor.Utilities
+
+@inject UserService _userService
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="my-8 px-4">
+
+    <MudStack Row="true" AlignItems="AlignItems.Stretch" Class="mb-3 ml-3">
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ShowAddDialog" StartIcon="@Icons.Material.Filled.Add" Size="Size.Medium" Class="mud-elevation-3 rounded-pill px-6 py-3">
+            Novo Usuário
+        </MudButton>
+    </MudStack>
+
+    <MudPaper Class="pa-4 ma-2" Elevation="1">
+        <MudTable T="User" ServerData="LoadServerData" Dense="true" Hover="true" Bordered="false" @ref="table" RowsPerPage="pageSize" LoadingProgressColor="Color.Primary" SortLabel="sortLabel" Elevation="0">
+
+            <ToolBarContent>
+                <MudTextField T="string" ValueChanged="@OnSearch" Immediate="false" DebounceInterval="300" Placeholder="Buscar Usuário..." Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0 mr-4" Clearable="true" Style="max-width: 300px;" />
+                <MudTooltip Text="Exportar para formatos compatíveis ...">
+                    <MudMenu Icon="@Icons.Material.Filled.MoreVert" Color="Color.Primary" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                        <MudMenuItem OnClick="ExportToCsv">Exportar CSV</MudMenuItem>
+                        <MudMenuItem OnClick="ExportToPdf">Exportar PDF</MudMenuItem>
+                    </MudMenu>
+                </MudTooltip>
+            </ToolBarContent>
+
+            <HeaderContent>
+                <MudTh Style="font-weight: bold;">Status</MudTh>
+                <MudTh Style="font-weight: bold;">Masp</MudTh>
+                <MudTh Style="font-weight: bold;">
+                    <MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<User, object>(x => x.FullName)">Nome</MudTableSortLabel>
+                </MudTh>
+                <MudTh Style="font-weight: bold;">Login</MudTh>
+                <MudTh Style="font-weight: bold;">Email</MudTh>
+                <MudTh Align="Align.Right"></MudTh>
+            </HeaderContent>
+
+            <RowTemplate Context="user">
+                <MudTd DataLabel="Status">
+                    <MudTooltip Text="@(user.IsActive ? "Ativo" : "Inativo")" Arrow="true" Placement="Placement.Left">
+                        <MudIcon Icon="@Icons.Material.Filled.Circle" Color="@(user.IsActive ? Color.Success : Color.Error)" Size="Size.Small" />
+                    </MudTooltip>
+                </MudTd>
+                                <MudTd DataLabel="MASP">@user.Masp</MudTd>
+                <MudTd DataLabel="Nome">@user.FullName</MudTd>
+                <MudTd DataLabel="Login">@user.Login</MudTd>
+                <MudTd DataLabel="Email">@user.Email</MudTd>
+                <MudTd DataLabel="Ações" Align="Align.Right">
+                    <MudTooltip Text="Editar">
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Size="Size.Small" OnClick="@(() => ShowEditDialog(user))" aria-label="Editar Usuário" Variant="Variant.Text" />
+                    </MudTooltip>
+                    <MudTooltip Text="Excluir">
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => ShowDeleteDialog(user))" aria-label="Excluir Usuário" Variant="Variant.Text" />
+                    </MudTooltip>
+                </MudTd>
+            </RowTemplate>
+
+            <NoRecordsContent>
+                <MudText Class="pa-6 text-center mud-text-secondary">Nenhum usuário encontrado para exibir.</MudText>
+            </NoRecordsContent>
+
+            <LoadingContent>
+                <MudText Class="pa-6 text-center mud-text-secondary">Carregando usuários, por favor aguarde...</MudText>
+            </LoadingContent>
+
+            <PagerContent>
+                <MudTablePager PageSizeOptions="new int[] { 15, 25, 50, 100 }" />
+            </PagerContent>
+
+        </MudTable>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private MudTable<User>? table;
+    private bool isLoading = false;
+    private int pageSize = 15;
+    private int totalItems = 0;
+    private string searchString = string.Empty;
+    private string? lastSortLabel;
+
+    private async Task<TableData<User>> LoadServerData(TableState state, CancellationToken cancellationToken)
+    {
+        isLoading = true;
+        StateHasChanged();
+
+        pageSize = state.PageSize;
+        string? sortLabel = state.SortLabel;
+
+        if (string.IsNullOrWhiteSpace(sortLabel))
+        {
+            if (state.SortDirection != SortDirection.None)
+                sortLabel = lastSortLabel ?? "FullName";
+            else
+                sortLabel = "FullName";
+        }
+
+        try
+        {
+            UserPagedResultDTO users = await _userService.GetPagedUsersAsync(
+                state.Page + 1,
+                state.PageSize,
+                sortLabel,
+                GetSortDirectionString(state.SortDirection),
+                searchString);
+
+            totalItems = await _userService.GetTotalUsersCountAsync(searchString);
+
+            return new TableData<User>
+                {
+                    Items = users.Items,
+                    TotalItems = users.TotalCount
+                };
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Erro ao carregar dados: {ex.Message}", Severity.Error);
+            return new TableData<User> { Items = [], TotalItems = 0 };
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private string GetSortDirectionString(SortDirection direction) =>
+        direction switch
+        {
+            SortDirection.Ascending => "asc",
+            SortDirection.Descending => "desc",
+            _ => string.Empty
+        };
+
+    private async Task OnSearch(string value)
+    {
+        searchString = value;
+        if (table is not null)
+            await table.ReloadServerData();
+    }
+
+    private async Task ShowAddDialog()
+    {
+        var parameters = new DialogParameters<UserEditDialog>();
+        parameters.Add(x => x.User, new User { Id = Guid.Empty });
+        var dialog = await DialogService.ShowAsync<UserEditDialog>("", parameters);
+        var result = await dialog.Result;
+
+        if (result is not null && !result.Canceled)
+        {
+            var savedUser = result.Data as User;
+            if (savedUser != null)
+            {
+                try
+                {
+                    await _userService.CreateUserAsync(savedUser);
+                    Snackbar.Add("Usuário criado com sucesso!", Severity.Success);
+                    if (table is not null)
+                        await table.ReloadServerData();
+                }
+                catch (Exception ex)
+                {
+                    Snackbar.Add($"Erro ao criar usuário: {ex.Message}", Severity.Error);
+                }
+            }
+        }
+    }
+
+    private async Task ShowEditDialog(User user)
+    {
+        var parameters = new DialogParameters<UserEditDialog>();
+        parameters.Add(x => x.User, new User
+            {
+                Id = user.Id,
+                FullName = user.FullName,
+                Login = user.Login,
+                Masp = user.Masp,
+                Email = user.Email,
+                IsActive = user.IsActive
+            });
+
+        var dialog = await DialogService.ShowAsync<UserEditDialog>("", parameters);
+        var result = await dialog.Result;
+
+        if (result is not null && !result.Canceled)
+        {
+            var updatedUser = result.Data as User;
+            if (updatedUser != null)
+            {
+                try
+                {
+                    await _userService.UpdateUserAsync(updatedUser);
+                    Snackbar.Add("Usuário atualizado com sucesso!", Severity.Success);
+                    if (table is not null)
+                        await table.ReloadServerData();
+                }
+                catch (Exception ex)
+                {
+                    Snackbar.Add($"Erro ao atualizar usuário: {ex.Message}", Severity.Error);
+                }
+            }
+        }
+    }
+
+    private async Task ShowDeleteDialog(User user)
+    {
+        var parameters = new DialogParameters<UserDeleteDialog>();
+        parameters.Add(x => x.UserToDelete, user);
+
+        var dialog = await DialogService.ShowAsync<UserDeleteDialog>("", parameters);
+        var result = await dialog.Result;
+
+        if (result is not null && !result.Canceled)
+        {
+            try
+            {
+                await _userService.DeleteUserAsync(user.Id);
+                Snackbar.Add("Usuário excluído com sucesso!", Severity.Success);
+                if (table is not null)
+                    await table.ReloadServerData();
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Erro ao excluir usuário: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+
+    private void ExportToCsv()
+    {
+        Snackbar.Add("Exportação para CSV ainda não implementada.", Severity.Info);
+    }
+
+    private void ExportToPdf()
+    {
+        Snackbar.Add("Exportação para PDF ainda não implementada.", Severity.Info);
+    }
+}

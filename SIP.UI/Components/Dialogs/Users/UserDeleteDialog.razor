@@ -1,0 +1,57 @@
+﻿@using SIP.UI.Models.Sectors
+@using MudBlazor
+@using SIP.UI.Models.Users
+
+@* Diálogo para exclusão de usuário *@
+<MudDialog MaxWidth="false" FullWidth="false" Style="width:450px">
+
+    @* Conteúdo do diálogo de exclusão *@
+    <DialogContent>
+
+        <MudStack AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center" Class="mb-4">
+            <MudIcon Icon="@Icons.Material.Filled.Warning" Color="Color.Warning" Size="Size.Large" Class="mb-2" />
+        </MudStack>
+
+        <MudText Typo="Typo.body2" Class="mt-4 text-start p-0">
+            Você tem certeza que deseja excluir o usuário: <b>@UserToDelete?.FullName - (@UserToDelete?.Login)</b>? Esta ação <span class="text-danger"><b>não poderá ser desfeita</b></span>.
+        </MudText>
+
+    </DialogContent>
+
+    @* Componente com os botões excluir e cancelar *@
+    <DialogActions>
+
+        <MudStack Row="true" Class="justify-content-start pa-4" FullWidth="true">
+            <MudButton Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete" OnClick="Submit" Class="mr-3">Excluir</MudButton>
+            <MudButton Color="Color.Secondary" Variant="Variant.Outlined" OnClick="Cancel">Cancelar</MudButton>
+        </MudStack>
+
+    </DialogActions>
+
+</MudDialog>
+
+@code {
+
+    /// <summary>
+    /// The MudBlazor dialog instance for controlling dialog actions.
+    /// </summary>
+    [CascadingParameter]
+    IMudDialogInstance MudDialog { get; set; } = default!;
+
+    /// <summary>
+    /// The user to be deleted in the dialog.
+    /// </summary>
+    [Parameter]
+    public User? UserToDelete { get; set; }
+
+    /// <summary>
+    /// Confirms the deletion and closes the dialog with a positive result.
+    /// </summary>
+    private void Submit() => MudDialog.Close(DialogResult.Ok(true));
+
+    /// <summary>
+    /// Cancels the deletion and closes the dialog without changes.
+    /// </summary>
+    private void Cancel() => MudDialog.Cancel();
+
+}

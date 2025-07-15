@@ -73,19 +73,57 @@ public class UserController(IUser user) : ControllerBase
     }
 
     /// <summary>
-    /// Retrieves a paginated list of users.
+    /// Retrieves a paginated, optionally sorted and filtered list of users.
     /// </summary>
-    /// <param name="pageNumber">The page number (default is 1).</param>
-    /// <param name="pageSize">The number of records per page (default is 20).</param>
+    /// <param name="pageNumber">The page number to retrieve. Defaults to 1.</param>
+    /// <param name="pageSize">The number of users to include per page. Defaults to 20.</param>
+    /// <param name="sortLabel">The field name to sort by (optional).</param>
+    /// <param name="sortDirection">The direction of sorting: "asc" for ascending or "desc" for descending (optional).</param>
+    /// <param name="searchString">A keyword used to filter users by name or other relevant fields (optional).</param>
     /// <returns>
-    /// Returns <see cref="OkObjectResult"/> with a paginated list of users.
+    /// Returns an <see cref="IActionResult"/> containing a list of sectors matching the criteria, wrapped in an HTTP 200 OK response.
     /// </returns>
-    [HttpGet("Show")]
+    [HttpGet("show")]
     [ProducesResponseType(typeof(IEnumerable<User>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 20)
+    public async Task<IActionResult> GetAll(
+    [FromQuery] int pageNumber = 1,
+    [FromQuery] int pageSize = 15,
+    [FromQuery] string? sortLabel = null,
+    [FromQuery] string? sortDirection = null,
+    [FromQuery] string? searchString = null)
     {
-        var users = await _userService.GetAllAsync(pageNumber, pageSize);
-        return Ok(users);
+        var sectors = await _userService.GetAllAsync(pageNumber, pageSize, sortLabel, sortDirection, searchString);
+        return Ok(sectors);
+    }
+
+    /// <summary>
+    /// Gets a paginated result of users from the API, including total count. Use in-memory caching and limit the number of records per page to avoid multiple requests for the same data.
+    /// </summary>
+    /// <param name="pageNumber">The page number (starting from 1).</param>
+    /// <param name="pageSize">The number of records per page.</param>
+    /// <param name="sortLabel">The property name to sort by.</param>
+    /// <param name="sortDirection">The sort direction ("asc" or "desc").</param>
+    /// <param name="searchString">Optional search string to filter sectors.</param>
+    /// <returns>A paged result DTO containing the users and total count.</returns>
+    [HttpGet("show_paged")]
+    public async Task<IActionResult> GetPaged([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 15, [FromQuery] string? sortLabel = null, [FromQuery] string? sortDirection = null, [FromQuery] string? searchString = null)
+    {
+        var result = await _userService.GetPagedAsync(pageNumber, pageSize, sortLabel, sortDirection, searchString);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Retrieves the total number of users that match the given search criteria.
+    /// </summary>
+    /// <param name="searchString">A keyword used to filter users by name or other relevant fields (optional).</param>
+    /// <returns>
+    /// Returns an <see cref="ActionResult{T}"/> containing the total count of sectors as an integer, wrapped in an HTTP 200 OK response.
+    /// </returns>
+    [HttpGet("count")]
+    public async Task<ActionResult<int>> GetTotalCount([FromQuery] string? searchString = null)
+    {
+        var total = await _userService.GetTotalUsersCountAsync(searchString);
+        return Ok(total);
     }
 
     /// <summary>

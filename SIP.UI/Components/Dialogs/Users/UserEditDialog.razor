@@ -1,0 +1,86 @@
+﻿@using SIP.UI.Models.Users
+@using MudBlazor
+
+@* Diálogo para edição de usuário*@
+<MudDialog MaxWidth="false" FullWidth="false" Style="width:450px">
+
+    <DialogContent>
+
+        @* Formulário com os campos de edição *@
+        <MudForm @ref="form" @bind-IsValid="isValid" ErrorsChanged="OnErrorsChanged">
+
+            <MudTextField @bind-Value="User.FullName" Label="Nome" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.PeopleOutline" Required="true" RequiredError="O nome é obrigatório!" Variant="Variant.Outlined" Margin="Margin.Normal" />
+
+            <MudTextField @bind-Value="User.Masp" Label="Masp" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.ConfirmationNumber" Required="true" RequiredError="O MASP é obrigatório!" Variant="Variant.Outlined" Margin="Margin.Normal" />
+
+            <MudTextField @bind-Value="User.Login" Label="Login" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.People" Required="true" RequiredError="O login é obrigatório!" Variant="Variant.Outlined" Margin="Margin.Normal" />
+
+            <MudTextField @bind-Value="User.PasswordHash" Label="Senha" InputType="InputType.Password" 
+              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Password" Required="true" RequiredError="A senha é obrigatória!" Variant="Variant.Outlined" Margin="Margin.Normal" />
+
+            <MudTextField @bind-Value="User.Email" Label="Email" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Email" Required="true" RequiredError="O email é obrigatório!" Variant="Variant.Outlined" Margin="Margin.Normal" />
+
+        </MudForm>
+
+    </DialogContent>
+
+    <DialogActions>
+
+        @* Componente com os botões editar e cancelar *@
+        <MudStack Row="true" Class="justify-end pa-4" FullWidth="true">
+            <MudButton OnClick="Submit" Color="Color.Primary" Variant="Variant.Filled" Disabled="!isValid" Class="mr-3">
+                Salvar
+            </MudButton>
+            <MudButton Color="Color.Secondary" Variant="Variant.Outlined" OnClick="Cancel">Cancelar</MudButton>
+        </MudStack>
+
+    </DialogActions>
+
+</MudDialog>
+
+@code {
+
+    /// <summary>
+    /// The MudBlazor dialog instance for controlling dialog actions.
+    /// </summary>
+    [CascadingParameter]
+    IMudDialogInstance MudDialog { get; set; } = default!;
+
+    /// <summary>
+    /// The user being edited in the dialog.
+    /// </summary>
+    [Parameter]
+    public User User { get; set; } = new User();
+
+    /// <summary>
+    /// Reference to the MudForm component.
+    /// </summary>
+    private MudForm? form;
+
+    /// <summary>
+    /// Indicates if the form is currently valid.
+    /// </summary>
+    private bool isValid = false;
+
+    /// <summary>
+    /// Called when form errors change to update the UI.
+    /// </summary>
+    private void OnErrorsChanged() => StateHasChanged();
+
+    /// <summary>
+    /// Validates the form and closes the dialog with the sector data if valid.
+    /// </summary>
+    private async Task Submit()
+    {
+        await form!.Validate();
+
+        if (isValid)
+            MudDialog.Close(DialogResult.Ok(User));
+    }
+
+    /// <summary>
+    /// Cancels the dialog without saving changes.
+    /// </summary>
+    private void Cancel() => MudDialog.Cancel();
+
+}

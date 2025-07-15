@@ -58,7 +58,7 @@
     private bool isValid = false;
 
     /// <summary>
-    /// MultiMask for phone number input, detects mobile and landline formats.
+    /// MultiMask for phone number input, detects mobile and landline formats (DDD) 9XXXX-XXXX ou (DDD) XXXX-XXXX.
     /// </summary>
     MultiMask PhoneMask = new MultiMask("(00) 00000-0000",
         new MaskOption("Celular", "(00) 00000-0000", @"^\(\d{2}\) 9"),

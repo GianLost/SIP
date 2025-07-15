@@ -54,7 +54,15 @@ public class SectorService(HttpClient http)
     }
 
     /// <summary>
-    /// Gets a paginated result of sectors from the API, including total count.
+    /// Gets a sector by its unique identifier from the API.
+    /// </summary>
+    /// <param name="id">The unique identifier of the sector.</param>
+    /// <returns>The sector entity if found; otherwise, null.</returns>
+    public async Task<Sector?> GetSectorsAsync(Guid id)
+        => await _http.GetFromJsonAsync<Sector>($"{SectorsEndpoints._getSectorsById}{id}");
+
+    /// <summary>
+    /// Gets a paginated result of sectors from the API, including total count. Use in-memory caching and limit the number of records per page to avoid multiple requests for the same data.
     /// </summary>
     /// <param name="pageNumber">The page number (starting from 1).</param>
     /// <param name="pageSize">The number of records per page (limited to 100).</param>
@@ -95,14 +103,6 @@ public class SectorService(HttpClient http)
             throw new Exception($"Falha ao obter o total de secretarias. Detalhes: {ex.Message}");
         }
     }
-
-    /// <summary>
-    /// Gets a sector by its unique identifier from the API.
-    /// </summary>
-    /// <param name="id">The unique identifier of the sector.</param>
-    /// <returns>The sector entity if found; otherwise, null.</returns>
-    public async Task<Sector?> GetSetorAsync(Guid id)
-        => await _http.GetFromJsonAsync<Sector>($"{SectorsEndpoints._getSectorsById}{id}");
 
     /// <summary>
     /// Creates a new sector via the API.

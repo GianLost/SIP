@@ -97,7 +97,7 @@ public class SectorController(ISector sector) : ControllerBase
     }
 
     /// <summary>
-    /// Gets a paginated list of sectors, including related users, with optional sorting and filtering.
+    /// Gets a paginated result of sectors from the API, including total count. Use in-memory caching and limit the number of records per page to avoid multiple requests for the same data.
     /// </summary>
     /// <param name="pageNumber">The page number (starting from 1).</param>
     /// <param name="pageSize">The number of records per page.</param>
