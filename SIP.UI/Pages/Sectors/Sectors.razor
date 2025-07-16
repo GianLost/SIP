@@ -322,13 +322,13 @@
     private async Task ShowAddDialog()
     {
 
-        DialogParameters<SectorEditDialog> parameters = new DialogParameters<SectorEditDialog>();
+        var parameters = new DialogParameters<SectorEditDialog>();
 
         parameters.Add(x => x.Sector, new Sector { Id = Guid.Empty });
 
         IDialogReference dialog = await DialogService.ShowAsync<SectorEditDialog>("", parameters);
 
-        DialogResult? result = await dialog.Result;
+        DialogResult? result = await dialog.Result;  
 
         if (result is not null && !result.Canceled)
         {

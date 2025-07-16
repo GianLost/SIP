@@ -154,6 +154,7 @@ public class UserController(IUser user) : ControllerBase
             Login = updated.Login,
             Masp = updated.Masp,
             Email = updated.Email,
+            Role = updated.Role,
             CreatedAt = updated.CreatedAt,
             UpdatedAt = updated.UpdatedAt
         };

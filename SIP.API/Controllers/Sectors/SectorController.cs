@@ -42,7 +42,7 @@ public class SectorController(ISector sector) : ControllerBase
                 CreatedAt = entity.CreatedAt
             };
 
-            return CreatedAtAction(nameof(GetByIdAsync), new { id = entity.Id }, response);
+            return CreatedAtAction(nameof(GetById), new { id = entity.Id }, response);
         }
         catch (Exception ex)
         {
@@ -62,7 +62,7 @@ public class SectorController(ISector sector) : ControllerBase
     [HttpGet("{id}")]
     [ProducesResponseType(typeof(Sector), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetByIdAsync(Guid id)
+    public async Task<IActionResult> GetById(Guid id)
     {
         Sector? sector = await _sectorService.GetByIdAsync(id);
 

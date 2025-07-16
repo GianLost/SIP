@@ -1,17 +1,17 @@
-﻿//using System.Text;
-//using System.Text.Json;
-//using Microsoft.AspNetCore.Mvc;
-//using SIP.API.Domain.Entities.Sectors;
-//using SIP.API.Domain.Entities.Users;
-//using SIP.API.Domain.Enums;
-//using SIP.API.Infrastructure.Database;
+﻿// using System.Text;
+// using System.Text.Json;
+// using Microsoft.AspNetCore.Mvc;
+// using SIP.API.Domain.Entities.Sectors;
+// using SIP.API.Domain.Entities.Users;
+// using SIP.API.Domain.Enums;
+// using SIP.API.Infrastructure.Database;
 
-//namespace SIP.API.Controllers.Seeds;
+// namespace SIP.API.Controllers.Seeds;
 
-//[Route("sip_api/[controller]")]
-//[ApiController]
-//public class SeedController(ApplicationContext context) : ControllerBase
-//{
+// [Route("sip_api/[controller]")]
+// [ApiController]
+// public class SeedController(ApplicationContext context) : ControllerBase
+// {
 //   private readonly ApplicationContext _context = context;
 
 //   [HttpPost("import")]
@@ -68,25 +68,25 @@
 
 //       return Ok("Seed importado com sucesso!");
 //   }
-//}
+// }
 
-//public class SeedData
-//{
+// public class SeedData
+// {
 //   public List<SectorSeed>? Sectors { get; set; }
 //   public List<UserSeed>? Users { get; set; }
-//}
+// }
 
-//public class SectorSeed
-//{
+// public class SectorSeed
+// {
 //   public string? Name { get; set; }
 //   public string? Acronym { get; set; }
 //   public string? Phone { get; set; }
 //   public string? CreatedAt { get; set; }
 //   public string? UpdatedAt { get; set; }
-//}
+// }
 
-//public class UserSeed
-//{
+// public class UserSeed
+// {
 //   public string? FullName { get; set; }
 //   public string? Login { get; set; }
 //   public int Masp { get; set; }
@@ -97,4 +97,4 @@
 //   public string? UpdatedAt { get; set; }
 //   public string? Role { get; set; }
 //   public bool IsActive { get; set; }
-//}
+// }

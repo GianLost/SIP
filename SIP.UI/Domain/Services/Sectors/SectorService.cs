@@ -58,7 +58,7 @@ public class SectorService(HttpClient http)
     /// </summary>
     /// <param name="id">The unique identifier of the sector.</param>
     /// <returns>The sector entity if found; otherwise, null.</returns>
-    public async Task<Sector?> GetSectorsAsync(Guid id)
+    public async Task<Sector?> GetByIdAsync(Guid id)
         => await _http.GetFromJsonAsync<Sector>($"{SectorsEndpoints._getSectorsById}{id}");
 
     /// <summary>

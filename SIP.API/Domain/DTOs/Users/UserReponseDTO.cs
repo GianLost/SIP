@@ -1,4 +1,6 @@
 ﻿using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Identity;
+using SIP.API.Domain.Enums;
 using SIP.API.Domain.Models.Users;
 
 namespace SIP.API.Domain.DTOs.Users;
@@ -14,4 +16,6 @@ public class UserReponseDTO : BaseUser
 
     [JsonPropertyOrder(9)]
     public DateTime? UpdatedAt { get; set; }
+
+    public UserRole Role { get; set; }
 }

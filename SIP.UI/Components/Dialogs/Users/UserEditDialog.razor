@@ -30,12 +30,13 @@
                     <MudTextField @bind-Value="User.Email" Label="Email" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Email" Required="true" RequiredError="O email é obrigatório!" Variant="Variant.Outlined" Margin="Margin.Normal" />
                 </MudItem>
 
+
                 @* Checkbox para ativar/inativar o usuário com label dinâmico *@
-                <MudItem xs="12" sm="6">
-                    <MudCheckBox @bind-Value="User.IsActive" Color="@Color.Primary" Class=""> @(User.IsActive == true ? "Desativar" : "Ativar")</MudCheckBox>
+                <MudItem xs="12" sm="6" Class="m-0">
+                    <MudCheckBox Size="Size.Small" @bind-Value="User.IsActive" Color="@Color.Primary"> @(User.IsActive == true ? "Desativar" : "Ativar")</MudCheckBox>
                 </MudItem>
 
-                <MudItem xs="12" sm="6">
+                <MudItem xs="12" sm="6" Class="m-0 p-0">
                     <MudSelect T="RoleEnum" Label="Função (Role)" @bind-Value="User.Role" Required="true" Dense="true" RequiredError="Selecione uma função!" Variant="Variant.Outlined" Margin="Margin.Normal">
                         @foreach (RoleEnum role in Enum.GetValues(typeof(RoleEnum)))
                         {

@@ -1,4 +1,5 @@
-﻿using SIP.API.Domain.Models.Users;
+﻿using SIP.API.Domain.Enums;
+using SIP.API.Domain.Models.Users;
 
 namespace SIP.API.Domain.DTOs.Users;
 
@@ -8,5 +9,6 @@ namespace SIP.API.Domain.DTOs.Users;
 /// </summary>
 public class UserUpdateDTO : BaseUser
 { 
+    public UserRole Role { get; set; }
     public bool IsActive { get; set; }
 }
