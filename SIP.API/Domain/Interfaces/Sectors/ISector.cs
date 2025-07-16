@@ -9,17 +9,6 @@ namespace SIP.API.Domain.Interfaces.Sectors;
 public interface ISector
 {
     /// <summary>
-    /// Asynchronously retrieves the total number of sectors that match the given search criteria.
-    /// </summary>
-    /// <param name="searchString">
-    /// A keyword used to filter the sectors by name or other relevant fields. If <c>null</c> or empty, all sectors are counted.
-    /// </param>
-    /// <returns>
-    /// A task that represents the asynchronous operation. The task result contains the total number of matching sectors as an integer.
-    /// </returns>
-    Task<int> GetTotalSectorsCountAsync(string? searchString);
-
-    /// <summary>
     /// Asynchronously creates a new sector in the database.
     /// </summary>
     /// <param name="dto">A data transfer object containing the sector's information.</param>
@@ -38,33 +27,34 @@ public interface ISector
     Task<Sector?> GetByIdAsync(Guid id);
 
     /// <summary>
-    /// Retorna setores paginados, com filtro, ordenação e total de registros.
+    /// Retrieves all sectors records.
     /// </summary>
-    /// <param name="pageNumber">Número da página (iniciando em 1).</param>
-    /// <param name="pageSize">Quantidade de registros por página.</param>
-    /// <param name="sortLabel">Campo para ordenação.</param>
-    /// <param name="sortDirection">Direção da ordenação ("asc" ou "desc").</param>
-    /// <param name="searchString">Texto para filtro de pesquisa.</param>
-    /// <returns>Objeto SectorPagedResultDTO.</returns>
+    /// <returns>
+    /// A task that represents the asynchronous operation. The task result contains a list with all <see cref="Sector"/> entities
+    /// </returns>
+    Task<List<Sector>> GetAllSectorsAsync();
+
+    /// <summary>
+    /// Gets a paginated result of sectors from the API, including total count. Use in-memory caching and limit the number of records per page to avoid multiple requests for the same data.
+    /// </summary>
+    /// <param name="pageNumber">The page number (starting from 1).</param>
+    /// <param name="pageSize">The number of records per page.</param>
+    /// <param name="sortLabel">The property name to sort by.</param>
+    /// <param name="sortDirection">The sort direction ("asc" or "desc").</param>
+    /// <param name="searchString">Optional search string to filter sectors.</param>
+    /// <returns>A SectorPagedResultDTO object.</returns>
     Task<SectorPagedResultDTO> GetPagedAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection, string? searchString);
 
     /// <summary>
-    /// Asynchronously retrieves a paginated list of sectors, optionally sorted and filtered.
+    /// Asynchronously retrieves the total number of sectors that match the given search criteria.
     /// </summary>
-    /// <param name="pageNumber">The page number to retrieve (starting from 1).</param>
-    /// <param name="pageSize">The number of records per page.</param>
-    /// <param name="sortLabel">The field name used to sort the results (optional).</param>
-    /// <param name="sortDirection">
-    /// The sort direction: "asc" for ascending or "desc" for descending order (optional).
-    /// </param>
     /// <param name="searchString">
-    /// A keyword used to filter the sectors by name or other relevant fields (optional).
+    /// A keyword used to filter the sectors by name or other relevant fields. If <c>null</c> or empty, all sectors are counted.
     /// </param>
     /// <returns>
-    /// A task that represents the asynchronous operation. The task result contains a list of <see cref="Sector"/> entities
-    /// that match the given pagination, sorting, and filtering criteria.
+    /// A task that represents the asynchronous operation. The task result contains the total number of matching sectors as an integer.
     /// </returns>
-    Task<List<Sector>> GetAllAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection, string? searchString);
+    Task<int> GetTotalSectorsCountAsync(string? searchString);
 
     /// <summary>
     /// Asynchronously updates an existing sector in the database.

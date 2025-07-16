@@ -12,11 +12,10 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowBlazorClient",
         policy => policy
-            .WithOrigins("https://localhost:7236") // endereço do seu Blazor WebAssembly
+            .WithOrigins("https://localhost:7236") // address of my Blazor WebAssembly
             .AllowAnyHeader()
             .AllowAnyMethod());
 });
-
 builder.Services.AddMemoryCache();
 
 builder.Services.AddScoped<IUser, UserService>();

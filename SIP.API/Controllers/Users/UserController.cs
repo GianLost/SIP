@@ -7,7 +7,6 @@ namespace SIP.API.Controllers.Users;
 
 /// <summary>
 /// API controller for managing user entities.
-/// Provides endpoints for creating, retrieving, updating, and deleting users.
 /// </summary>
 [Route("sip_api/[controller]")]
 [ApiController]

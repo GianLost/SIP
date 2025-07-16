@@ -18,11 +18,6 @@
     @* Componente de organização do cabeçalho da página *@
     <MudStack Row="true" AlignItems="AlignItems.Stretch" Class="mb-6">
 
-        @* Ícone de prédio *@
-        <MudText Typo="Typo.h4" Color="Color.Primary" Class="d-flex align-items-center">
-            <MudIcon Icon="@Icons.Material.Filled.Business" Class="mr-3" />
-        </MudText>
-
         @* Botão para adicionar novas secretarias *@
         <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ShowAddDialog" StartIcon="@Icons.Material.Filled.Add" Size="Size.Medium" Class="mud-elevation-3 rounded-pill px-6 py-3">
             Nova Secretaria
@@ -104,16 +99,23 @@
                     <MudTr>
                         <td colspan="5">
                             <MudCard Elevation="3">
+
                                 <MudCardHeader>
+
                                     <CardHeaderContent>
                                         <MudStack Row="true" AlignItems="AlignItems.Center">
                                             <MudText Typo="Typo.body1">Usuários vinculados à:</MudText>
                                             <MudText Typo="Typo.body1" Color="Color.Primary" Style="font-weight: bold;">@sectorDetail.Name</MudText>
                                         </MudStack>
                                     </CardHeaderContent>
+
                                 </MudCardHeader>
+
                                 <MudCardContent Class="pa-0">
+
+                                    @* Sub-componente de tabela contendo os dados relacionais de usuários *@
                                     <MudTable T="User" Items="sectorDetail.Users" Bordered="false" Hover="true" Elevation="0">
+
                                         <HeaderContent>
                                             <MudTh Style="font-weight: bold;">Status</MudTh>
                                             <MudTh Style="font-weight: bold;">MASP</MudTh>
@@ -121,23 +123,30 @@
                                             <MudTh Style="font-weight: bold;">Login</MudTh>
                                             <MudTh Style="font-weight: bold;">Email</MudTh>
                                         </HeaderContent>
+
                                         <RowTemplate Context="user">
+
                                             <MudTd DataLabel="Status">
                                                 @* Ícone de status do usuário *@
                                                 <MudTooltip Text="@(user.IsActive ? "Ativo" : "Inativo")" Arrow="true" Placement="Placement.Left">
                                                     <MudIcon Icon="@Icons.Material.Filled.Circle" Color="@(user.IsActive ? Color.Success : Color.Error)" Size="Size.Small" />
                                                 </MudTooltip>
                                             </MudTd>
+
                                             <MudTd DataLabel="MASP">@user.Masp</MudTd>
                                             <MudTd DataLabel="Nome">@user.FullName</MudTd>
                                             <MudTd DataLabel="Login">@user.Login</MudTd>
                                             <MudTd DataLabel="Email">@user.Email</MudTd>
                                         </RowTemplate>
+
                                         <NoRecordsContent>
                                             <MudText>Nenhum usuário vinculado...</MudText>
                                         </NoRecordsContent>
+
                                     </MudTable>
+
                                 </MudCardContent>
+
                             </MudCard>
                         </td>
                     </MudTr>
@@ -198,7 +207,7 @@
     private string? lastSortLabel;
 
     /// <summary>
-    /// Loads paginated sector data from the server for MudTable.
+    /// Loads paginated sector data from the server for MudTable component.
     /// </summary>
     /// <param name="state">The table state (page, sorting, etc).</param>
     /// <param name="cancellationToken">Cancellation token.</param>
@@ -312,20 +321,27 @@
     /// </summary>
     private async Task ShowAddDialog()
     {
+
         DialogParameters<SectorEditDialog> parameters = new DialogParameters<SectorEditDialog>();
+
         parameters.Add(x => x.Sector, new Sector { Id = Guid.Empty });
+
         IDialogReference dialog = await DialogService.ShowAsync<SectorEditDialog>("", parameters);
+
         DialogResult? result = await dialog.Result;
 
         if (result is not null && !result.Canceled)
         {
             var savedSector = result.Data as Sector;
+
             if (savedSector != null)
             {
                 try
                 {
                     await _sectorService.CreateSectorAsync(savedSector);
+
                     Snackbar.Add("Secretaria criada com sucesso!", Severity.Success);
+
                     if (table is not null)
                         await table.ReloadServerData();
                 }
@@ -344,6 +360,7 @@
     private async Task ShowEditDialog(Sector sector)
     {
         var parameters = new DialogParameters<SectorEditDialog>();
+
         parameters.Add(x => x.Sector, new Sector
         {
             Id = sector.Id,
@@ -353,17 +370,21 @@
         });
 
         var dialog = await DialogService.ShowAsync<SectorEditDialog>("", parameters);
+
         var result = await dialog.Result;
 
         if (result is not null && !result.Canceled)
         {
-            Sector? updatedSector = result.Data as Sector;
+            var updatedSector = result.Data as Sector;
+
             if (updatedSector != null)
             {
                 try
                 {
                     await _sectorService.UpdateSectorAsync(updatedSector);
+
                     Snackbar.Add("Secretaria atualizada com sucesso!", Severity.Success);
+
                     if (table is not null)
                         await table.ReloadServerData();
                 }
@@ -382,9 +403,11 @@
     private async Task ShowDeleteDialog(Sector sector)
     {
         var parameters = new DialogParameters<SectorDeleteDialog>();
+
         parameters.Add(x => x.SectorToDelete, sector);
 
         var dialog = await DialogService.ShowAsync<SectorDeleteDialog>("", parameters);
+
         var result = await dialog.Result;
 
         if (result is not null && !result.Canceled)
@@ -392,7 +415,9 @@
             try
             {
                 await _sectorService.DeleteSectorAsync(sector.Id);
+
                 Snackbar.Add("Secretaria excluída com sucesso!", Severity.Success);
+
                 if (table is not null)
                     await table.ReloadServerData();
             }

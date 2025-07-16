@@ -1,0 +1,73 @@
+﻿@using SIP.UI.Domain.Services.Sectors
+@using SIP.UI.Models.Sectors
+@using SIP.UI.Models.Users
+
+@inject SectorService _sectorServices
+@inject ISnackbar Snackbar
+
+@* Diálogo para alterar setor do usuário *@
+<MudDialog MaxWidth="false" FullWidth="false" Style="width:450px">
+
+    <DialogContent>
+
+        <MudText Typo="Typo.h6" Class="mb-4">Alterar Setor para @Users.FullName</MudText>
+
+        <MudForm @ref="form" @bind-IsValid="isValid">
+
+            <MudSelect T="Sector" Label="Setor" @bind-Value="selectedSector" Required="true" Dense="true" RequiredError="Selecione um setor!" Variant="Variant.Outlined" Margin="Margin.Normal" Class="mb-3">
+                @if (_allSectors != null)
+                {
+                    @foreach (var sector in _allSectors)
+                    {
+                        <MudSelectItem Value="sector">@sector.Acronym - @sector.Name</MudSelectItem>
+                    }
+                }
+            </MudSelect>
+
+        </MudForm>
+
+    </DialogContent>
+
+    <DialogActions>
+        <MudStack Row="true" Class="justify-end pa-4" FullWidth="true">
+            <MudButton OnClick="Submit" Color="Color.Primary" Variant="Variant.Filled" Disabled="!isValid" Class="mr-3">
+                Salvar
+            </MudButton>
+            <MudButton Color="Color.Secondary" Variant="Variant.Outlined" OnClick="Cancel">Cancelar</MudButton>
+        </MudStack>
+    </DialogActions>
+
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+
+    private MudForm? form;
+
+    private bool isValid;
+
+    [Parameter] public User Users { get; set; } = new User();
+
+    private Sector selectedSector = new Sector();
+
+    private IEnumerable<Sector>? _allSectors = new List<Sector>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _allSectors = await _sectorServices.GetAllSectorsAsync();
+
+        if (_allSectors is not null && selectedSector != null)
+            selectedSector = _allSectors.FirstOrDefault(s => s.Id == selectedSector.Id) ?? new Sector();
+
+        else if (_allSectors is not null && Users.SectorId != default(Guid))
+            selectedSector = _allSectors.FirstOrDefault(s => s.Id == Users.SectorId) ?? new Sector();
+    }
+
+    private void Submit()
+    {
+        if (form is not null && form.IsValid)
+            MudDialog.Close(DialogResult.Ok(new { UserId = Users.Id, NewSectorId = selectedSector.Id }));
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

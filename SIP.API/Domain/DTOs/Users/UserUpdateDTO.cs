@@ -6,4 +6,7 @@ namespace SIP.API.Domain.DTOs.Users;
 /// Represents the data transfer object (DTO) used to update an existing user.
 /// Inherits base user properties.
 /// </summary>
-public class UserUpdateDTO : BaseUser { }
+public class UserUpdateDTO : BaseUser
+{ 
+    public bool IsActive { get; set; }
+}

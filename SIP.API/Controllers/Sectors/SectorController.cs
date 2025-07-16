@@ -42,7 +42,7 @@ public class SectorController(ISector sector) : ControllerBase
                 CreatedAt = entity.CreatedAt
             };
 
-            return CreatedAtAction(nameof(GetById), new { id = entity.Id }, response);
+            return CreatedAtAction(nameof(GetByIdAsync), new { id = entity.Id }, response);
         }
         catch (Exception ex)
         {
@@ -62,7 +62,7 @@ public class SectorController(ISector sector) : ControllerBase
     [HttpGet("{id}")]
     [ProducesResponseType(typeof(Sector), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetById(Guid id)
+    public async Task<IActionResult> GetByIdAsync(Guid id)
     {
         Sector? sector = await _sectorService.GetByIdAsync(id);
 
@@ -73,26 +73,14 @@ public class SectorController(ISector sector) : ControllerBase
     }
 
     /// <summary>
-    /// Retrieves a paginated, optionally sorted and filtered list of sectors.
+    /// Retrieves all sectors records.
     /// </summary>
-    /// <param name="pageNumber">The page number to retrieve. Defaults to 1.</param>
-    /// <param name="pageSize">The number of sectors to include per page. Defaults to 20.</param>
-    /// <param name="sortLabel">The field name to sort by (optional).</param>
-    /// <param name="sortDirection">The direction of sorting: "asc" for ascending or "desc" for descending (optional).</param>
-    /// <param name="searchString">A keyword used to filter sectors by name or other relevant fields (optional).</param>
-    /// <returns>
-    /// Returns an <see cref="IActionResult"/> containing a list of sectors matching the criteria, wrapped in an HTTP 200 OK response.
-    /// </returns>
+    /// Returns an <see cref="IActionResult"/> containing a list of sectors, wrapped in an HTTP 200 OK response.
     [HttpGet("show")]
     [ProducesResponseType(typeof(IEnumerable<Sector>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAll(
-    [FromQuery] int pageNumber = 1,
-    [FromQuery] int pageSize = 15,
-    [FromQuery] string? sortLabel = null,
-    [FromQuery] string? sortDirection = null,
-    [FromQuery] string? searchString = null)
+    public async Task<IActionResult> GetAllSectorsAsync()
     {
-        var sectors = await _sectorService.GetAllAsync(pageNumber, pageSize, sortLabel, sortDirection, searchString);
+        var sectors = await _sectorService.GetAllSectorsAsync();
         return Ok(sectors);
     }
 
@@ -106,7 +94,7 @@ public class SectorController(ISector sector) : ControllerBase
     /// <param name="searchString">Optional search string to filter sectors.</param>
     /// <returns>A paged result DTO containing the sectors and total count.</returns>
     [HttpGet("show_paged")]
-    public async Task<IActionResult> GetPaged([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 15, [FromQuery] string? sortLabel = null, [FromQuery] string? sortDirection = null, [FromQuery] string? searchString = null)
+    public async Task<IActionResult> GetPagedAsync([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 15, [FromQuery] string? sortLabel = null, [FromQuery] string? sortDirection = null, [FromQuery] string? searchString = null)
     {
         var result = await _sectorService.GetPagedAsync(pageNumber, pageSize, sortLabel, sortDirection, searchString);
         return Ok(result);
@@ -120,7 +108,7 @@ public class SectorController(ISector sector) : ControllerBase
     /// Returns an <see cref="ActionResult{T}"/> containing the total count of sectors as an integer, wrapped in an HTTP 200 OK response.
     /// </returns>
     [HttpGet("count")]
-    public async Task<ActionResult<int>> GetTotalCount([FromQuery] string? searchString = null)
+    public async Task<ActionResult<int>> GetTotalSectorsCountAsync([FromQuery] string? searchString = null)
     {
         var total = await _sectorService.GetTotalSectorsCountAsync(searchString);
         return Ok(total);

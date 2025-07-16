@@ -168,6 +168,7 @@ public class UserService(ApplicationContext context, IMemoryCache cache) : IUser
         user.Login = dto.Login;
         user.Masp = dto.Masp;
         user.Email = dto.Email;
+        user.IsActive = dto.IsActive;
         user.UpdatedAt = DateTime.UtcNow;
 
         _context.Users.Update(user);

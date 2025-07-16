@@ -17,22 +17,6 @@ public class SectorService(ApplicationContext context, IMemoryCache cache) : ISe
     private const int MaxPageSize = 100;
 
     /// <inheritdoc/>
-    public async Task<int> GetTotalSectorsCountAsync(string? searchString)
-    {
-        IQueryable<Sector> query = _context.Sectors;
-
-        if (!string.IsNullOrWhiteSpace(searchString))
-        {
-            query = query.Where(s =>
-                s.Name.Contains(searchString) ||
-                s.Acronym.Contains(searchString) ||
-                s.Phone.Contains(searchString));
-        }
-
-        return await query.CountAsync();
-    }
-
-    /// <inheritdoc/>
     public async Task<Sector> CreateAsync(SectorCreateDTO dto)
     {
         var sector = new Sector
@@ -51,57 +35,27 @@ public class SectorService(ApplicationContext context, IMemoryCache cache) : ISe
     /// <inheritdoc/>
     public async Task<Sector?> GetByIdAsync(Guid id)
     {
-        return await _context.Sectors.Include(s => s.Users).FirstOrDefaultAsync(s => s.Id == id);
+        return await _context.Sectors
+            .Include(s => s.Users)
+            .FirstOrDefaultAsync(s => s.Id == id);
     }
 
     /// <inheritdoc/>
-    public async Task<List<Sector>> GetAllAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection, string? searchString)
+    public async Task<List<Sector>> GetAllSectorsAsync()
     {
-        IQueryable<Sector> query = _context.Sectors.Include(s => s.Users).AsQueryable();
-
-        if (!string.IsNullOrWhiteSpace(searchString))
-        {
-            query = query.Where(s =>
-                s.Name.Contains(searchString) ||
-                s.Acronym.Contains(searchString) ||
-                s.Phone.Contains(searchString));
-        }
-
-        // Dinamic sorting
-        // If sortLabel or sortDirection is provided, apply sorting
-        if (!string.IsNullOrWhiteSpace(sortLabel) && !string.IsNullOrWhiteSpace(sortDirection))
-        {
-            var property = typeof(Sector).GetProperty(sortLabel, System.Reflection.BindingFlags.IgnoreCase | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
-            if (property != null)
-            {
-                query = sortDirection.Trim().Equals("asc", StringComparison.CurrentCultureIgnoreCase)
-                    ? query.OrderBy(e => EF.Property<object>(e, property.Name))
-                    : query.OrderByDescending(e => EF.Property<object>(e, property.Name));
-            }
-            else
-            {
-                query = query.OrderBy(s => s.Name); // default sorting if property not found
-            }
-        }
-        else
-        {
-            query = query.OrderBy(s => s.Name); // default sorting if no sorting parameters are provided
-        }
-
-        var result = await query
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
-
-        return result;
+        return await _context.Sectors
+                             .OrderBy(s => s.Name)
+                             .AsNoTracking()
+                             .ToListAsync();
     }
 
     /// <inheritdoc/>
     public async Task<SectorPagedResultDTO> GetPagedAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection, string? searchString)
     {
-        pageSize = Math.Min(pageSize, MaxPageSize); // Limite máximo
+        pageSize = Math.Min(pageSize, MaxPageSize);
 
-        IQueryable<Sector> query = _context.Sectors.Include(s => s.Users);
+        IQueryable<Sector> query = _context.Sectors
+            .Include(s => s.Users);
 
         if (!string.IsNullOrWhiteSpace(searchString))
         {
@@ -111,16 +65,14 @@ public class SectorService(ApplicationContext context, IMemoryCache cache) : ISe
                 s.Phone.Contains(searchString));
         }
 
-        // Cache da contagem
         string cacheKey = $"SectorCount_{searchString}";
-        int totalCount;
-        if (!_cache.TryGetValue(cacheKey, out totalCount))
+
+        if (!_cache.TryGetValue(cacheKey, out int totalCount))
         {
             totalCount = await query.CountAsync();
             _cache.Set(cacheKey, totalCount, TimeSpan.FromMinutes(2));
         }
 
-        // Ordenação dinâmica (igual ao seu código atual)
         if (!string.IsNullOrWhiteSpace(sortLabel) && !string.IsNullOrWhiteSpace(sortDirection))
         {
             var property = typeof(Sector).GetProperty(sortLabel, System.Reflection.BindingFlags.IgnoreCase | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
@@ -150,6 +102,22 @@ public class SectorService(ApplicationContext context, IMemoryCache cache) : ISe
             Items = items,
             TotalCount = totalCount
         };
+    }
+
+    /// <inheritdoc/>
+    public async Task<int> GetTotalSectorsCountAsync(string? searchString)
+    {
+        IQueryable<Sector> query = _context.Sectors;
+
+        if (!string.IsNullOrWhiteSpace(searchString))
+        {
+            query = query.Where(s =>
+                s.Name.Contains(searchString) ||
+                s.Acronym.Contains(searchString) ||
+                s.Phone.Contains(searchString));
+        }
+
+        return await query.CountAsync();
     }
 
     /// <inheritdoc/>

@@ -11,7 +11,7 @@
 
     <DialogContent>
 
-        @* Formulário com os campos de edição básica *@
+        @* Formulário com os campos de adição *@
         <MudForm @ref="form" @bind-IsValid="isValid" ErrorsChanged="OnErrorsChanged">
 
             <MudGrid Spacing="2">
@@ -30,9 +30,31 @@
                     <MudTextField @bind-Value="User.Email" Label="Email" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Email" Required="true" RequiredError="O email é obrigatório!" Variant="Variant.Outlined" Margin="Margin.Normal" />
                 </MudItem>
 
-                @* Checkbox para ativar/inativar o usuário com label dinâmico *@
+                @* Campos de Senha e Confirmação de Senha (presentes na adição) *@
                 <MudItem xs="12" sm="6">
-                    <MudCheckBox @bind-Value="User.IsActive" Color="@Color.Primary" Class=""> @(User.IsActive == true ? "Desativar" : "Ativar")</MudCheckBox>
+                    <MudTextField @bind-Value="User.PasswordHash" Label="Senha" InputType="InputType.Password"
+                                  Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Password"
+                                  Required="true" RequiredError="A senha é obrigatória!"
+                                  Variant="Variant.Outlined" Margin="Margin.Normal" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="ConfirmPassword" Label="Confirmar Senha" InputType="InputType.Password"
+                                  Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Password"
+                                  Required="true" RequiredError="A confirmação de senha é obrigatória!"
+                                  Validation="@(new Func<string, IEnumerable<string>>(PasswordMatchValidation))"
+                                  Variant="Variant.Outlined" Margin="Margin.Normal" />
+                </MudItem>
+
+                <MudItem xs="12" sm="6">
+                    <MudSelect T="Sector" Label="Setor" @bind-Value="selectedSector" Required="true" Dense="true" RequiredError="Selecione um setor!" Variant="Variant.Outlined" Margin="Margin.Normal">
+                        @if (_allSectors != null)
+                        {
+                            @foreach (var sector in _allSectors)
+                            {
+                                <MudSelectItem Value="sector">@sector.Acronym - @sector.Name</MudSelectItem>
+                            }
+                        }
+                    </MudSelect>
                 </MudItem>
 
                 <MudItem xs="12" sm="6">
@@ -61,6 +83,7 @@
 
 </MudDialog>
 
+
 @code {
     // Parâmetro em cascata para controlar a instância do diálogo (fechar, cancelar).
     [CascadingParameter]
@@ -70,16 +93,51 @@
     [Parameter]
     public User User { get; set; } = new();
 
+    // Parâmetro para receber a lista completa de setores disponíveis.
+    [Parameter]
+    public List<Sector> _allSectors { get; set; } = new();
+
     // Referência ao componente MudForm para acionar a validação.
     private MudForm? form;
 
     // Flag que indica se o formulário é válido. Habilita/desabilita o botão "Salvar".
     private bool isValid;
 
+    // Variável para armazenar o objeto Sector completo que foi selecionado no MudSelect.
+    private Sector? selectedSector;
+
+    private string ConfirmPassword { get; set; } = string.Empty;
+
     /// <summary>
-    /// Called when form errors change to update the UI.
+    /// Método executado quando o componente é inicializado.
+    /// É usado aqui para pré-selecionar o setor correto no modo de edição.
     /// </summary>
-    private void OnErrorsChanged() => StateHasChanged();
+    protected override async Task OnInitializedAsync()
+    {
+        // Garante que o serviço foi injetado antes de usá-lo
+        if (_sectorServices is not null)
+        {
+            // Usa o nome da variável injetada CORRETAMENTE
+            _allSectors = await _sectorServices.GetAllSectorsAsync() ?? new List<Sector>();
+        }
+
+        if (!_allSectors.Any())
+        {
+            // Usa a sintaxe CORRETA para o Snackbar
+            Snackbar.Add(
+                "Não foi possível carregar a lista de setores. O cadastro de usuários pode não funcionar corretamente.",
+                severity: Severity.Warning
+            );
+        }
+
+        if (User.PasswordHash != null)
+        {
+            User.PasswordHash = string.Empty;
+        }
+        ConfirmPassword = string.Empty;
+
+        StateHasChanged();
+    }
 
     /// <summary>
     /// Retorna o nome de exibição personalizado para cada UserRole.
@@ -97,6 +155,26 @@
         };
     }
 
+    // Método de validação de igualdade de senhas
+    private IEnumerable<string> PasswordMatchValidation(string confirmPasswordValue)
+    {
+        if (string.IsNullOrEmpty(confirmPasswordValue))
+        {
+            yield return "A confirmação de senha é obrigatória!";
+            yield break;
+        }
+
+        if (confirmPasswordValue != User.PasswordHash)
+        {
+            yield return "As senhas não correspondem!";
+        }
+    }
+
+    /// <summary>
+    /// Called when form errors change to update the UI.
+    /// </summary>
+    private void OnErrorsChanged() => StateHasChanged();
+
     /// <summary>
     /// Valida o formulário e, se for válido, fecha o diálogo retornando os dados.
     /// </summary>
@@ -106,12 +184,15 @@
         await form!.Validate();
 
         // Se o formulário for válido e um setor tiver sido selecionado...
-        if (isValid)
+        if (isValid && selectedSector != null)
         {
-            await form!.Validate();
+            // ...atribui o ID do setor selecionado ao objeto User.
+            User.SectorId = selectedSector.Id;
+            // (Opcional) Você também pode atribuir o objeto inteiro se for útil.
+            User.Sector = selectedSector;
 
-            if (isValid)
-                MudDialog.Close(DialogResult.Ok(User));
+            // Fecha o diálogo com sucesso, retornando o objeto User modificado.
+            MudDialog.Close(DialogResult.Ok(User));
         }
     }
 

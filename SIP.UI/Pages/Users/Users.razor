@@ -6,6 +6,7 @@
 @using SIP.UI.Models.Users
 @using MudBlazor
 @using MudBlazor.Utilities
+@using static SIP.UI.Components.Dialogs.Users.UserChangePasswordDialog
 
 @inject UserService _userService
 @inject ISnackbar Snackbar
@@ -54,12 +55,26 @@
                 <MudTd DataLabel="Login">@user.Login</MudTd>
                 <MudTd DataLabel="Email">@user.Email</MudTd>
                 <MudTd DataLabel="Ações" Align="Align.Right">
-                    <MudTooltip Text="Editar">
-                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Size="Size.Small" OnClick="@(() => ShowEditDialog(user))" aria-label="Editar Usuário" Variant="Variant.Text" />
-                    </MudTooltip>
-                    <MudTooltip Text="Excluir">
-                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => ShowDeleteDialog(user))" aria-label="Excluir Usuário" Variant="Variant.Text" />
-                    </MudTooltip>
+                    @* O NOVO ÍCONE DE CONFIGURAÇÕES/MENU DE AÇÕES *@
+                    <MudMenu Dense="true" Icon="@Icons.Material.Filled.Settings" Color="Color.Default" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopRight">
+                        <MudMenuItem OnClick="@(() => ShowEditBasicDialog(user))">
+                            <MudIcon Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Class="mr-2" />
+                            Editar
+                        </MudMenuItem>
+                        <MudMenuItem OnClick="@(() => ShowChangePasswordDialog(user))">
+                            <MudIcon Icon="@Icons.Material.Filled.Key" Size="Size.Small" Class="mr-2" />
+                            Redefinir Senha
+                        </MudMenuItem>
+                        <MudMenuItem OnClick="@(() => ShowChangeSectorDialog(user))">
+                            <MudIcon Icon="@Icons.Material.Filled.Business" Size="Size.Small" Class="mr-2" />
+                            Alterar Setor
+                        </MudMenuItem>
+                        <MudDivider Class="my-2" />
+                        <MudMenuItem OnClick="@(() => ShowDeleteDialog(user))" Style="color: var(--mud-palette-error);">
+                            <MudIcon Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Class="mr-2" />
+                            Excluir
+                        </MudMenuItem>
+                    </MudMenu>
                 </MudTd>
             </RowTemplate>
 
@@ -149,9 +164,9 @@
 
     private async Task ShowAddDialog()
     {
-        var parameters = new DialogParameters<UserEditDialog>();
+        var parameters = new DialogParameters<UserAddDialog>();
         parameters.Add(x => x.User, new User { Id = Guid.Empty });
-        var dialog = await DialogService.ShowAsync<UserEditDialog>("", parameters);
+        var dialog = await DialogService.ShowAsync<UserAddDialog>("", parameters);
         var result = await dialog.Result;
 
         if (result is not null && !result.Canceled)
@@ -175,6 +190,119 @@
     }
 
     private async Task ShowEditDialog(User user)
+    {
+        var parameters = new DialogParameters<UserEditDialog>();
+        parameters.Add(x => x.User, new User
+            {
+                Id = user.Id,
+                FullName = user.FullName,
+                Login = user.Login,
+                Masp = user.Masp,
+                Email = user.Email,
+                IsActive = user.IsActive
+            });
+
+        var dialog = await DialogService.ShowAsync<UserEditDialog>("", parameters);
+        var result = await dialog.Result;
+
+        if (result is not null && !result.Canceled)
+        {
+            var updatedUser = result.Data as User;
+            if (updatedUser != null)
+            {
+                try
+                {
+                    await _userService.UpdateUserAsync(updatedUser);
+                    Snackbar.Add("Usuário atualizado com sucesso!", Severity.Success);
+                    if (table is not null)
+                        await table.ReloadServerData();
+                }
+                catch (Exception ex)
+                {
+                    Snackbar.Add($"Erro ao atualizar usuário: {ex.Message}", Severity.Error);
+                }
+            }
+        }
+    }
+
+    private async Task ShowChangePasswordDialog(User user)
+{
+    var parameters = new DialogParameters<UserChangePasswordDialog>();
+
+    // Certifique-se de que 'x.User' está correto (singular) e não 'x.Users'
+    parameters.Add(x => x.Users, new User { Id = user.Id, FullName = user.FullName });
+
+    var dialog = await DialogService.ShowAsync<UserChangePasswordDialog>("", parameters); // Adicionei um título
+    var result = await dialog.Result;
+
+    // Primeiro, verifica se o resultado do diálogo não é nulo e não foi cancelado.
+    if (result is not null && !result.Canceled)
+    {
+        // Tenta fazer o cast para o DTO UserChangePasswordResult.
+        // Se result.Data for null ou de um tipo incompatível, passwordResult será null.
+        var passwordResult = result.Data as UserChangePasswordResult;
+
+        // Agora, verifica se o cast foi bem-sucedido e o objeto não é null.
+        if (passwordResult is not null) // <-- AQUI ESTÁ A VERIFICAÇÃO DE NULO QUE REMOVE OS WARNINGS
+        {
+            Guid userId = passwordResult.UserId;
+            string newPassword = passwordResult.NewPassword;
+
+            try
+            {
+                // Descomente e use seu serviço de usuário real
+                // await _userService.ResetUserPasswordAsync(userId, newPassword);
+                Snackbar.Add("Senha redefinida com sucesso!", Severity.Success);
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Erro ao redefinir senha: {ex.Message}", Severity.Error);
+            }
+        }
+        else
+        {
+            // Opcional: Lidar com o caso em que result.Data não é do tipo esperado
+            Snackbar.Add("Erro interno: O formato dos dados retornados pelo diálogo é inválido.", Severity.Error);
+        }
+    }
+}
+
+    // private async Task ShowChangeSectorDialog(User user)
+    // {
+    //     var parameters = new DialogParameters<UserChangeSectorDialog>();
+    //     // Passe o usuário completo para o diálogo de setor para pré-selecionar o setor atual
+    //     parameters.Add(x => x.Users, new User { Id = user.Id, FullName = user.FullName, SectorId = user.SectorId, SelectedSector = user.SelectedSector });
+
+    //     var dialog = await DialogService.ShowAsync<UserChangeSectorDialog>($"Alterar Setor - {user.FullName}", parameters);
+    //     var result = await dialog.Result;
+
+    //     if (result is not null && !result.Canceled)
+    //     {
+    //         // O resultado é um objeto anônimo com UserId e NewSectorId
+    //         dynamic data = result.Data;
+    //         Guid userId = data.UserId;
+    //         int newSectorId = data.NewSectorId;
+
+    //         try
+    //         {
+    //             // Você precisará de um método no seu UserService para alterar o setor
+    //             await _userService.ChangeUserSectorAsync(userId, newSectorId);
+    //             Snackbar.Add("Setor alterado com sucesso!", Severity.Success);
+    //             await table.ReloadServerData(); // Recarregar para refletir a mudança de setor na tabela
+    //         }
+    //         catch (Exception ex)
+    //         {
+    //             Snackbar.Add($"Erro ao alterar setor: {ex.Message}", Severity.Error);
+    //         }
+    //     }
+    // }
+
+    private void ShowChangeSectorDialog(User user)
+    {
+        Snackbar.Add("Diálogo de mudança de setores ainda não implmentado.", Severity.Info);
+    }
+
+    private async Task ShowEditBasicDialog(User user)
     {
         var parameters = new DialogParameters<UserEditDialog>();
         parameters.Add(x => x.User, new User

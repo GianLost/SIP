@@ -40,7 +40,7 @@ public class SectorService(HttpClient http)
         if (!string.IsNullOrEmpty(searchString))
             queryParams.Add($"searchString={Uri.EscapeDataString(searchString)}");
 
-        var url = $"{SectorsEndpoints._sectorsPagination}{string.Join("&", queryParams)}";
+        var url = $"{SectorsEndpoints._getAllSectors}{string.Join("&", queryParams)}";
 
         try
         {
@@ -60,6 +60,27 @@ public class SectorService(HttpClient http)
     /// <returns>The sector entity if found; otherwise, null.</returns>
     public async Task<Sector?> GetSectorsAsync(Guid id)
         => await _http.GetFromJsonAsync<Sector>($"{SectorsEndpoints._getSectorsById}{id}");
+
+    /// <summary>
+    /// Busca TODOS os setores da API para usar em dropdowns e seletores.
+    /// </summary>
+    /// <returns>Uma lista completa de todos os setores.</returns>
+    public async Task<List<Sector>?> GetAllSectorsAsync()
+    {
+        try
+        {
+            var endpoint = SectorsEndpoints._getAllSectors;
+
+            var sectors = await _http.GetFromJsonAsync<List<Sector>>(endpoint);
+
+            return sectors ?? [];
+        }
+        catch (HttpRequestException ex)
+        {
+            Console.WriteLine($"Falha ao carregar a lista completa de setores: {ex.Message}");
+            return null;
+        }
+    }
 
     /// <summary>
     /// Gets a paginated result of sectors from the API, including total count. Use in-memory caching and limit the number of records per page to avoid multiple requests for the same data.

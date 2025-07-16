@@ -4,5 +4,5 @@ public enum RoleEnum
 {
     Common = 0,
     SectorManager = 1,
-    Admin = 2,
+    Admin = 2
 }
