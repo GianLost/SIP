@@ -15,8 +15,9 @@
 <MudContainer MaxWidth="MaxWidth.Large" Class="my-8 px-4">
 
     <MudStack Row="true" AlignItems="AlignItems.Stretch" Class="mb-3 ml-3">
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ShowAddDialog" StartIcon="@Icons.Material.Filled.Add" Size="Size.Medium" Class="mud-elevation-3 rounded-pill px-6 py-3">
-            Novo Usuário
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ShowAddDialog" Class="@GetButtonClass()">
+            <MudIcon Icon="@Icons.Material.Filled.Add" Size="Size.Medium" />
+            <span class="button-text-label">Novo Usuário</span>
         </MudButton>
     </MudStack>
 
@@ -31,32 +32,32 @@
                         @if (_selectedUsers.Any())
                         {
                             <MudTooltip Text="@($"Ações aplicáveis para {_selectedUsers.Count} usuário(s) selecionado(s)")" Arrow="true" Placement="Placement.Bottom">
-                                <MudMenu Icon="@Icons.Material.Filled.SettingsApplications" Color="Color.Primary" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                                <MudMenu Dense="true" Icon="@Icons.Material.Filled.SettingsApplications" Color="Color.Primary" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
                                     @* Actions visible only when exactly ONE user is selected *@
                                     @if (_selectedUsers.Count == 1)
                                     {
                                         <MudMenuItem OnClick="@(() => ShowEditBasicDialog(_selectedUsers.First()))">
                                             <MudStack Row="true" AlignItems="AlignItems.Center">
-                                                <MudIcon Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Class="mr-2" />
+                                                <MudIcon Icon="@Icons.Material.Filled.Edit" Size="Size.Small" />
                                                 <MudText Typo="Typo.body2">Editar</MudText>
                                             </MudStack>
                                         </MudMenuItem>
                                         <MudMenuItem OnClick="@(() => ShowChangePasswordDialog(_selectedUsers.First()))">
                                             <MudStack Row="true" AlignItems="AlignItems.Center">
-                                                <MudIcon Icon="@Icons.Material.Filled.Key" Size="Size.Small" Class="mr-2" />
+                                                <MudIcon Icon="@Icons.Material.Filled.Key" Size="Size.Small" />
                                                 <MudText Typo="Typo.body2">Redefinir Senha</MudText>
                                             </MudStack>
                                         </MudMenuItem>
                                         <MudMenuItem OnClick="@(() => ShowChangeSectorDialog(_selectedUsers.First()))">
                                             <MudStack Row="true" AlignItems="AlignItems.Center">
-                                                <MudIcon Icon="@Icons.Material.Filled.Business" Size="Size.Small" Class="mr-2" />
+                                                <MudIcon Icon="@Icons.Material.Filled.Business" Size="Size.Small" />
                                                 <MudText Typo="Typo.body2">Alterar Setor</MudText>
                                             </MudStack>
                                         </MudMenuItem>
                                         <MudDivider Class="my-2" />
                                         <MudMenuItem OnClick="@(() => ShowDeleteDialog(_selectedUsers.First()))" Style="color: var(--mud-palette-error);">
                                             <MudStack Row="true" AlignItems="AlignItems.Center">
-                                                <MudIcon Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Class="mr-2" />
+                                                <MudIcon Icon="@Icons.Material.Filled.Delete" Size="Size.Small" />
                                                 <MudText Typo="Typo.body2">Excluir</MudText>
                                             </MudStack>
                                         </MudMenuItem>
@@ -66,7 +67,7 @@
                                     {
                                         <MudMenuItem OnClick="ShowDeleteSelectedUsersDialog" Style="color: var(--mud-palette-error);">
                                             <MudStack Row="true" AlignItems="AlignItems.Center">
-                                                <MudIcon Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Class="mr-2" />
+                                                <MudIcon Icon="@Icons.Material.Filled.Delete" Size="Size.Small" />
                                                 <MudText Typo="Typo.body2">Excluir</MudText>
                                             </MudStack>
                                         </MudMenuItem>
@@ -137,8 +138,14 @@
     private int totalItems = 0;
     private string searchString = string.Empty;
     private string? lastSortLabel;
+    private bool _isModalOpen = false;
 
     private HashSet<User> _selectedUsers = new HashSet<User>();
+
+    private string GetButtonClass()
+    {
+        return $"mud-elevation-3 animated-fab-button-manual-icon {(_isModalOpen ? "force-expanded-button" : "")}";
+    }
 
     protected override void OnInitialized() => _selectedUsers.Clear();
 
@@ -207,10 +214,14 @@
 
     private async Task ShowAddDialog()
     {
+        _isModalOpen = true;
+
         var parameters = new DialogParameters<UserAddDialog>();
         parameters.Add(x => x.User, new User { Id = Guid.Empty });
         var dialog = await DialogService.ShowAsync<UserAddDialog>("", parameters);
         var result = await dialog.Result;
+
+        _isModalOpen = false;
 
         if (result is not null && !result.Canceled)
         {

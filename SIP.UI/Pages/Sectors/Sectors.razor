@@ -17,12 +17,10 @@
 
     @* Componente de organização do cabeçalho da página *@
     <MudStack Row="true" AlignItems="AlignItems.Stretch" Class="mb-3 ml-3">
-
-        @* Botão para adicionar novas secretarias *@
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ShowAddDialog" StartIcon="@Icons.Material.Filled.Add" Size="Size.Medium" Class="mud-elevation-3 rounded-pill px-6 py-3">
-            Nova Secretaria
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ShowAddDialog" Class="@GetButtonClass()">
+            <MudIcon Icon="@Icons.Material.Filled.Add" Size="Size.Medium" />
+            <span class="button-text-label">Nova Secretaria</span>
         </MudButton>
-
     </MudStack>
 
     @* Componente MudPaper para melhor organização dos registros em tabela *@
@@ -39,20 +37,20 @@
                         @if (_selectedSectors.Any())
                         {
                             <MudTooltip Text="@($"Ações aplicáveis para {_selectedSectors.Count} secretaria(s) selecionada(s)")" Arrow="true" Placement="Placement.Bottom">
-                                <MudMenu Icon="@Icons.Material.Filled.SettingsApplications" Color="Color.Primary" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                                <MudMenu Dense="true" Icon="@Icons.Material.Filled.SettingsApplications" Color="Color.Primary" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
                                     @* Ações visíveis apenas quando exatamente UMA secretaria é selecionada *@
                                     @if (_selectedSectors.Count == 1)
                                     {
                                         <MudMenuItem OnClick="@(() => ShowEditDialog(_selectedSectors.First()))">
                                             <MudStack Row="true" AlignItems="AlignItems.Center">
-                                                <MudIcon Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Class="mr-2" />
+                                                <MudIcon Icon="@Icons.Material.Filled.Edit" Size="Size.Small" />
                                                 <MudText Typo="Typo.body2">Editar</MudText>
                                             </MudStack>
                                         </MudMenuItem>
                                         <MudDivider Class="my-2" />
                                         <MudMenuItem OnClick="@(() => ShowDeleteDialog(_selectedSectors.First()))" Style="color: var(--mud-palette-error);">
                                             <MudStack Row="true" AlignItems="AlignItems.Center">
-                                                <MudIcon Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Class="mr-2" />
+                                                <MudIcon Icon="@Icons.Material.Filled.Delete" Size="Size.Small" />
                                                 <MudText Typo="Typo.body2">Excluir</MudText>
                                             </MudStack>
                                         </MudMenuItem>
@@ -62,8 +60,8 @@
                                     {
                                         <MudMenuItem OnClick="ShowDeleteSelectedSectorsDialog" Style="color: var(--mud-palette-error);">
                                             <MudStack Row="true" AlignItems="AlignItems.Center">
-                                                <MudIcon Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Class="mr-2" />
-                                                <MudText Typo="Typo.body2">Excluir Selecionadas</MudText>
+                                                <MudIcon Icon="@Icons.Material.Filled.Delete" Size="Size.Small" />
+                                                <MudText Typo="Typo.body2">Excluir</MudText>
                                             </MudStack>
                                         </MudMenuItem>
                                     }
@@ -233,6 +231,13 @@
     /// </summary>
     private string? lastSortLabel;
 
+    private bool _isModalOpen = false;
+
+    private string GetButtonClass()
+    {
+        return $"mud-elevation-3 animated-fab-button-manual-icon {(_isModalOpen ? "force-expanded-button" : "")}";
+    }
+
     protected override void OnInitialized() => _selectedSectors.Clear();
 
     /// <summary>
@@ -353,6 +358,8 @@
     private async Task ShowAddDialog()
     {
 
+        _isModalOpen = true;
+
         var parameters = new DialogParameters<SectorEditDialog>();
 
         parameters.Add(x => x.Sector, new Sector { Id = Guid.Empty });
@@ -360,6 +367,8 @@
         IDialogReference dialog = await DialogService.ShowAsync<SectorEditDialog>("", parameters);
 
         DialogResult? result = await dialog.Result;  
+
+        _isModalOpen = false;
 
         if (result is not null && !result.Canceled)
         {
@@ -382,6 +391,7 @@
                 }
             }
         }
+
     }
 
     /// <summary>
