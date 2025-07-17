@@ -16,7 +16,7 @@
 <MudContainer MaxWidth="MaxWidth.Large" Class="my-8 px-4">
 
     @* Componente de organização do cabeçalho da página *@
-    <MudStack Row="true" AlignItems="AlignItems.Stretch" Class="mb-6">
+    <MudStack Row="true" AlignItems="AlignItems.Stretch" Class="mb-3 ml-3">
 
         @* Botão para adicionar novas secretarias *@
         <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ShowAddDialog" StartIcon="@Icons.Material.Filled.Add" Size="Size.Medium" Class="mud-elevation-3 rounded-pill px-6 py-3">
@@ -29,22 +29,62 @@
     <MudPaper Class="pa-4 ma-2" Elevation="1">
 
         @* Componente de tabela do MudBlazor *@
-        <MudTable T="Sector" ServerData="LoadServerData" Dense="true" Hover="true" Bordered="false" @ref="table" RowsPerPage="pageSize" LoadingProgressColor="Color.Primary" SortLabel="sortLabel" Elevation="0">
+        <MudTable T="Sector" ServerData="LoadServerData" Dense="true" Hover="true" Bordered="false" @ref="table" RowsPerPage="pageSize" LoadingProgressColor="Color.Primary" SortLabel="sortLabel" Elevation="0" MultiSelection="true" @bind-SelectedItems="_selectedSectors">
 
             @* Barra superior da tabela contendo o campo de filtragem e os botões de exportação *@
             <ToolBarContent>
+                <MudStack Style="width: 100%; margin-left: -0.75rem;" Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                    <MudStack Row="true" AlignItems="AlignItems.Center">
+                        @* Menu de Ações para setores selecionados *@
+                        @if (_selectedSectors.Any())
+                        {
+                            <MudTooltip Text="@($"Ações aplicáveis para {_selectedSectors.Count} secretaria(s) selecionada(s)")" Arrow="true" Placement="Placement.Bottom">
+                                <MudMenu Icon="@Icons.Material.Filled.SettingsApplications" Color="Color.Primary" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                                    @* Ações visíveis apenas quando exatamente UMA secretaria é selecionada *@
+                                    @if (_selectedSectors.Count == 1)
+                                    {
+                                        <MudMenuItem OnClick="@(() => ShowEditDialog(_selectedSectors.First()))">
+                                            <MudStack Row="true" AlignItems="AlignItems.Center">
+                                                <MudIcon Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Class="mr-2" />
+                                                <MudText Typo="Typo.body2">Editar</MudText>
+                                            </MudStack>
+                                        </MudMenuItem>
+                                        <MudDivider Class="my-2" />
+                                        <MudMenuItem OnClick="@(() => ShowDeleteDialog(_selectedSectors.First()))" Style="color: var(--mud-palette-error);">
+                                            <MudStack Row="true" AlignItems="AlignItems.Center">
+                                                <MudIcon Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Class="mr-2" />
+                                                <MudText Typo="Typo.body2">Excluir</MudText>
+                                            </MudStack>
+                                        </MudMenuItem>
+                                    }
+                                    @* Ação visível apenas quando MÚLTIPLAS secretarias são selecionadas *@
+                                    @if (_selectedSectors.Count > 1)
+                                    {
+                                        <MudMenuItem OnClick="ShowDeleteSelectedSectorsDialog" Style="color: var(--mud-palette-error);">
+                                            <MudStack Row="true" AlignItems="AlignItems.Center">
+                                                <MudIcon Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Class="mr-2" />
+                                                <MudText Typo="Typo.body2">Excluir Selecionadas</MudText>
+                                            </MudStack>
+                                        </MudMenuItem>
+                                    }
+                                </MudMenu>
+                            </MudTooltip>
+                        }
+                    </MudStack>
 
-                @* Campo de filtragem por pesquisa *@
-                <MudTextField T="string" ValueChanged="@OnSearch" Immediate="false" DebounceInterval="300" Placeholder="Buscar Secretaria..." Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0 mr-4" Clearable="true" Style="max-width: 300px;" />
+                    <MudStack Row="true" AlignItems="AlignItems.Center">
+                        <MudTextField T="string" ValueChanged="@OnSearch" Immediate="false" DebounceInterval="300" Placeholder="digite sua busca..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="m-auto" Clearable="true" Style="max-width: 300px;" />
 
-                @* Ícone para os menus de exportação *@
-                <MudTooltip Text="Exportar para formatos compatíveis ...">
-                    <MudMenu Icon="@Icons.Material.Filled.MoreVert" Color="Color.Primary" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
-                        <MudMenuItem OnClick="ExportToCsv">Exportar CSV</MudMenuItem>
-                        <MudMenuItem OnClick="ExportToPdf">Exportar PDF</MudMenuItem>
-                    </MudMenu>
-                </MudTooltip>
+                        @* Menu de Exportação - Always visible, not dependent on selection *@
+                        <MudTooltip Text="Exportar para formatos compatíveis ..." Arrow="true" Placement="Placement.Bottom">
+                            <MudMenu Icon="@Icons.Material.Filled.MoreVert" Color="Color.Primary" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                                <MudMenuItem OnClick="ExportToCsv">Exportar CSV</MudMenuItem>
+                                <MudMenuItem OnClick="ExportToPdf">Exportar PDF</MudMenuItem>
+                            </MudMenu>
+                        </MudTooltip>
+                    </MudStack>
 
+                </MudStack>
             </ToolBarContent>
 
             @* Cabeçalho da Tabela *@
@@ -58,7 +98,6 @@
                     <MudTableSortLabel SortBy="new Func<Sector, object>(x => x.Acronym)">Sigla</MudTableSortLabel>
                 </MudTh>
                 <MudTh Style="font-weight: bold;">Telefone</MudTh>
-                <MudTh Align="Align.Right"></MudTh>
 
             </HeaderContent>
 
@@ -75,20 +114,6 @@
                 <MudTd DataLabel="Nome">@sector.Name</MudTd>
                 <MudTd DataLabel="Sigla">@sector.Acronym</MudTd>
                 <MudTd DataLabel="Telefone">@FormatPhoneNumber(@sector.Phone)</MudTd>
-
-                <MudTd DataLabel="Ações" Align="Align.Right">
-
-                    @* Botão de edição *@
-                    <MudTooltip Text="Editar">
-                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Size="Size.Small" OnClick="@(() => ShowEditDialog(sector))" aria-label="Editar Secretaria" Variant="Variant.Text" />
-                    </MudTooltip>
-
-                    @* Botão de exclusão *@
-                    <MudTooltip Text="Excluir">
-                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => ShowDeleteDialog(sector))" aria-label="Excluir Secretaria" Variant="Variant.Text" />
-                    </MudTooltip>
-
-                </MudTd>
 
             </RowTemplate>
 
@@ -181,6 +206,8 @@
     /// </summary>
     private MudTable<Sector>? table;
 
+    private HashSet<Sector> _selectedSectors = new HashSet<Sector>();
+
     /// <summary>
     /// Indicates if the table is loading data.
     /// </summary>
@@ -206,6 +233,8 @@
     /// </summary>
     private string? lastSortLabel;
 
+    protected override void OnInitialized() => _selectedSectors.Clear();
+
     /// <summary>
     /// Loads paginated sector data from the server for MudTable component.
     /// </summary>
@@ -216,6 +245,8 @@
     {
         isLoading = true;
         StateHasChanged();
+
+        _selectedSectors.Clear();
 
         pageSize = state.PageSize;
         string? sortLabel = state.SortLabel;
@@ -434,6 +465,11 @@
                 Snackbar.Add($"Ocorreu um erro inesperado: {ex.Message}", Severity.Error);
             }
         }
+    }
+
+    private void ShowDeleteSelectedSectorsDialog()
+    {
+        Snackbar.Add("A Exclusão de múltiplos registros ainda não foi implementada.", Severity.Info);
     }
 
     /// <summary>

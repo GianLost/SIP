@@ -140,11 +140,7 @@
 
     private HashSet<User> _selectedUsers = new HashSet<User>();
 
-    // You might also want to respond to selection changes to update the UI
-    protected override void OnInitialized()
-    {
-        _selectedUsers.Clear(); // Ensure selection is clear on init
-    }
+    protected override void OnInitialized() => _selectedUsers.Clear();
 
     private async Task<TableData<User>> LoadServerData(TableState state, CancellationToken cancellationToken)
     {
