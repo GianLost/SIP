@@ -20,6 +20,8 @@ public interface IUser
     /// </returns>
     Task<int> GetTotalUsersCountAsync(string? searchString);
 
+    void ClearTotalUsersCountCache();
+
     /// <summary>
     /// Asynchronously creates a new user in the database.
     /// </summary>

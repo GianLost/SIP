@@ -2,6 +2,7 @@
 using SIP.API.Domain.DTOs.Sectors;
 using SIP.API.Domain.Entities.Sectors;
 using SIP.API.Domain.Interfaces.Sectors;
+using SIP.API.Domain.Services.Sectors;
 
 namespace SIP.API.Controllers.Sectors;
 
@@ -112,6 +113,17 @@ public class SectorController(ISector sector) : ControllerBase
     {
         var total = await _sectorService.GetTotalSectorsCountAsync(searchString);
         return Ok(total);
+    }
+
+    [HttpPost("invalidate_count_cache")]
+    public IActionResult InvalidateCountCache()
+    {
+        if (_sectorService is SectorService concreteSectorService)
+        {
+            concreteSectorService.ClearTotalSectorsCountCache();
+            return Ok();
+        }
+        return StatusCode(500, "Cache invalidation service not available.");
     }
 
     /// <summary>

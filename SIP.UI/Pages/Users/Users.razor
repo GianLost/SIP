@@ -24,65 +24,72 @@
         <MudTable T="User" ServerData="LoadServerData" Dense="true" Hover="true" Bordered="false" @ref="table" RowsPerPage="pageSize" LoadingProgressColor="Color.Primary" SortLabel="sortLabel" Elevation="0" MultiSelection="true" @bind-SelectedItems="_selectedUsers">
 
             <ToolBarContent>
-                <MudTextField T="string" ValueChanged="@OnSearch" Immediate="false" DebounceInterval="300" Placeholder="Buscar Usuário..." Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0 mr-4" Clearable="true" Style="max-width: 300px;" />
 
-                <MudSpacer />
+                <MudStack Style="width: 100%; margin-left: -0.75rem;" Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                    <MudStack Row="true" AlignItems="AlignItems.Center">
+                        @* Menu de Ações para usuários selecionados *@
+                        @if (_selectedUsers.Any())
+                        {
+                            <MudTooltip Text="@($"Ações aplicáveis para {_selectedUsers.Count} usuário(s) selecionado(s)")" Arrow="true" Placement="Placement.Bottom">
+                                <MudMenu Icon="@Icons.Material.Filled.SettingsApplications" Color="Color.Primary" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                                    @* Actions visible only when exactly ONE user is selected *@
+                                    @if (_selectedUsers.Count == 1)
+                                    {
+                                        <MudMenuItem OnClick="@(() => ShowEditBasicDialog(_selectedUsers.First()))">
+                                            <MudStack Row="true" AlignItems="AlignItems.Center">
+                                                <MudIcon Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Class="mr-2" />
+                                                <MudText Typo="Typo.body2">Editar</MudText>
+                                            </MudStack>
+                                        </MudMenuItem>
+                                        <MudMenuItem OnClick="@(() => ShowChangePasswordDialog(_selectedUsers.First()))">
+                                            <MudStack Row="true" AlignItems="AlignItems.Center">
+                                                <MudIcon Icon="@Icons.Material.Filled.Key" Size="Size.Small" Class="mr-2" />
+                                                <MudText Typo="Typo.body2">Redefinir Senha</MudText>
+                                            </MudStack>
+                                        </MudMenuItem>
+                                        <MudMenuItem OnClick="@(() => ShowChangeSectorDialog(_selectedUsers.First()))">
+                                            <MudStack Row="true" AlignItems="AlignItems.Center">
+                                                <MudIcon Icon="@Icons.Material.Filled.Business" Size="Size.Small" Class="mr-2" />
+                                                <MudText Typo="Typo.body2">Alterar Setor</MudText>
+                                            </MudStack>
+                                        </MudMenuItem>
+                                        <MudDivider Class="my-2" />
+                                        <MudMenuItem OnClick="@(() => ShowDeleteDialog(_selectedUsers.First()))" Style="color: var(--mud-palette-error);">
+                                            <MudStack Row="true" AlignItems="AlignItems.Center">
+                                                <MudIcon Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Class="mr-2" />
+                                                <MudText Typo="Typo.body2">Excluir</MudText>
+                                            </MudStack>
+                                        </MudMenuItem>
+                                    }
+                                    @* Action visible only when MULTIPLE users are selected *@
+                                    @if (_selectedUsers.Count > 1)
+                                    {
+                                        <MudMenuItem OnClick="ShowDeleteSelectedUsersDialog" Style="color: var(--mud-palette-error);">
+                                            <MudStack Row="true" AlignItems="AlignItems.Center">
+                                                <MudIcon Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Class="mr-2" />
+                                                <MudText Typo="Typo.body2">Excluir</MudText>
+                                            </MudStack>
+                                        </MudMenuItem>
+                                    }
+                                </MudMenu>
+                            </MudTooltip>
+                        }
+                    </MudStack>
 
-                @* Menu de Ações para usuários selecionados *@
-                @if (_selectedUsers.Any())
-                {
-                    <MudTooltip Text="@($"Ações aplicáveis para {_selectedUsers.Count} usuário(s) selecionado(s)")" Arrow="true" Placement="Placement.Bottom">
-                        <MudMenu Icon="@Icons.Material.Filled.Settings" Color="Color.Default" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
-                            @* Actions visible only when exactly ONE user is selected *@
-                            @if (_selectedUsers.Count == 1)
-                            {
-                                <MudMenuItem OnClick="@(() => ShowEditBasicDialog(_selectedUsers.First()))">
-                                    <MudStack Row="true" AlignItems="AlignItems.Center">
-                                        <MudIcon Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Class="mr-2" />
-                                        <MudText Typo="Typo.body2">Editar</MudText>
-                                    </MudStack>
-                                </MudMenuItem>
-                                <MudMenuItem OnClick="@(() => ShowChangePasswordDialog(_selectedUsers.First()))">
-                                    <MudStack Row="true" AlignItems="AlignItems.Center">
-                                        <MudIcon Icon="@Icons.Material.Filled.Key" Size="Size.Small" Class="mr-2" />
-                                        <MudText Typo="Typo.body2">Redefinir Senha</MudText>
-                                    </MudStack>
-                                </MudMenuItem>
-                                <MudMenuItem OnClick="@(() => ShowChangeSectorDialog(_selectedUsers.First()))">
-                                    <MudStack Row="true" AlignItems="AlignItems.Center">
-                                        <MudIcon Icon="@Icons.Material.Filled.Business" Size="Size.Small" Class="mr-2" />
-                                        <MudText Typo="Typo.body2">Alterar Setor</MudText>
-                                    </MudStack>
-                                </MudMenuItem>
-                                <MudDivider Class="my-2" />
-                                <MudMenuItem OnClick="@(() => ShowDeleteDialog(_selectedUsers.First()))" Style="color: var(--mud-palette-error);">
-                                    <MudStack Row="true" AlignItems="AlignItems.Center">
-                                        <MudIcon Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Class="mr-2" />
-                                        <MudText Typo="Typo.body2">Excluir</MudText>
-                                    </MudStack>
-                                </MudMenuItem>
-                            }
-                            @* Action visible only when MULTIPLE users are selected *@
-                            @if (_selectedUsers.Count > 1)
-                            {
-                                <MudMenuItem OnClick="ShowDeleteSelectedUsersDialog" Style="color: var(--mud-palette-error);">
-                                    <MudStack Row="true" AlignItems="AlignItems.Center">
-                                        <MudIcon Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Class="mr-2" />
-                                        <MudText Typo="Typo.body2">Excluir Selecionados</MudText>
-                                    </MudStack>
-                                </MudMenuItem>
-                            }
-                        </MudMenu>
-                    </MudTooltip>
-                }
+                    <MudStack Row="true" AlignItems="AlignItems.Center">
+                        <MudTextField T="string" ValueChanged="@OnSearch" Immediate="false" DebounceInterval="300" Placeholder="digite sua busca..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="m-auto" Clearable="true" Style="max-width: 300px;" />
 
-                @* Menu de Exportação - Always visible, not dependent on selection *@
-                <MudTooltip Text="Exportar para formatos compatíveis ..." Arrow="true" Placement="Placement.Bottom">
-                    <MudMenu Icon="@Icons.Material.Filled.MoreVert" Color="Color.Primary" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
-                        <MudMenuItem OnClick="ExportToCsv">Exportar CSV</MudMenuItem>
-                        <MudMenuItem OnClick="ExportToPdf">Exportar PDF</MudMenuItem>
-                    </MudMenu>
-                </MudTooltip>
+                        @* Menu de Exportação - Always visible, not dependent on selection *@
+                        <MudTooltip Text="Exportar para formatos compatíveis ..." Arrow="true" Placement="Placement.Bottom">
+                            <MudMenu Icon="@Icons.Material.Filled.MoreVert" Color="Color.Primary" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                                <MudMenuItem OnClick="ExportToCsv">Exportar CSV</MudMenuItem>
+                                <MudMenuItem OnClick="ExportToPdf">Exportar PDF</MudMenuItem>
+                            </MudMenu>
+                        </MudTooltip>
+                    </MudStack>
+
+                </MudStack>
+
             </ToolBarContent>
 
             <HeaderContent>
@@ -251,7 +258,7 @@
 
         if (result is not null && !result.Canceled)
         {
-            var updatedUser = result.Data as User; 
+            var updatedUser = result.Data as User;
 
             if (updatedUser != null)
             {

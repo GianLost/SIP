@@ -125,6 +125,14 @@ public class UserController(IUser user) : ControllerBase
         return Ok(total);
     }
 
+    // Inside SIP.API.Controllers.UserController
+    [HttpPost("invalidate_count_cache")]
+    public IActionResult InvalidateCountCache()
+    {
+        _userService.ClearTotalUsersCountCache();
+        return Ok();
+    }
+
     /// <summary>
     /// Updates an existing user by ID.
     /// </summary>

@@ -40,8 +40,8 @@
         </MudDrawerHeader>
 
         @* Opções de navegação do menu *@
-        <MudNavMenu Color="Color.Primary" Bordered="true">
-            <MudNavLink Href="/" Class="navigate" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Início</MudNavLink>
+        <MudNavMenu Color="Color.Primary" Bordered="true" Class="custom-nav-menu">
+            <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Início</MudNavLink>
             <MudNavLink Href="/sectors" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Business">Secretarias</MudNavLink>
             <MudNavLink Href="/users" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.People">Usuários</MudNavLink>
             <MudDivider Class="my-2" />
@@ -60,14 +60,15 @@
     </MudDrawer>
 
     @* Renderização do conteúdo *@
-    <MudMainContent>
+    <MudMainContent @onclick="CloseDrawerOnMainContentClick">
         @Body
     </MudMainContent>
 
 </MudLayout>
 
 @code {
-    private bool _isDrawerOpened = true;
+    // Altere para `false` para que o menu comece fechado.
+    private bool _isDrawerOpened = false;
     private bool _isDarkMode = true;
     private MudThemeProvider? _mudThemeProvider;
 
@@ -91,7 +92,7 @@
             Black = "#27272f",
             AppbarBackground = Colors.Cyan.Darken2,
             AppbarText = "#ffffff",
-            Background = "#121212"
+            Background = "#27272f"
         }
     };
 
@@ -117,18 +118,20 @@
         _isDrawerOpened = !_isDrawerOpened;
     }
 
+    // Método para fechar o drawer ao clicar no MainContent, se ele estiver aberto
+    void CloseDrawerOnMainContentClick()
+    {
+        if (_isDrawerOpened)
+        {
+            _isDrawerOpened = false;
+        }
+    }
+
     // Método para alternar o tema entre claro e escuro
     private async Task ToggleTheme()
     {
         _isDarkMode = !_isDarkMode;
         await JS.InvokeVoidAsync("localStorage.setItem", "sip-theme", _isDarkMode ? "dark" : "light");
-        StateHasChanged();
-    }
-
-    // Método para lidar com a mudança de preferência do sistema
-    private void OnSystemPreferenceChanged(bool newValue)
-    {
-        _isDarkMode = newValue;
         StateHasChanged();
     }
 }

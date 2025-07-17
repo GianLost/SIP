@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Primitives;
 using SIP.API.Domain.DTOs.Users;
 using SIP.API.Domain.Entities.Users;
 using SIP.API.Domain.Interfaces.Users;
@@ -16,6 +17,8 @@ public class UserService(ApplicationContext context, IMemoryCache cache) : IUser
     private readonly IMemoryCache _cache = cache;
     private const int MaxPageSize = 100;
 
+    private static CancellationTokenSource _totalUsersCountCacheCts = new();
+
     /// <inheritdoc/>
     public async Task<int> GetTotalUsersCountAsync(string? searchString)
     {
@@ -29,7 +32,26 @@ public class UserService(ApplicationContext context, IMemoryCache cache) : IUser
                 s.Email.Contains(searchString));
         }
 
-        return await query.CountAsync();
+        string cacheKey = $"UserCount_Search_{searchString ?? "NoSearch"}";
+
+        if (!_cache.TryGetValue(cacheKey, out int totalCount))
+        {
+            totalCount = await query.CountAsync();
+
+            var cacheEntryOptions = new MemoryCacheEntryOptions()
+                .SetAbsoluteExpiration(TimeSpan.FromMinutes(2)) 
+                .AddExpirationToken(new CancellationChangeToken(_totalUsersCountCacheCts.Token));
+
+            _cache.Set(cacheKey, totalCount, cacheEntryOptions);
+        }
+
+        return totalCount;
+    }
+
+    public void ClearTotalUsersCountCache()
+    {
+        _totalUsersCountCacheCts.Cancel();
+        _totalUsersCountCacheCts = new CancellationTokenSource();
     }
 
     /// <inheritdoc/>
@@ -49,6 +71,8 @@ public class UserService(ApplicationContext context, IMemoryCache cache) : IUser
 
         await _context.Users.AddAsync(entity);
         await _context.SaveChangesAsync();
+
+        ClearTotalUsersCountCache();
 
         return entity;
     }
@@ -115,14 +139,8 @@ public class UserService(ApplicationContext context, IMemoryCache cache) : IUser
                 s.Email.Contains(searchString));
         }
 
-        // Cache da contagem
-        string cacheKey = $"UserCount_{searchString}";
-        int totalCount;
-        if (!_cache.TryGetValue(cacheKey, out totalCount))
-        {
-            totalCount = await query.CountAsync();
-            _cache.Set(cacheKey, totalCount, TimeSpan.FromMinutes(2));
-        }
+        // Get total count (this will use or re-cache based on the token)
+        int totalCount = await GetTotalUsersCountAsync(searchString);
 
         // Ordenação dinâmica (igual ao seu código atual)
         if (!string.IsNullOrWhiteSpace(sortLabel) && !string.IsNullOrWhiteSpace(sortDirection))
@@ -191,6 +209,8 @@ public class UserService(ApplicationContext context, IMemoryCache cache) : IUser
 
         _context.Users.Remove(user);
         await _context.SaveChangesAsync();
+
+        ClearTotalUsersCountCache();
 
         return true;
     }

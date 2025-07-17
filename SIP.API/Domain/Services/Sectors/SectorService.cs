@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Primitives;
 using SIP.API.Domain.DTOs.Sectors;
 using SIP.API.Domain.Entities.Sectors;
 using SIP.API.Domain.Interfaces.Sectors;
@@ -16,6 +17,8 @@ public class SectorService(ApplicationContext context, IMemoryCache cache) : ISe
     private readonly IMemoryCache _cache = cache;
     private const int MaxPageSize = 100;
 
+    private static CancellationTokenSource _totalSectorsCountCacheCts = new CancellationTokenSource();
+
     /// <inheritdoc/>
     public async Task<Sector> CreateAsync(SectorCreateDTO dto)
     {
@@ -28,6 +31,8 @@ public class SectorService(ApplicationContext context, IMemoryCache cache) : ISe
 
         await _context.Sectors.AddAsync(sector);
         await _context.SaveChangesAsync();
+
+        ClearTotalSectorsCountCache();
 
         return sector;
     }
@@ -65,12 +70,17 @@ public class SectorService(ApplicationContext context, IMemoryCache cache) : ISe
                 s.Phone.Contains(searchString));
         }
 
-        string cacheKey = $"SectorCount_{searchString}";
+        string cacheKey = $"SectorCount_Search_{searchString ?? "NoSearch"}";
 
         if (!_cache.TryGetValue(cacheKey, out int totalCount))
         {
             totalCount = await query.CountAsync();
-            _cache.Set(cacheKey, totalCount, TimeSpan.FromMinutes(2));
+
+            var cacheEntryOptions = new MemoryCacheEntryOptions()
+                .SetAbsoluteExpiration(TimeSpan.FromMinutes(2))
+                .AddExpirationToken(new CancellationChangeToken(_totalSectorsCountCacheCts.Token));
+
+            _cache.Set(cacheKey, totalCount, cacheEntryOptions);
         }
 
         if (!string.IsNullOrWhiteSpace(sortLabel) && !string.IsNullOrWhiteSpace(sortDirection))
@@ -117,7 +127,17 @@ public class SectorService(ApplicationContext context, IMemoryCache cache) : ISe
                 s.Phone.Contains(searchString));
         }
 
-        return await query.CountAsync();
+        string cacheKey = $"SectorCount_Search_{searchString ?? "NoSearch"}";
+
+        if (!_cache.TryGetValue(cacheKey, out int totalCount))
+        {
+            totalCount = await query.CountAsync();
+            var cacheEntryOptions = new MemoryCacheEntryOptions()
+                .SetAbsoluteExpiration(TimeSpan.FromMinutes(2))
+                .AddExpirationToken(new CancellationChangeToken(_totalSectorsCountCacheCts.Token));
+            _cache.Set(cacheKey, totalCount, cacheEntryOptions);
+        }
+        return totalCount;
     }
 
     /// <inheritdoc/>
@@ -153,6 +173,15 @@ public class SectorService(ApplicationContext context, IMemoryCache cache) : ISe
         _context.Sectors.Remove(sector);
         await _context.SaveChangesAsync();
 
+        ClearTotalSectorsCountCache();
+
         return true;
+    }
+
+    /// <inheritdoc/>
+    public void ClearTotalSectorsCountCache()
+    {
+        _totalSectorsCountCacheCts.Cancel();
+        _totalSectorsCountCacheCts = new CancellationTokenSource();
     }
 }

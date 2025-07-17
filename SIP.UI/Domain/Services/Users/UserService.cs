@@ -1,6 +1,4 @@
-﻿using SIP.UI.Domain.DTOs.Sectors;
-using SIP.UI.Domain.Helpers.Endpoints;
-using System.Net.Http.Json;
+﻿using System.Net.Http.Json;
 using SIP.UI.Models.Users;
 using SIP.UI.Domain.DTOs.Users;
 
@@ -108,6 +106,8 @@ public class UserService(HttpClient http)
     {
         var response = await _http.PostAsJsonAsync("sip_api/User/register_user", user);
         response.EnsureSuccessStatusCode();
+
+        await InvalidateUserCountCache();
     }
 
     /// <summary>
@@ -155,6 +155,21 @@ public class UserService(HttpClient http)
             {
                 throw new HttpRequestException($"Erro na requisição: {response.StatusCode} - {errorContent}");
             }
+        }
+
+        await InvalidateUserCountCache();
+    }
+
+    private async Task InvalidateUserCountCache()
+    {
+        try
+        {
+            var response = await _http.PostAsync("sip_api/User/invalidate_count_cache", null);
+            response.EnsureSuccessStatusCode();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error invalidating user count cache: {ex.Message}");
         }
     }
 }

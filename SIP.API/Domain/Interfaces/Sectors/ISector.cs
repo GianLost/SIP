@@ -57,6 +57,11 @@ public interface ISector
     Task<int> GetTotalSectorsCountAsync(string? searchString);
 
     /// <summary>
+    /// Clears all cached total sector counts.
+    /// </summary>
+    void ClearTotalSectorsCountCache();
+
+    /// <summary>
     /// Asynchronously updates an existing sector in the database.
     /// </summary>
     /// <param name="id">The unique identifier of the sector to update.</param>
