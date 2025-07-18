@@ -5,7 +5,6 @@ using SIP.API.Domain.DTOs.Users.Responses;
 using SIP.API.Domain.Entities.Users;
 using SIP.API.Domain.Interfaces.Users;
 using SIP.API.Domain.Interfaces.Users.Configurations;
-using SIP.API.Domain.Services.Users.Configurations;
 
 namespace SIP.API.Controllers.Users;
 
@@ -130,12 +129,30 @@ public class UserController(IUser user, IUserConfiguration userConfiguration) : 
         return Ok(total);
     }
 
-    // Inside SIP.API.Controllers.UserController
+    /// <summary>
+    /// Invalidates the total user count cache.
+    /// </summary>
+    /// <remarks>
+    /// Call this endpoint after creating, updating, or deleting a user to force
+    /// a recalculation of the total count on the next query. 
+    /// This operation is idempotent.
+    /// </remarks>
+    /// <response code="204">Returns when the cache is successfully invalidated. No content is returned in the body.</response>
+    /// <response code="500">Returns if an unexpected server error occurs during the operation.</response>
     [HttpPost("invalidate_count_cache")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public IActionResult InvalidateCountCache()
     {
-        _userService.ClearTotalUsersCountCache();
-        return Ok();
+        try
+        {
+            _userService.ClearTotalUsersCountCache();
+            return NoContent();
+        }
+        catch (Exception)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, "Ocorreu um erro ao processar sua solicitação.");
+        }
     }
 
     /// <summary>
@@ -176,24 +193,39 @@ public class UserController(IUser user, IUserConfiguration userConfiguration) : 
     }
 
     /// <summary>
-    /// Method to change user password used by managers and aministrators.
+    /// Changes a specific user's password using an administrative flow.
     /// </summary>
-    /// <param name="dto">user's data and the new password.</param>
-    /// <returns>The user updated.</returns>
+    /// <remarks>
+    /// This endpoint allows changing a user's password without knowing their current one. 
+    /// The new password will be securely hashed before being stored.
+    /// </remarks>
+    /// <param name="dto">The request body containing the `UserId` and the new `Password`.</param>
+    /// <response code="200">Password was changed successfully. A confirmation message is returned.</response>
+    /// <response code="400">The request is invalid. This can be due to a missing password or other model validation errors.</response>
+    /// <response code="404">No user was found with the provided `UserId`.</response>
+    /// <response code="500">An internal server error occurred.</response>
     [HttpPatch("default-change-password")]
+    [ProducesResponseType(typeof(ChangedPasswordResponseDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> DefaultChangePassword([FromBody] UserDefaultChangePasswordDTO dto)
     {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
+        try
+        {
+            var updatedUser = await _userConfigurationService.DefaultChangePasswordAsync(dto);
 
-        var updatedUser = await _userConfigurationService.DefaultChangePasswordAsync(dto);
+            if (updatedUser == null)
+                return NotFound("User not found.");
 
-        if (updatedUser == null)
-            return NotFound("Usuário não encontrado ou dados inválidos.");
+            var response = new ChangedPasswordResponseDTO($"Password successfully changed for user {updatedUser.Login}.");
 
-        var response = new ChangedPasswordResponseDTO($"Senha alterada com sucesso para o usuário {updatedUser.Login}.");
-
-        return Ok(response);
+            return Ok(response);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 
     /// <summary>

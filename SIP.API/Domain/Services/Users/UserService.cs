@@ -18,42 +18,8 @@ public class UserService(ApplicationContext context, IMemoryCache cache) : IUser
     private readonly IMemoryCache _cache = cache;
     private const int MaxPageSize = 100;
 
+    private readonly object _cacheLock = new();
     private static CancellationTokenSource _totalUsersCountCacheCts = new();
-
-    /// <inheritdoc/>
-    public async Task<int> GetTotalUsersCountAsync(string? searchString)
-    {
-        IQueryable<User> query = _context.Users;
-
-        if (!string.IsNullOrWhiteSpace(searchString))
-        {
-            query = query.Where(s =>
-                s.FullName.Contains(searchString) ||
-                s.Login.Contains(searchString) ||
-                s.Email.Contains(searchString));
-        }
-
-        string cacheKey = $"UserCount_Search_{searchString ?? "NoSearch"}";
-
-        if (!_cache.TryGetValue(cacheKey, out int totalCount))
-        {
-            totalCount = await query.CountAsync();
-
-            var cacheEntryOptions = new MemoryCacheEntryOptions()
-                .SetAbsoluteExpiration(TimeSpan.FromMinutes(2)) 
-                .AddExpirationToken(new CancellationChangeToken(_totalUsersCountCacheCts.Token));
-
-            _cache.Set(cacheKey, totalCount, cacheEntryOptions);
-        }
-
-        return totalCount;
-    }
-
-    public void ClearTotalUsersCountCache()
-    {
-        _totalUsersCountCacheCts.Cancel();
-        _totalUsersCountCacheCts = new CancellationTokenSource();
-    }
 
     /// <inheritdoc/>
     public async Task<User> CreateAsync(UserCreateDTO dto)
@@ -84,6 +50,7 @@ public class UserService(ApplicationContext context, IMemoryCache cache) : IUser
         return await _context.Users.FindAsync(id);
     }
 
+    /// <inheritdoc/>
     public async Task<List<User>> GetAllAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection, string? searchString)
     {
         IQueryable<User> query = _context.Users.AsQueryable();
@@ -214,5 +181,46 @@ public class UserService(ApplicationContext context, IMemoryCache cache) : IUser
         ClearTotalUsersCountCache();
 
         return true;
+    }
+
+    /// <inheritdoc/>
+    public async Task<int> GetTotalUsersCountAsync(string? searchString)
+    {
+        IQueryable<User> query = _context.Users;
+
+        if (!string.IsNullOrWhiteSpace(searchString))
+        {
+            query = query.Where(s =>
+                s.FullName.Contains(searchString) ||
+                s.Login.Contains(searchString) ||
+                s.Email.Contains(searchString));
+        }
+
+        string cacheKey = $"UserCount_Search_{searchString ?? "NoSearch"}";
+
+        if (!_cache.TryGetValue(cacheKey, out int totalCount))
+        {
+            totalCount = await query.CountAsync();
+
+            var cacheEntryOptions = new MemoryCacheEntryOptions()
+                .SetAbsoluteExpiration(TimeSpan.FromMinutes(2))
+                .AddExpirationToken(new CancellationChangeToken(_totalUsersCountCacheCts.Token));
+
+            _cache.Set(cacheKey, totalCount, cacheEntryOptions);
+        }
+
+        return totalCount;
+    }
+
+    /// <inheritdoc/>
+    public void ClearTotalUsersCountCache()
+    {
+        lock (_cacheLock)
+        {
+            var oldCts = _totalUsersCountCacheCts;
+            _totalUsersCountCacheCts = new CancellationTokenSource();
+            oldCts.Cancel();
+            oldCts.Dispose();
+        }
     }
 }

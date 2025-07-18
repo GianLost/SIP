@@ -86,5 +86,12 @@ public interface IUser
     /// </returns>
     Task<int> GetTotalUsersCountAsync(string? searchString);
 
+    /// <summary>
+    /// Invalidates the cache that stores the total number of users.
+    /// </summary>
+    /// <remarks>
+    /// This method should be called whenever a user is created, updated, or deleted
+    /// to ensure the total count is recalculated on the next request.
+    /// </remarks>
     void ClearTotalUsersCountCache();
 }
