@@ -27,7 +27,7 @@
     <MudPaper Class="pa-4 ma-2" Elevation="1">
 
         @* Componente de tabela do MudBlazor *@
-        <MudTable T="Sector" ServerData="LoadServerData" Dense="true" Hover="true" Bordered="false" @ref="table" RowsPerPage="pageSize" LoadingProgressColor="Color.Primary" SortLabel="sortLabel" Elevation="0" MultiSelection="true" @bind-SelectedItems="_selectedSectors">
+        <MudTable T="Sector" ServerData="LoadServerData" Dense="true" Hover="true" Bordered="false" @ref="table" RowsPerPage="pageSize" LoadingProgressColor="Color.Primary" Loading="@isLoading" SortLabel="sortLabel" Elevation="0" MultiSelection="true" @bind-SelectedItems="_selectedSectors">
 
             @* Barra superior da tabela contendo o campo de filtragem e os botões de exportação *@
             <ToolBarContent>
@@ -263,6 +263,8 @@
             else
                 sortLabel = "Name";
         }
+
+        lastSortLabel = sortLabel;
 
         try
         {

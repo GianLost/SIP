@@ -23,7 +23,7 @@
     </MudStack>
 
     <MudPaper Class="pa-4 ma-2" Elevation="1">
-        <MudTable T="User" ServerData="LoadServerData" Dense="true" Hover="true" Bordered="false" @ref="table" RowsPerPage="pageSize" LoadingProgressColor="Color.Primary" SortLabel="sortLabel" Elevation="0" MultiSelection="true" @bind-SelectedItems="_selectedUsers">
+        <MudTable T="User" ServerData="LoadServerData" Dense="true" Hover="true" Bordered="false" @ref="table" RowsPerPage="pageSize" LoadingProgressColor="Color.Primary" SortLabel="sortLabel" Loading="@isLoading" Elevation="0" MultiSelection="true" @bind-SelectedItems="_selectedUsers">
 
             <ToolBarContent>
 
@@ -168,6 +168,8 @@
             else
                 sortLabel = "FullName";
         }
+
+        lastSortLabel = sortLabel;
 
         try
         {

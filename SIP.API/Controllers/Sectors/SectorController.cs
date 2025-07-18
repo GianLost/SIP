@@ -43,7 +43,7 @@ public class SectorController(ISector sector) : ControllerBase
                 CreatedAt = entity.CreatedAt
             };
 
-            return CreatedAtAction(nameof(GetById), new { id = entity.Id }, response);
+            return CreatedAtRoute(nameof(GetSectorByIdAsync), new { id = entity.Id }, response);
         }
         catch (Exception ex)
         {
@@ -60,10 +60,10 @@ public class SectorController(ISector sector) : ControllerBase
     /// Returns <see cref="OkObjectResult"/> with the <see cref="Sector"/> if found,
     /// or <see cref="NotFoundResult"/> if no sector exists with the specified ID.
     /// </returns>
-    [HttpGet("{id}")]
+    [HttpGet("{id}", Name = "GetSectorByIdAsync")]
     [ProducesResponseType(typeof(Sector), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetById(Guid id)
+    public async Task<IActionResult> GetSectorByIdAsync(Guid id)
     {
         Sector? sector = await _sectorService.GetByIdAsync(id);
 
@@ -79,7 +79,7 @@ public class SectorController(ISector sector) : ControllerBase
     /// Returns an <see cref="IActionResult"/> containing a list of sectors, wrapped in an HTTP 200 OK response.
     [HttpGet("show")]
     [ProducesResponseType(typeof(IEnumerable<Sector>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAllSectorsAsync()
+    public async Task<IActionResult> GetAllAsync()
     {
         var sectors = await _sectorService.GetAllSectorsAsync();
         return Ok(sectors);
@@ -109,7 +109,7 @@ public class SectorController(ISector sector) : ControllerBase
     /// Returns an <see cref="ActionResult{T}"/> containing the total count of sectors as an integer, wrapped in an HTTP 200 OK response.
     /// </returns>
     [HttpGet("count")]
-    public async Task<ActionResult<int>> GetTotalSectorsCountAsync([FromQuery] string? searchString = null)
+    public async Task<ActionResult<int>> GetTotalCountAsync([FromQuery] string? searchString = null)
     {
         var total = await _sectorService.GetTotalSectorsCountAsync(searchString);
         return Ok(total);

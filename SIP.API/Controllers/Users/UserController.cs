@@ -48,7 +48,7 @@ public class UserController(IUser user, IUserConfiguration userConfiguration) : 
                 CreatedAt = entity.CreatedAt
             };
 
-            return CreatedAtAction(nameof(GetById), new { id = entity.Id }, response);
+            return CreatedAtRoute(nameof(GetUserByIdAsync), new { id = entity.Id }, response);
         }
         catch (Exception ex)
         {
@@ -64,10 +64,10 @@ public class UserController(IUser user, IUserConfiguration userConfiguration) : 
     /// Returns <see cref="OkObjectResult"/> with the <see cref="User"/> if found,
     /// or <see cref="NotFoundResult"/> if no user exists with the specified ID.
     /// </returns>
-    [HttpGet("{id}")]
+    [HttpGet("{id}", Name = "GetUserByIdAsync")]
     [ProducesResponseType(typeof(User), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetById(Guid id)
+    public async Task<IActionResult> GetUserByIdAsync(Guid id)
     {
         var user = await _userService.GetByIdAsync(id);
         if (user == null)
@@ -88,7 +88,7 @@ public class UserController(IUser user, IUserConfiguration userConfiguration) : 
     /// </returns>
     [HttpGet("show")]
     [ProducesResponseType(typeof(IEnumerable<User>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAll(
+    public async Task<IActionResult> GetAllAsync(
     [FromQuery] int pageNumber = 1,
     [FromQuery] int pageSize = 15,
     [FromQuery] string? sortLabel = null,
@@ -109,7 +109,7 @@ public class UserController(IUser user, IUserConfiguration userConfiguration) : 
     /// <param name="searchString">Optional search string to filter sectors.</param>
     /// <returns>A paged result DTO containing the users and total count.</returns>
     [HttpGet("show_paged")]
-    public async Task<IActionResult> GetPaged([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 15, [FromQuery] string? sortLabel = null, [FromQuery] string? sortDirection = null, [FromQuery] string? searchString = null)
+    public async Task<IActionResult> GetPagedAsync([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 15, [FromQuery] string? sortLabel = null, [FromQuery] string? sortDirection = null, [FromQuery] string? searchString = null)
     {
         var result = await _userService.GetPagedAsync(pageNumber, pageSize, sortLabel, sortDirection, searchString);
         return Ok(result);
@@ -123,7 +123,7 @@ public class UserController(IUser user, IUserConfiguration userConfiguration) : 
     /// Returns an <see cref="ActionResult{T}"/> containing the total count of sectors as an integer, wrapped in an HTTP 200 OK response.
     /// </returns>
     [HttpGet("count")]
-    public async Task<ActionResult<int>> GetTotalCount([FromQuery] string? searchString = null)
+    public async Task<ActionResult<int>> GetTotalCountAsync([FromQuery] string? searchString = null)
     {
         var total = await _userService.GetTotalUsersCountAsync(searchString);
         return Ok(total);
@@ -209,7 +209,7 @@ public class UserController(IUser user, IUserConfiguration userConfiguration) : 
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> DefaultChangePassword([FromBody] UserDefaultChangePasswordDTO dto)
+    public async Task<IActionResult> DefaultChangePasswordAsync([FromBody] UserDefaultChangePasswordDTO dto)
     {
         try
         {
