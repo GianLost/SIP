@@ -1,4 +1,5 @@
 ﻿using SIP.API.Domain.DTOs.Users;
+using SIP.API.Domain.DTOs.Users.Responses;
 using SIP.API.Domain.Entities.Users;
 
 namespace SIP.API.Domain.Interfaces.Users;
@@ -8,20 +9,6 @@ namespace SIP.API.Domain.Interfaces.Users;
 /// </summary>
 public interface IUser
 {
-
-    /// <summary>
-    /// Asynchronously retrieves the total number of users that match the given search criteria.
-    /// </summary>
-    /// <param name="searchString">
-    /// A keyword used to filter the users by name or other relevant fields. If <c>null</c> or empty, all users are counted.
-    /// </param>
-    /// <returns>
-    /// A task that represents the asynchronous operation. The task result contains the total number of matching users as an integer.
-    /// </returns>
-    Task<int> GetTotalUsersCountAsync(string? searchString);
-
-    void ClearTotalUsersCountCache();
-
     /// <summary>
     /// Asynchronously creates a new user in the database.
     /// </summary>
@@ -87,4 +74,17 @@ public interface IUser
     /// A task that represents the asynchronous operation. The task result is <c>true</c> if the user was deleted; otherwise, <c>false</c>.
     /// </returns>
     Task<bool> DeleteAsync(Guid id);
+
+    /// <summary>
+    /// Asynchronously retrieves the total number of users that match the given search criteria.
+    /// </summary>
+    /// <param name="searchString">
+    /// A keyword used to filter the users by name or other relevant fields. If <c>null</c> or empty, all users are counted.
+    /// </param>
+    /// <returns>
+    /// A task that represents the asynchronous operation. The task result contains the total number of matching users as an integer.
+    /// </returns>
+    Task<int> GetTotalUsersCountAsync(string? searchString);
+
+    void ClearTotalUsersCountCache();
 }

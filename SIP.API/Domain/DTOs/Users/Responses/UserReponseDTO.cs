@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using SIP.API.Domain.Enums;
 using SIP.API.Domain.Models.Users;
 
-namespace SIP.API.Domain.DTOs.Users;
+namespace SIP.API.Domain.DTOs.Users.Responses;
 
 /// <summary>
 /// Represents the data transfer object (DTO) used to return user information in API responses.

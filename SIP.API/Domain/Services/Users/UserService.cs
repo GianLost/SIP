@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Primitives;
 using SIP.API.Domain.DTOs.Users;
+using SIP.API.Domain.DTOs.Users.Responses;
 using SIP.API.Domain.Entities.Users;
 using SIP.API.Domain.Interfaces.Users;
 using SIP.API.Infrastructure.Database;

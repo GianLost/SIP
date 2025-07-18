@@ -1,8 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using SIP.API.Domain.Interfaces.Sectors;
 using SIP.API.Domain.Interfaces.Users;
+using SIP.API.Domain.Interfaces.Users.Configurations;
 using SIP.API.Domain.Services.Sectors;
 using SIP.API.Domain.Services.Users;
+using SIP.API.Domain.Services.Users.Configurations;
 using SIP.API.Infrastructure.Database;
 using System.Reflection;
 
@@ -19,6 +21,8 @@ builder.Services.AddCors(options =>
 builder.Services.AddMemoryCache();
 
 builder.Services.AddScoped<IUser, UserService>();
+builder.Services.AddScoped<IUserConfiguration, UserConfigurationService>();
+
 builder.Services.AddScoped<ISector, SectorService>();
 
 builder.Services.AddControllers()

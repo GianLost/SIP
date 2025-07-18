@@ -1,6 +1,6 @@
 ﻿using SIP.API.Domain.Entities.Users;
 
-namespace SIP.API.Domain.DTOs.Users;
+namespace SIP.API.Domain.DTOs.Users.Responses;
 
 /// <summary>
 /// DTO for paginated users result.

@@ -1,12 +1,25 @@
 ﻿using System.Net.Http.Json;
 using SIP.UI.Models.Users;
 using SIP.UI.Domain.DTOs.Users;
+using SIP.UI.Domain.DTOs.Users.Configurations;
 
 namespace SIP.UI.Domain.Services.Users;
 
 public class UserService(HttpClient http)
 {
     private readonly HttpClient _http = http;
+
+    /// <summary>
+    /// Creates a new User via the API.
+    /// </summary>
+    /// <param name="user">The user entity to create.</param>
+    public async Task CreateUserAsync(User user)
+    {
+        var response = await _http.PostAsJsonAsync("sip_api/User/register_user", user);
+        response.EnsureSuccessStatusCode();
+
+        await InvalidateUserCountCache();
+    }
 
     /// <summary>
     /// Gets a paginated list of users from the API.
@@ -99,18 +112,6 @@ public class UserService(HttpClient http)
     }
 
     /// <summary>
-    /// Creates a new User via the API.
-    /// </summary>
-    /// <param name="user">The user entity to create.</param>
-    public async Task CreateUserAsync(User user)
-    {
-        var response = await _http.PostAsJsonAsync("sip_api/User/register_user", user);
-        response.EnsureSuccessStatusCode();
-
-        await InvalidateUserCountCache();
-    }
-
-    /// <summary>
     /// Updates an existing user via the API.
     /// </summary>
     /// <param name="user">The user entity to update.</param>
@@ -158,6 +159,35 @@ public class UserService(HttpClient http)
         }
 
         await InvalidateUserCountCache();
+    }
+
+    /// <summary>
+    /// Altera a senha de um usuário através da API.
+    /// </summary>
+    /// <param name="userId">O ID do usuário cuja senha será alterada.</param>
+    /// <param name="newPassword">A nova senha.</param>
+    /// <returns>True se a senha foi alterada com sucesso, caso contrário, false.</returns>
+    public async Task<bool> DefaultChangePasswordAsync(Guid userId, string newPassword)
+    {
+        try
+        {
+            var changePasswordDto = new UserDefaultChangePasswordDTO
+            {
+                UserId = userId,
+                Password = newPassword
+            };
+
+            var response = await _http.PatchAsJsonAsync("sip_api/User/default-change-password", changePasswordDto);
+
+            response.EnsureSuccessStatusCode();
+
+            return true;
+        }
+        catch (HttpRequestException ex)
+        {
+
+            throw new Exception($"Falha ao alterar senha do usuário. Detalhes: {ex.Message}");
+        }
     }
 
     private async Task InvalidateUserCountCache()

@@ -2,6 +2,7 @@
 
 @using SIP.UI.Components.Dialogs.Users
 @using SIP.UI.Domain.DTOs.Users
+@using SIP.UI.Domain.DTOs.Users.Configurations
 @using SIP.UI.Domain.Services.Users
 @using SIP.UI.Models.Users
 @using MudBlazor
@@ -180,10 +181,10 @@
             totalItems = await _userService.GetTotalUsersCountAsync(searchString);
 
             return new TableData<User>
-            {
-                Items = users.Items,
-                TotalItems = users.TotalCount
-            };
+                {
+                    Items = users.Items,
+                    TotalItems = users.TotalCount
+                };
         }
         catch (Exception ex)
         {
@@ -248,15 +249,15 @@
         var parameters = new DialogParameters<UserEditDialog>();
 
         var userForDialog = new User
-        {
-            Id = userToEdit.Id,
-            FullName = userToEdit.FullName,
-            Login = userToEdit.Login,
-            Masp = userToEdit.Masp,
-            Email = userToEdit.Email,
-            Role = userToEdit.Role,
-            IsActive = userToEdit.IsActive,
-        };
+            {
+                Id = userToEdit.Id,
+                FullName = userToEdit.FullName,
+                Login = userToEdit.Login,
+                Masp = userToEdit.Masp,
+                Email = userToEdit.Email,
+                Role = userToEdit.Role,
+                IsActive = userToEdit.IsActive,
+            };
 
         parameters.Add(x => x.User, userForDialog);
 
@@ -298,15 +299,15 @@
     {
         var parameters = new DialogParameters<UserEditDialog>();
         parameters.Add(x => x.User, new User
-        {
-            Id = user.Id,
-            FullName = user.FullName,
-            Login = user.Login,
-            Masp = user.Masp,
-            Email = user.Email,
-            Role = user.Role,
-            IsActive = user.IsActive
-        });
+            {
+                Id = user.Id,
+                FullName = user.FullName,
+                Login = user.Login,
+                Masp = user.Masp,
+                Email = user.Email,
+                Role = user.Role,
+                IsActive = user.IsActive
+            });
 
         var dialog = await DialogService.ShowAsync<UserEditDialog>("", parameters);
         var result = await dialog.Result;
@@ -335,73 +336,11 @@
     {
         var parameters = new DialogParameters<UserChangePasswordDialog>();
 
-        // Certifique-se de que 'x.User' está correto (singular) e não 'x.Users'
-        parameters.Add(x => x.Users, new User { Id = user.Id, FullName = user.FullName });
+        parameters.Add(x => x.Users, new User { Id = user.Id, Login = user.Login });
 
-        var dialog = await DialogService.ShowAsync<UserChangePasswordDialog>("", parameters); // Adicionei um título
+        var dialog = await DialogService.ShowAsync<UserChangePasswordDialog>("", parameters);
         var result = await dialog.Result;
-
-        // Primeiro, verifica se o resultado do diálogo não é nulo e não foi cancelado.
-        if (result is not null && !result.Canceled)
-        {
-            // Tenta fazer o cast para o DTO UserChangePasswordResult.
-            // Se result.Data for null ou de um tipo incompatível, passwordResult será null.
-            var passwordResult = result.Data as UserChangePasswordResult;
-
-            // Agora, verifica se o cast foi bem-sucedido e o objeto não é null.
-            if (passwordResult is not null) // <-- AQUI ESTÁ A VERIFICAÇÃO DE NULO QUE REMOVE OS WARNINGS
-            {
-                Guid userId = passwordResult.UserId;
-                string newPassword = passwordResult.NewPassword;
-
-                try
-                {
-                    // Descomente e use seu serviço de usuário real
-                    // await _userService.ResetUserPasswordAsync(userId, newPassword);
-                    Snackbar.Add("Senha redefinida com sucesso!", Severity.Success);
-                }
-                catch (Exception ex)
-                {
-                    Snackbar.Add($"Erro ao redefinir senha: {ex.Message}", Severity.Error);
-                }
-            }
-            else
-            {
-                // Opcional: Lidar com o caso em que result.Data não é do tipo esperado
-                Snackbar.Add("Erro interno: O formato dos dados retornados pelo diálogo é inválido.", Severity.Error);
-            }
-        }
     }
-
-    // private async Task ShowChangeSectorDialog(User user)
-    // {
-    //      var parameters = new DialogParameters<UserChangeSectorDialog>();
-    //      // Passe o usuário completo para o diálogo de setor para pré-selecionar o setor atual
-    //      parameters.Add(x => x.Users, new User { Id = user.Id, FullName = user.FullName, SectorId = user.SectorId, SelectedSector = user.SelectedSector });
-
-    //      var dialog = await DialogService.ShowAsync<UserChangeSectorDialog>($"Alterar Setor - {user.FullName}", parameters);
-    //      var result = await dialog.Result;
-
-    //      if (result is not null && !result.Canceled)
-    //      {
-    //          // O resultado é um objeto anônimo com UserId e NewSectorId
-    //          dynamic data = result.Data;
-    //          Guid userId = data.UserId;
-    //          int newSectorId = data.NewSectorId;
-
-    //          try
-    //          {
-    //              // Você precisará de um método no seu UserService para alterar o setor
-    //              await _userService.ChangeUserSectorAsync(userId, newSectorId);
-    //              Snackbar.Add("Setor alterado com sucesso!", Severity.Success);
-    //              await table.ReloadServerData(); // Recarregar para refletir a mudança de setor na tabela
-    //          }
-    //          catch (Exception ex)
-    //          {
-    //              Snackbar.Add($"Erro ao alterar setor: {ex.Message}", Severity.Error);
-    //          }
-    //      }
-    // }
 
     private void ShowChangeSectorDialog(User user)
     {

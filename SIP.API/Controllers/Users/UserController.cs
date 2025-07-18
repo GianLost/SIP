@@ -1,7 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SIP.API.Domain.DTOs.Users;
+using SIP.API.Domain.DTOs.Users.Configurations;
+using SIP.API.Domain.DTOs.Users.Responses;
 using SIP.API.Domain.Entities.Users;
 using SIP.API.Domain.Interfaces.Users;
+using SIP.API.Domain.Interfaces.Users.Configurations;
+using SIP.API.Domain.Services.Users.Configurations;
 
 namespace SIP.API.Controllers.Users;
 
@@ -10,10 +14,11 @@ namespace SIP.API.Controllers.Users;
 /// </summary>
 [Route("sip_api/[controller]")]
 [ApiController]
-public class UserController(IUser user) : ControllerBase
+public class UserController(IUser user, IUserConfiguration userConfiguration) : ControllerBase
 {
 
     private readonly IUser _userService = user;
+    private readonly IUserConfiguration _userConfigurationService = userConfiguration;
 
     /// <summary>
     /// Registers a new user in the system.
@@ -166,6 +171,27 @@ public class UserController(IUser user) : ControllerBase
             CreatedAt = updated.CreatedAt,
             UpdatedAt = updated.UpdatedAt
         };
+
+        return Ok(response);
+    }
+
+    /// <summary>
+    /// Method to change user password used by managers and aministrators.
+    /// </summary>
+    /// <param name="dto">user's data and the new password.</param>
+    /// <returns>The user updated.</returns>
+    [HttpPatch("default-change-password")]
+    public async Task<IActionResult> DefaultChangePassword([FromBody] UserDefaultChangePasswordDTO dto)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var updatedUser = await _userConfigurationService.DefaultChangePasswordAsync(dto);
+
+        if (updatedUser == null)
+            return NotFound("Usuário não encontrado ou dados inválidos.");
+
+        var response = new ChangedPasswordResponseDTO($"Senha alterada com sucesso para o usuário {updatedUser.Login}.");
 
         return Ok(response);
     }
