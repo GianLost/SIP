@@ -54,7 +54,7 @@ public interface IUser
     /// A task that represents the asynchronous operation. The task result contains a list of <see cref="User"/> entities
     /// that match the given pagination, sorting, and filtering criteria.
     /// </returns>
-    Task<List<User>> GetAllAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection, string? searchString);
+    Task<ICollection<User>> GetAllAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection, string? searchString);
 
     /// <summary>
     /// Asynchronously updates an existing user in the database.
@@ -74,7 +74,7 @@ public interface IUser
     /// A task that represents the asynchronous operation. The task result is <c>true</c> if the user was deleted; otherwise, <c>false</c>.
     /// </returns>
     Task<bool> DeleteAsync(Guid id);
-
+    
     /// <summary>
     /// Asynchronously retrieves the total number of users that match the given search criteria.
     /// </summary>
@@ -86,5 +86,12 @@ public interface IUser
     /// </returns>
     Task<int> GetTotalUsersCountAsync(string? searchString);
 
+    /// <summary>
+    /// Invalidates the cache that stores the total number of users.
+    /// </summary>
+    /// <remarks>
+    /// This method should be called whenever a user is created, updated, or deleted
+    /// to ensure the total count is recalculated on the next request.
+    /// </remarks>
     void ClearTotalUsersCountCache();
 }

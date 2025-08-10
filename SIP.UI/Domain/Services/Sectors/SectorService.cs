@@ -23,13 +23,13 @@ public class SectorService(HttpClient http)
     /// <param name="sortDirection">The sort direction ("asc" or "desc").</param>
     /// <param name="searchString">Optional search string to filter sectors.</param>
     /// <returns>A list of sectors for the specified page, or null if not found.</returns>
-    public async Task<List<Sector>?> GetSectorsAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection = null, string? searchString = null)
+    public async Task<ICollection<Sector>?> GetSectorsAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection = null, string? searchString = null)
     {
-        var queryParams = new List<string>
-        {
+        List<string> queryParams =
+        [
             $"pageNumber={pageNumber}",
             $"pageSize={pageSize}"
-        };
+        ];
 
         if (!string.IsNullOrEmpty(sortLabel))
             queryParams.Add($"sortLabel={Uri.EscapeDataString(sortLabel)}");
@@ -40,11 +40,11 @@ public class SectorService(HttpClient http)
         if (!string.IsNullOrEmpty(searchString))
             queryParams.Add($"searchString={Uri.EscapeDataString(searchString)}");
 
-        var url = $"{SectorsEndpoints._getAllSectors}{string.Join("&", queryParams)}";
+        string url = $"{SectorsEndpoints._getAllSectors}{string.Join("&", queryParams)}";
 
         try
         {
-            var sectors = await _http.GetFromJsonAsync<List<Sector>>(url);
+            ICollection<Sector>? sectors = await _http.GetFromJsonAsync<ICollection<Sector>>(url);
             return sectors;
         }
         catch (HttpRequestException ex)
@@ -58,20 +58,20 @@ public class SectorService(HttpClient http)
     /// </summary>
     /// <param name="id">The unique identifier of the sector.</param>
     /// <returns>The sector entity if found; otherwise, null.</returns>
-    public async Task<Sector?> GetByIdAsync(Guid id)
-        => await _http.GetFromJsonAsync<Sector>($"{SectorsEndpoints._getSectorsById}{id}");
+    public async Task<Sector?> GetByIdAsync(Guid id) => 
+        await _http.GetFromJsonAsync<Sector>($"{SectorsEndpoints._getSectorsById}{id}");
 
     /// <summary>
     /// Busca TODOS os setores da API para usar em dropdowns e seletores.
     /// </summary>
     /// <returns>Uma lista completa de todos os setores.</returns>
-    public async Task<List<Sector>?> GetAllSectorsAsync()
+    public async Task<ICollection<Sector>?> GetAllSectorsAsync()
     {
         try
         {
-            var endpoint = SectorsEndpoints._getAllSectors;
+            string endpoint = SectorsEndpoints._getAllSectors;
 
-            var sectors = await _http.GetFromJsonAsync<List<Sector>>(endpoint);
+            ICollection<Sector>? sectors = await _http.GetFromJsonAsync<ICollection<Sector>>(endpoint);
 
             return sectors ?? [];
         }
@@ -95,9 +95,9 @@ public class SectorService(HttpClient http)
     {
         pageSize = Math.Min(pageSize, 100);
 
-        var url = $"{SectorsEndpoints._sectorsPaginationFull}pageNumber={pageNumber}&pageSize={pageSize}&sortLabel={sortLabel}&sortDirection={sortDirection}&searchString={searchString}";
+        string url = $"{SectorsEndpoints._sectorsPaginationFull}pageNumber={pageNumber}&pageSize={pageSize}&sortLabel={sortLabel}&sortDirection={sortDirection}&searchString={searchString}";
 
-        var response = await _http.GetFromJsonAsync<SectorPagedResultDTO>(url);
+        SectorPagedResultDTO? response = await _http.GetFromJsonAsync<SectorPagedResultDTO>(url);
 
         return response ?? new SectorPagedResultDTO();
     }
@@ -109,14 +109,14 @@ public class SectorService(HttpClient http)
     /// <returns>The total number of sectors matching the filter.</returns>
     public async Task<int> GetTotalSectorsCountAsync(string? searchString = null)
     {
-        var url = SectorsEndpoints._sectorsCounter;
+        string url = SectorsEndpoints._sectorsCounter;
 
         if (!string.IsNullOrEmpty(searchString))
             url += $"?searchString={Uri.EscapeDataString(searchString)}";
 
         try
         {
-            var count = await _http.GetFromJsonAsync<int>(url);
+            int count = await _http.GetFromJsonAsync<int>(url);
             return count;
         }
         catch (HttpRequestException ex)
@@ -131,8 +131,9 @@ public class SectorService(HttpClient http)
     /// <param name="setor">The sector entity to create.</param>
     public async Task CreateSectorAsync(Sector setor)
     {
-        var response = await _http.PostAsJsonAsync(SectorsEndpoints._createSector, setor);
+        HttpResponseMessage response = await _http.PostAsJsonAsync(SectorsEndpoints._createSector, setor);
         response.EnsureSuccessStatusCode();
+        await InvalidateSectorCacheAsync();
     }
 
     /// <summary>
@@ -141,8 +142,9 @@ public class SectorService(HttpClient http)
     /// <param name="setor">The sector entity to update.</param>
     public async Task UpdateSectorAsync(Sector setor)
     {
-        var response = await _http.PutAsJsonAsync($"{SectorsEndpoints._updateSector}{setor.Id}", setor);
+        HttpResponseMessage response = await _http.PutAsJsonAsync($"{SectorsEndpoints._updateSector}{setor.Id}", setor);
         response.EnsureSuccessStatusCode();
+        await InvalidateSectorCacheAsync();
     }
 
     /// <summary>
@@ -153,17 +155,17 @@ public class SectorService(HttpClient http)
     /// <exception cref="HttpRequestException">Thrown if the request fails.</exception>
     public async Task DeleteSectorAsync(Guid id)
     {
-        var response = await _http.DeleteAsync($"{SectorsEndpoints._deleteSector}{id}");
+        HttpResponseMessage response = await _http.DeleteAsync($"{SectorsEndpoints._deleteSector}{id}");
 
         if (!response.IsSuccessStatusCode)
         {
-            var errorContent = await response.Content.ReadAsStringAsync();
+            string errorContent = await response.Content.ReadAsStringAsync();
 
             if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
             {
                 try
                 {
-                    var errorObject = System.Text.Json.JsonSerializer.Deserialize<ErrorResponse>(errorContent);
+                    ErrorResponse? errorObject = System.Text.Json.JsonSerializer.Deserialize<ErrorResponse>(errorContent);
 
                     throw new InvalidOperationException(errorObject?.Error ?? "Erro desconhecido ao excluir secretaria.");
                 }
@@ -181,6 +183,14 @@ public class SectorService(HttpClient http)
                 throw new HttpRequestException($"Erro na requisição: {response.StatusCode} - {errorContent}");
             }
         }
+        await InvalidateSectorCacheAsync();
+    }
+
+    private async Task InvalidateSectorCacheAsync()
+    {
+        string url = CacheEndpoints._invalidateSectorCount;
+        HttpResponseMessage response = await _http.PostAsync(url, null);
+        response.EnsureSuccessStatusCode();
     }
 }
 

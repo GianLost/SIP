@@ -4,9 +4,11 @@
 @using SIP.UI.Domain.DTOs.Users
 @using SIP.UI.Domain.DTOs.Users.Configurations
 @using SIP.UI.Domain.Services.Users
+@using SIP.UI.Models.Sectors
 @using SIP.UI.Models.Users
 @using MudBlazor
 @using MudBlazor.Utilities
+
 @using static SIP.UI.Components.Dialogs.Users.UserChangePasswordDialog
 
 @inject UserService _userService
@@ -23,7 +25,7 @@
     </MudStack>
 
     <MudPaper Class="pa-4 ma-2" Elevation="1">
-        <MudTable T="User" ServerData="LoadServerData" Dense="true" Hover="true" Bordered="false" @ref="table" RowsPerPage="pageSize" LoadingProgressColor="Color.Primary" SortLabel="sortLabel" Elevation="0" MultiSelection="true" @bind-SelectedItems="_selectedUsers">
+        <MudTable T="User" ServerData="LoadServerData" Dense="true" Hover="true" Bordered="false" @ref="table" RowsPerPage="pageSize" LoadingProgressColor="Color.Primary" SortLabel="sortLabel" Loading="@isLoading" Elevation="0" MultiSelection="true" @bind-SelectedItems="_selectedUsers">
 
             <ToolBarContent>
 
@@ -98,6 +100,9 @@
                 <MudTh Style="font-weight: bold;">Status</MudTh>
                 <MudTh Style="font-weight: bold;">Masp</MudTh>
                 <MudTh Style="font-weight: bold;">
+                    <MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<User, object?>(x => x.Sector?.Acronym)">Secretaria</MudTableSortLabel>
+                </MudTh>
+                <MudTh Style="font-weight: bold;">
                     <MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<User, object>(x => x.FullName)">Nome</MudTableSortLabel>
                 </MudTh>
                 <MudTh Style="font-weight: bold;">Login</MudTh>
@@ -111,6 +116,7 @@
                     </MudTooltip>
                 </MudTd>
                 <MudTd DataLabel="MASP">@user.Masp</MudTd>
+                <MudTd DataLabel="Secretaria">@user?.Sector?.Acronym</MudTd>
                 <MudTd DataLabel="Nome">@user.FullName</MudTd>
                 <MudTd DataLabel="Login">@user.Login</MudTd>
                 <MudTd DataLabel="Email">@user.Email</MudTd>
@@ -141,14 +147,15 @@
     private string? lastSortLabel;
     private bool _isModalOpen = false;
 
-    private HashSet<User> _selectedUsers = new HashSet<User>();
+    private HashSet<User> _selectedUsers = new();
 
     private string GetButtonClass()
     {
         return $"mud-elevation-3 animated-fab-button-manual-icon {(_isModalOpen ? "force-expanded-button" : "")}";
     }
 
-    protected override void OnInitialized() => _selectedUsers.Clear();
+    protected override void OnInitialized() => 
+        _selectedUsers.Clear();
 
     private async Task<TableData<User>> LoadServerData(TableState state, CancellationToken cancellationToken)
     {
@@ -168,6 +175,8 @@
             else
                 sortLabel = "FullName";
         }
+
+        lastSortLabel = sortLabel;
 
         try
         {
@@ -217,16 +226,17 @@
     {
         _isModalOpen = true;
 
-        var parameters = new DialogParameters<UserAddDialog>();
+        DialogParameters<UserAddDialog> parameters = new();
         parameters.Add(x => x.User, new User { Id = Guid.Empty });
-        var dialog = await DialogService.ShowAsync<UserAddDialog>("", parameters);
-        var result = await dialog.Result;
+        IDialogReference dialog = await DialogService.ShowAsync<UserAddDialog>("", parameters);
+        DialogResult? result = await dialog.Result;
 
         _isModalOpen = false;
 
         if (result is not null && !result.Canceled)
         {
-            var savedUser = result.Data as User;
+            User? savedUser = result.Data as User;
+
             if (savedUser != null)
             {
                 try
@@ -242,13 +252,17 @@
                 }
             }
         }
+        else
+        {
+            Snackbar.Add("Inserção de usuário cancelada.", Severity.Info);
+        }
     }
 
     private async Task ShowEditBasicDialog(User userToEdit)
     {
-        var parameters = new DialogParameters<UserEditDialog>();
+        DialogParameters<UserEditDialog> parameters = new();
 
-        var userForDialog = new User
+        User userForDialog = new()
             {
                 Id = userToEdit.Id,
                 FullName = userToEdit.FullName,
@@ -261,12 +275,12 @@
 
         parameters.Add(x => x.User, userForDialog);
 
-        var dialog = await DialogService.ShowAsync<UserEditDialog>("", parameters);
-        var result = await dialog.Result;
+        IDialogReference dialog = await DialogService.ShowAsync<UserEditDialog>("", parameters);
+        DialogResult? result = await dialog.Result;
 
         if (result is not null && !result.Canceled)
         {
-            var updatedUser = result.Data as User;
+            User? updatedUser = result.Data as User;
 
             if (updatedUser != null)
             {
@@ -297,7 +311,7 @@
 
     private async Task ShowEditDialog(User user)
     {
-        var parameters = new DialogParameters<UserEditDialog>();
+        DialogParameters<UserEditDialog> parameters = new();
         parameters.Add(x => x.User, new User
             {
                 Id = user.Id,
@@ -309,12 +323,12 @@
                 IsActive = user.IsActive
             });
 
-        var dialog = await DialogService.ShowAsync<UserEditDialog>("", parameters);
-        var result = await dialog.Result;
+        IDialogReference dialog = await DialogService.ShowAsync<UserEditDialog>("", parameters);
+        DialogResult? result = await dialog.Result;
 
         if (result is not null && !result.Canceled)
         {
-            var updatedUser = result.Data as User;
+            User? updatedUser = result.Data as User;
             if (updatedUser != null)
             {
                 try
@@ -330,16 +344,43 @@
                 }
             }
         }
+        else
+        {
+            Snackbar.Add("Edição de usuário cancelada.", Severity.Info);
+        }
     }
 
     private async Task ShowChangePasswordDialog(User user)
     {
-        var parameters = new DialogParameters<UserChangePasswordDialog>();
+        DialogParameters<UserChangePasswordDialog> parameters = new();
 
         parameters.Add(x => x.Users, new User { Id = user.Id, Login = user.Login });
 
-        var dialog = await DialogService.ShowAsync<UserChangePasswordDialog>("", parameters);
-        var result = await dialog.Result;
+        IDialogReference dialog = await DialogService.ShowAsync<UserChangePasswordDialog>("", parameters);
+        DialogResult? result = await dialog.Result;
+
+        if (result is not null && !result.Canceled)
+        {
+            User? updatedUser = result.Data as User;
+            if (updatedUser != null)
+            {
+                try
+                {
+                    await _userService.DefaultChangePasswordAsync(updatedUser.Id, updatedUser.PasswordHash);
+                    Snackbar.Add("Senha alterada com sucesso!", Severity.Success);
+                    if (table is not null)
+                        await table.ReloadServerData();
+                }
+                catch (Exception ex)
+                {
+                    Snackbar.Add($"Erro ao alterar senha: {ex.Message}", Severity.Error);
+                }
+            }
+        }
+        else
+        {
+            Snackbar.Add("Alteração de senha cancelada.", Severity.Info);
+        }
     }
 
     private void ShowChangeSectorDialog(User user)
@@ -350,11 +391,11 @@
 
     private async Task ShowDeleteDialog(User user)
     {
-        var parameters = new DialogParameters<UserDeleteDialog>();
+        DialogParameters<UserDeleteDialog> parameters = new();
         parameters.Add(x => x.UserToDelete, user);
 
-        var dialog = await DialogService.ShowAsync<UserDeleteDialog>("", parameters); // Adicionado título
-        var result = await dialog.Result;
+        IDialogReference dialog = await DialogService.ShowAsync<UserDeleteDialog>("", parameters); // Adicionado título
+        DialogResult? result = await dialog.Result;
 
         if (result is not null && !result.Canceled)
         {
@@ -370,6 +411,11 @@
                 Snackbar.Add($"Erro ao excluir usuário: {ex.Message}", Severity.Error);
             }
         }
+        else
+        {
+            Snackbar.Add("Exclusão de usuário cancelada.", Severity.Info);
+        }
+
     }
 
     private void ShowDeleteSelectedUsersDialog()

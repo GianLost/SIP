@@ -7,7 +7,7 @@
 @inject SectorService _sectorServices
 @inject ISnackbar Snackbar
 
-<MudDialog MaxWidth="false" FullWidth="false" Style="width:600px">
+<MudDialog Style="width:600px">
 
     <DialogContent>
 
@@ -36,7 +36,7 @@
                     <MudCheckBox Size="Size.Small" @bind-Value="User.IsActive" Color="@Color.Primary"> @(User.IsActive == true ? "Desativar" : "Ativar")</MudCheckBox>
                 </MudItem>
 
-                <MudItem xs="12" sm="6" Class="m-0 p-0">
+                <MudItem xs="12" sm="6" Class="m-0">
                     <MudSelect T="RoleEnum" Label="Função (Role)" @bind-Value="User.Role" Required="true" Dense="true" RequiredError="Selecione uma função!" Variant="Variant.Outlined" Margin="Margin.Normal">
                         @foreach (RoleEnum role in Enum.GetValues(typeof(RoleEnum)))
                         {
@@ -52,7 +52,7 @@
     </DialogContent>
 
     <DialogActions>
-        <MudStack Row="true" Class="justify-end pa-4" FullWidth="true">
+        <MudStack Row="true" Class="justify-end pa-4">
             <MudButton OnClick="Submit" Color="Color.Primary" Variant="Variant.Filled" Disabled="!isValid" Class="mr-3">
                 Salvar
             </MudButton>
@@ -80,7 +80,8 @@
     /// <summary>
     /// Called when form errors change to update the UI.
     /// </summary>
-    private void OnErrorsChanged() => StateHasChanged();
+    private void OnErrorsChanged() => 
+        StateHasChanged();
 
     /// <summary>
     /// Retorna o nome de exibição personalizado para cada UserRole.
@@ -119,5 +120,6 @@
     /// <summary>
     /// Cancela a operação e fecha o diálogo sem salvar.
     /// </summary>
-    private void Cancel() => MudDialog.Cancel();
+    private void Cancel() => 
+        MudDialog.Cancel();
 }

@@ -6,7 +6,7 @@
 @inject ISnackbar Snackbar
 
 @* Diálogo para alterar setor do usuário *@
-<MudDialog MaxWidth="false" FullWidth="false" Style="width:450px">
+<MudDialog Style="width:450px">
 
     <DialogContent>
 
@@ -29,7 +29,7 @@
     </DialogContent>
 
     <DialogActions>
-        <MudStack Row="true" Class="justify-end pa-4" FullWidth="true">
+        <MudStack Row="true" Class="justify-end pa-4">
             <MudButton OnClick="Submit" Color="Color.Primary" Variant="Variant.Filled" Disabled="!isValid" Class="mr-3">
                 Salvar
             </MudButton>
@@ -46,9 +46,9 @@
 
     private bool isValid;
 
-    [Parameter] public User Users { get; set; } = new User();
+    [Parameter] public User Users { get; set; } = new();
 
-    private Sector selectedSector = new Sector();
+    private Sector selectedSector = new();
 
     private IEnumerable<Sector>? _allSectors = new List<Sector>();
 
@@ -69,5 +69,6 @@
             MudDialog.Close(DialogResult.Ok(new { UserId = Users.Id, NewSectorId = selectedSector.Id }));
     }
 
-    private void Cancel() => MudDialog.Cancel();
+    private void Cancel() => 
+        MudDialog.Cancel();
 }

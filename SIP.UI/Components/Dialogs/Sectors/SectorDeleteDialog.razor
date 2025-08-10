@@ -2,12 +2,12 @@
 @using MudBlazor
 
 @* Diálogo para exclusão de setor *@
-<MudDialog MaxWidth="false" FullWidth="false" Style="width:450px">
+<MudDialog Style="width:450px">
 
     @* Conteúdo do diálogo de exclusão *@
     <DialogContent>
 
-        <MudStack AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center" Class="mb-4">
+        <MudStack AlignItems="AlignItems.Center" Class="mb-4">
             <MudIcon Icon="@Icons.Material.Filled.Warning" Color="Color.Warning" Size="Size.Large" Class="mb-2" />
         </MudStack>
 
@@ -20,7 +20,7 @@
     @* Componente com os botões excluir e cancelar *@
     <DialogActions>
 
-        <MudStack Row="true" Class="justify-content-start pa-4" FullWidth="true">
+        <MudStack Row="true" Class="justify-content-start pa-4">
             <MudButton Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete" OnClick="Submit" Class="mr-3">Excluir</MudButton>
             <MudButton Color="Color.Secondary" Variant="Variant.Outlined" OnClick="Cancel">Cancelar</MudButton>
         </MudStack>
@@ -46,11 +46,13 @@
     /// <summary>
     /// Confirms the deletion and closes the dialog with a positive result.
     /// </summary>
-    private void Submit() => MudDialog.Close(DialogResult.Ok(true));
+    private void Submit() => 
+        MudDialog.Close(DialogResult.Ok(true));
 
     /// <summary>
     /// Cancels the deletion and closes the dialog without changes.
     /// </summary>
-    private void Cancel() => MudDialog.Cancel();
+    private void Cancel() => 
+        MudDialog.Cancel();
 
 }

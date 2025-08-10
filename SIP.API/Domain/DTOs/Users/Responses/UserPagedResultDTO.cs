@@ -7,6 +7,6 @@ namespace SIP.API.Domain.DTOs.Users.Responses;
 /// </summary>
 public class UserPagedResultDTO
 {
-    public List<User> Items { get; set; } = [];
+    public ICollection<User> Items { get; set; } = [];
     public int TotalCount { get; set; }
 }

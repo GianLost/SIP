@@ -4,7 +4,10 @@
 <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-10">
 
     <MudPaper Elevation="4" Class="pa-6 d-flex flex-column align-items-center text-center">
-        <MudAvatar Icon="@Icons.Material.Filled.Workspaces" Size="Size.Large" Color="Color.Primary" Class="mb-4" />
+
+        <MudAvatar Color="Color.Primary">
+            @* <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Medium" Color="Color.Default" Class="mb-4"/> *@
+        </MudAvatar>
 
         <MudText Typo="Typo.h4" GutterBottom="true" Color="Color.Primary">
             SIP - Sistema Interno de Protocolo
@@ -19,6 +22,7 @@
         <MudButton Href="https://github.com/GianLost" Target="_blank" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Custom.Brands.GitHub">
             Acessar o repositório no GitHub
         </MudButton>
+
     </MudPaper>
 
 </MudContainer>

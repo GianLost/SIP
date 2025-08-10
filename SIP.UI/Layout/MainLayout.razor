@@ -101,31 +101,25 @@
     protected override async Task OnInitializedAsync()
     {
         // Tenta carregar a preferência do usuário do localStorage
-        var theme = await JS.InvokeAsync<string>("localStorage.getItem", "sip-theme");
+        string theme = await JS.InvokeAsync<string>("localStorage.getItem", "sip-theme");
+
         if (!string.IsNullOrEmpty(theme))
-        {
             _isDarkMode = theme == "dark";
-        }
+
         else if (_mudThemeProvider is not null)
-        {
-            // Se não houver preferência, detecta o tema do sistema
             _isDarkMode = await _mudThemeProvider.GetSystemDarkModeAsync();
-        }
     }
 
     // Método para alternar o estado do drawer
-    void DrawerToggle()
-    {
+    void DrawerToggle() => 
         _isDrawerOpened = !_isDrawerOpened;
-    }
 
     // Método para fechar o drawer ao clicar no MainContent, se ele estiver aberto
     void CloseDrawerOnMainContentClick()
     {
         if (_isDrawerOpened)
-        {
             _isDrawerOpened = false;
-        }
+ 
     }
 
     // Método para alternar o tema entre claro e escuro

@@ -7,6 +7,6 @@ namespace SIP.UI.Domain.DTOs.Sectors;
 /// </summary>
 public class SectorPagedResultDTO
 {
-    public List<Sector> Items { get; set; } = [];
+    public ICollection<Sector> Items { get; set; } = [];
     public int TotalCount { get; set; }
 }

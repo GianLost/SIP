@@ -12,56 +12,8 @@
     <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
 
     <link rel="stylesheet" href="css/app.css" />
+    <link rel="stylesheet" href="css/loading/loading.css" />
     <link rel="icon" type="image/png" href="favicon.png" />
-    <style>
-        /* CSS for the enhanced loading spinner */
-        #app {
-            display: flex;
-            min-height: 100vh; /* Takes full viewport height */
-            font-family: 'Roboto', sans-serif;
-        }
-
-        #spin {
-            display: flex;
-            flex-direction: column; /* To stack spinner and text */
-            align-items: center;
-            margin: auto;
-        }
-
-        /* Basic spinner animation - you can customize this heavily */
-        .loading-spinner {
-            border: 4px solid rgba(0, 0, 0, 0.1);
-            border-left-color: #2196F3; /* Primary color for spinner */
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-            margin-bottom: 15px; /* Space between spinner and text */
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            50% {
-                transform: rotate(180deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        .loading-text {
-            font-size: 1.3rem;
-            color: #555;
-        }
-
-        .loading-progress {
-            display: none; /* Hides the default Blazor SVG progress */
-        }
-    </style>
 
 </head>
 

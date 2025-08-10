@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using SIP.API.Domain.DTOs.Users.Configurations;
+﻿using SIP.API.Domain.DTOs.Users.Configurations;
 using SIP.API.Domain.Entities.Users;
 using SIP.API.Domain.Interfaces.Users;
 using SIP.API.Domain.Interfaces.Users.Configurations;
@@ -12,6 +11,7 @@ public class UserConfigurationService(ApplicationContext context, IUser userServ
     private readonly ApplicationContext _context = context;
     private readonly IUser _userService = userService;
 
+    /// <inheritdoc/>
     public async Task<User?> DefaultChangePasswordAsync(UserDefaultChangePasswordDTO dto)
     {
         if (dto == null || string.IsNullOrWhiteSpace(dto.Password))
@@ -30,11 +30,13 @@ public class UserConfigurationService(ApplicationContext context, IUser userServ
         return user;
     }
 
+    /// <inheritdoc/>
     public Task<User?> UserChangePasswordAsync(UserChangePasswordDTO dto)
     {
         throw new NotImplementedException();
     }
 
+    /// <inheritdoc/>
     public Task<User?> UserChangeSectorAsync(UserChangeSectorDTO dto)
     {
         throw new NotImplementedException();

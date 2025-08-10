@@ -2,7 +2,7 @@
 @using MudBlazor
 
 @* Diálogo para edição de setor*@
-<MudDialog MaxWidth="false" FullWidth="false" Style="width:450px">
+<MudDialog Style="width:450px">
 
     <DialogContent>
 
@@ -13,7 +13,7 @@
 
             <MudTextField @bind-Value="Sector.Acronym" Label="Sigla" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.ShortText" Required="true" RequiredError="A sigla é obrigatória!" Variant="Variant.Outlined" Margin="Margin.Normal" />
 
-            <MudTextField @bind-Value="Sector.Phone" Label="Telefone" Mask="@PhoneMask" MaskChar="_" Immediate="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Phone" Variant="Variant.Outlined" Margin="Margin.Normal" Placeholder="(XX) XXXXX-XXXX" HelperText="Formato: (DDD) 9XXXX-XXXX ou (DDD) XXXX-XXXX" Validation="@((string arg) => IsValidPhoneNumber(arg) ? null : "Telefone inválido. Use (DDD) 9XXXX-XXXX ou (DDD) XXXX-XXXX.")" Required="true" RequiredError="O telefone é obrigatório!" />
+            <MudTextField @bind-Value="Sector.Phone" Label="Telefone" Mask="@PhoneMask" Immediate="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Phone" Variant="Variant.Outlined" Margin="Margin.Normal" Placeholder="(XX) XXXXX-XXXX" HelperText="Formato: (DDD) 9XXXX-XXXX ou (DDD) XXXX-XXXX" Validation="@((string arg) => IsValidPhoneNumber(arg) ? null : "Telefone inválido. Use (DDD) 9XXXX-XXXX ou (DDD) XXXX-XXXX.")" Required="true" RequiredError="O telefone é obrigatório!" />
 
         </MudForm>
 
@@ -22,7 +22,7 @@
     <DialogActions>
 
         @* Componente com os botões editar e cancelar *@
-        <MudStack Row="true" Class="justify-end pa-4" FullWidth="true">
+        <MudStack Row="true" Class="justify-end pa-4">
             <MudButton OnClick="Submit" Color="Color.Primary" Variant="Variant.Filled" Disabled="!isValid" Class="mr-3">
                 Salvar
             </MudButton>
@@ -45,7 +45,7 @@
     /// The sector being edited in the dialog.
     /// </summary>
     [Parameter] 
-    public Sector Sector { get; set; } = new Sector();
+    public Sector Sector { get; set; } = new();
 
     /// <summary>
     /// Reference to the MudForm component.
@@ -68,7 +68,8 @@
     /// <summary>
     /// Called when form errors change to update the UI.
     /// </summary>
-    private void OnErrorsChanged() => StateHasChanged();
+    private void OnErrorsChanged() => 
+        StateHasChanged();
 
     /// <summary>
     /// Validates the form and closes the dialog with the sector data if valid.
@@ -84,7 +85,8 @@
     /// <summary>
     /// Cancels the dialog without saving changes.
     /// </summary>
-    private void Cancel() => MudDialog.Cancel();
+    private void Cancel() => 
+        MudDialog.Cancel();
 
     /// <summary>
     /// Validates the phone number format (accepts mobile and landline).

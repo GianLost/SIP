@@ -2,6 +2,7 @@
 using SIP.UI.Models.Users;
 using SIP.UI.Domain.DTOs.Users;
 using SIP.UI.Domain.DTOs.Users.Configurations;
+using SIP.UI.Domain.Helpers.Endpoints;
 
 namespace SIP.UI.Domain.Services.Users;
 
@@ -15,10 +16,10 @@ public class UserService(HttpClient http)
     /// <param name="user">The user entity to create.</param>
     public async Task CreateUserAsync(User user)
     {
-        var response = await _http.PostAsJsonAsync("sip_api/User/register_user", user);
+        HttpResponseMessage response = await _http.PostAsJsonAsync("sip_api/User/register_user", user);
         response.EnsureSuccessStatusCode();
 
-        await InvalidateUserCountCache();
+        await InvalidateUserCacheAsync();
     }
 
     /// <summary>
@@ -32,11 +33,11 @@ public class UserService(HttpClient http)
     /// <returns>A list of users for the specified page, or null if not found.</returns>
     public async Task<List<User>?> GetUsersAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection = null, string? searchString = null)
     {
-        var queryParams = new List<string>
-        {
+        List<string> queryParams =
+        [
             $"pageNumber={pageNumber}",
             $"pageSize={pageSize}"
-        };
+        ];
 
         if (!string.IsNullOrEmpty(sortLabel))
             queryParams.Add($"sortLabel={Uri.EscapeDataString(sortLabel)}");
@@ -47,11 +48,11 @@ public class UserService(HttpClient http)
         if (!string.IsNullOrEmpty(searchString))
             queryParams.Add($"searchString={Uri.EscapeDataString(searchString)}");
 
-        var url = $"sip_api/User/show?{string.Join("&", queryParams)}";
+        string url = $"sip_api/User/show?{string.Join("&", queryParams)}";
 
         try
         {
-            var sectors = await _http.GetFromJsonAsync<List<User>>(url);
+            List<User>? sectors = await _http.GetFromJsonAsync<List<User>>(url);
             return sectors;
         }
         catch (HttpRequestException ex)
@@ -81,9 +82,9 @@ public class UserService(HttpClient http)
     {
         pageSize = Math.Min(pageSize, 100);
 
-        var url = $"sip_api/User/show_paged?pageNumber={pageNumber}&pageSize={pageSize}&sortLabel={sortLabel}&sortDirection={sortDirection}&searchString={searchString}";
+        string url = $"sip_api/User/show_paged?pageNumber={pageNumber}&pageSize={pageSize}&sortLabel={sortLabel}&sortDirection={sortDirection}&searchString={searchString}";
 
-        var response = await _http.GetFromJsonAsync<UserPagedResultDTO>(url);
+        UserPagedResultDTO? response = await _http.GetFromJsonAsync<UserPagedResultDTO>(url);
 
         return response ?? new UserPagedResultDTO();
     }
@@ -95,14 +96,14 @@ public class UserService(HttpClient http)
     /// <returns>The total number of users matching the filter.</returns>
     public async Task<int> GetTotalUsersCountAsync(string? searchString = null)
     {
-        var url = "sip_api/User/count";
+        string url = "sip_api/User/count";
 
         if (!string.IsNullOrEmpty(searchString))
             url += $"?searchString={Uri.EscapeDataString(searchString)}";
 
         try
         {
-            var count = await _http.GetFromJsonAsync<int>(url);
+            int count = await _http.GetFromJsonAsync<int>(url);
             return count;
         }
         catch (HttpRequestException ex)
@@ -117,8 +118,9 @@ public class UserService(HttpClient http)
     /// <param name="user">The user entity to update.</param>
     public async Task UpdateUserAsync(User user)
     {
-        var response = await _http.PutAsJsonAsync($"sip_api/User/update_user/{user.Id}", user);
+        HttpResponseMessage response = await _http.PutAsJsonAsync($"sip_api/User/update_user/{user.Id}", user);
         response.EnsureSuccessStatusCode();
+        await InvalidateUserCacheAsync();
     }
 
     /// <summary>
@@ -129,17 +131,17 @@ public class UserService(HttpClient http)
     /// <exception cref="HttpRequestException">Thrown if the request fails.</exception>
     public async Task DeleteUserAsync(Guid id)
     {
-        var response = await _http.DeleteAsync($"sip_api/User/delete/{id}");
+        HttpResponseMessage response = await _http.DeleteAsync($"sip_api/User/delete/{id}");
 
         if (!response.IsSuccessStatusCode)
         {
-            var errorContent = await response.Content.ReadAsStringAsync();
+            string errorContent = await response.Content.ReadAsStringAsync();
 
             if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
             {
                 try
                 {
-                    var errorObject = System.Text.Json.JsonSerializer.Deserialize<ErrorResponse>(errorContent);
+                    ErrorResponse? errorObject = System.Text.Json.JsonSerializer.Deserialize<ErrorResponse>(errorContent);
 
                     throw new InvalidOperationException(errorObject?.Error ?? "Erro desconhecido ao excluir usuário.");
                 }
@@ -158,7 +160,7 @@ public class UserService(HttpClient http)
             }
         }
 
-        await InvalidateUserCountCache();
+        await InvalidateUserCacheAsync();
     }
 
     /// <summary>
@@ -171,13 +173,13 @@ public class UserService(HttpClient http)
     {
         try
         {
-            var changePasswordDto = new UserDefaultChangePasswordDTO
+            UserDefaultChangePasswordDTO changePasswordDto = new()
             {
                 UserId = userId,
                 Password = newPassword
             };
 
-            var response = await _http.PatchAsJsonAsync("sip_api/User/default-change-password", changePasswordDto);
+            HttpResponseMessage response = await _http.PatchAsJsonAsync("sip_api/User/default-change-password", changePasswordDto);
 
             response.EnsureSuccessStatusCode();
 
@@ -190,17 +192,11 @@ public class UserService(HttpClient http)
         }
     }
 
-    private async Task InvalidateUserCountCache()
+    private async Task InvalidateUserCacheAsync()
     {
-        try
-        {
-            var response = await _http.PostAsync("sip_api/User/invalidate_count_cache", null);
-            response.EnsureSuccessStatusCode();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error invalidating user count cache: {ex.Message}");
-        }
+        string url = CacheEndpoints._invalidateUserCount;
+        HttpResponseMessage response = await _http.PostAsync(url, null);
+        response.EnsureSuccessStatusCode();
     }
 }
 

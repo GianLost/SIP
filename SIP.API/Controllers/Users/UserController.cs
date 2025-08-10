@@ -5,7 +5,6 @@ using SIP.API.Domain.DTOs.Users.Responses;
 using SIP.API.Domain.Entities.Users;
 using SIP.API.Domain.Interfaces.Users;
 using SIP.API.Domain.Interfaces.Users.Configurations;
-using SIP.API.Domain.Services.Users.Configurations;
 
 namespace SIP.API.Controllers.Users;
 
@@ -40,7 +39,7 @@ public class UserController(IUser user, IUserConfiguration userConfiguration) : 
         {
             User entity = await _userService.CreateAsync(userDTO);
 
-            var response = new UserReponseDTO
+            UserReponseDTO response = new()
             {
                 FullName = entity.FullName,
                 Login = entity.Login,
@@ -49,7 +48,7 @@ public class UserController(IUser user, IUserConfiguration userConfiguration) : 
                 CreatedAt = entity.CreatedAt
             };
 
-            return CreatedAtAction(nameof(GetById), new { id = entity.Id }, response);
+            return CreatedAtRoute(nameof(GetUserByIdAsync), new { id = entity.Id }, response);
         }
         catch (Exception ex)
         {
@@ -65,12 +64,12 @@ public class UserController(IUser user, IUserConfiguration userConfiguration) : 
     /// Returns <see cref="OkObjectResult"/> with the <see cref="User"/> if found,
     /// or <see cref="NotFoundResult"/> if no user exists with the specified ID.
     /// </returns>
-    [HttpGet("{id}")]
+    [HttpGet("{id}", Name = "GetUserByIdAsync")]
     [ProducesResponseType(typeof(User), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetById(Guid id)
+    public async Task<IActionResult> GetUserByIdAsync(Guid id)
     {
-        var user = await _userService.GetByIdAsync(id);
+        User? user = await _userService.GetByIdAsync(id);
         if (user == null)
             return NotFound();
         return Ok(user);
@@ -89,14 +88,14 @@ public class UserController(IUser user, IUserConfiguration userConfiguration) : 
     /// </returns>
     [HttpGet("show")]
     [ProducesResponseType(typeof(IEnumerable<User>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAll(
+    public async Task<IActionResult> GetAllAsync(
     [FromQuery] int pageNumber = 1,
     [FromQuery] int pageSize = 15,
     [FromQuery] string? sortLabel = null,
     [FromQuery] string? sortDirection = null,
     [FromQuery] string? searchString = null)
     {
-        var sectors = await _userService.GetAllAsync(pageNumber, pageSize, sortLabel, sortDirection, searchString);
+        ICollection<User> sectors = await _userService.GetAllAsync(pageNumber, pageSize, sortLabel, sortDirection, searchString);
         return Ok(sectors);
     }
 
@@ -110,9 +109,9 @@ public class UserController(IUser user, IUserConfiguration userConfiguration) : 
     /// <param name="searchString">Optional search string to filter sectors.</param>
     /// <returns>A paged result DTO containing the users and total count.</returns>
     [HttpGet("show_paged")]
-    public async Task<IActionResult> GetPaged([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 15, [FromQuery] string? sortLabel = null, [FromQuery] string? sortDirection = null, [FromQuery] string? searchString = null)
+    public async Task<IActionResult> GetPagedAsync([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 15, [FromQuery] string? sortLabel = null, [FromQuery] string? sortDirection = null, [FromQuery] string? searchString = null)
     {
-        var result = await _userService.GetPagedAsync(pageNumber, pageSize, sortLabel, sortDirection, searchString);
+        UserPagedResultDTO result = await _userService.GetPagedAsync(pageNumber, pageSize, sortLabel, sortDirection, searchString);
         return Ok(result);
     }
 
@@ -124,18 +123,10 @@ public class UserController(IUser user, IUserConfiguration userConfiguration) : 
     /// Returns an <see cref="ActionResult{T}"/> containing the total count of sectors as an integer, wrapped in an HTTP 200 OK response.
     /// </returns>
     [HttpGet("count")]
-    public async Task<ActionResult<int>> GetTotalCount([FromQuery] string? searchString = null)
+    public async Task<ActionResult<int>> GetTotalCountAsync([FromQuery] string? searchString = null)
     {
-        var total = await _userService.GetTotalUsersCountAsync(searchString);
+        int total = await _userService.GetTotalUsersCountAsync(searchString);
         return Ok(total);
-    }
-
-    // Inside SIP.API.Controllers.UserController
-    [HttpPost("invalidate_count_cache")]
-    public IActionResult InvalidateCountCache()
-    {
-        _userService.ClearTotalUsersCountCache();
-        return Ok();
     }
 
     /// <summary>
@@ -156,12 +147,12 @@ public class UserController(IUser user, IUserConfiguration userConfiguration) : 
         if (!ModelState.IsValid)
             return ValidationProblem(ModelState);
 
-        var updated = await _userService.UpdateAsync(id, userDTO);
+        User? updated = await _userService.UpdateAsync(id, userDTO);
 
         if (updated == null)
             return NotFound();
 
-        var response = new UserReponseDTO
+        UserReponseDTO response = new()
         {
             FullName = updated.FullName,
             Login = updated.Login,
@@ -176,24 +167,39 @@ public class UserController(IUser user, IUserConfiguration userConfiguration) : 
     }
 
     /// <summary>
-    /// Method to change user password used by managers and aministrators.
+    /// Changes a specific user's password using an administrative flow.
     /// </summary>
-    /// <param name="dto">user's data and the new password.</param>
-    /// <returns>The user updated.</returns>
+    /// <remarks>
+    /// This endpoint allows changing a user's password without knowing their current one. 
+    /// The new password will be securely hashed before being stored.
+    /// </remarks>
+    /// <param name="dto">The request body containing the `UserId` and the new `Password`.</param>
+    /// <response code="200">Password was changed successfully. A confirmation message is returned.</response>
+    /// <response code="400">The request is invalid. This can be due to a missing password or other model validation errors.</response>
+    /// <response code="404">No user was found with the provided `UserId`.</response>
+    /// <response code="500">An internal server error occurred.</response>
     [HttpPatch("default-change-password")]
-    public async Task<IActionResult> DefaultChangePassword([FromBody] UserDefaultChangePasswordDTO dto)
+    [ProducesResponseType(typeof(ChangedPasswordResponseDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> DefaultChangePasswordAsync([FromBody] UserDefaultChangePasswordDTO dto)
     {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
+        try
+        {
+            User? updatedUser = await _userConfigurationService.DefaultChangePasswordAsync(dto);
 
-        var updatedUser = await _userConfigurationService.DefaultChangePasswordAsync(dto);
+            if (updatedUser == null)
+                return NotFound("User not found.");
 
-        if (updatedUser == null)
-            return NotFound("Usuário não encontrado ou dados inválidos.");
+            ChangedPasswordResponseDTO response = new($"Password successfully changed for user {updatedUser.Login}.");
 
-        var response = new ChangedPasswordResponseDTO($"Senha alterada com sucesso para o usuário {updatedUser.Login}.");
-
-        return Ok(response);
+            return Ok(response);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 
     /// <summary>
@@ -213,7 +219,7 @@ public class UserController(IUser user, IUserConfiguration userConfiguration) : 
     {
         try
         {
-            var deleted = await _userService.DeleteAsync(id);
+            bool deleted = await _userService.DeleteAsync(id);
 
             if (!deleted)
                 return NotFound();

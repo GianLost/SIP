@@ -7,7 +7,7 @@
 @inject SectorService _sectorServices
 @inject ISnackbar Snackbar
 
-<MudDialog MaxWidth="false" FullWidth="false" Style="width:600px">
+<MudDialog Style="width:600px">
 
     <DialogContent>
 
@@ -73,7 +73,7 @@
     </DialogContent>
 
     <DialogActions>
-        <MudStack Row="true" Class="justify-end pa-4" FullWidth="true">
+        <MudStack Row="true" Class="justify-end pa-4">
             <MudButton OnClick="Submit" Color="Color.Primary" Variant="Variant.Filled" Disabled="!isValid" Class="mr-3">
                 Salvar
             </MudButton>
@@ -95,7 +95,7 @@
 
     // Parâmetro para receber a lista completa de setores disponíveis.
     [Parameter]
-    public List<Sector> _allSectors { get; set; } = new();
+    public ICollection<Sector>? _allSectors { get; set; }
 
     // Referência ao componente MudForm para acionar a validação.
     private MudForm? form;
@@ -121,7 +121,7 @@
             _allSectors = await _sectorServices.GetAllSectorsAsync() ?? new List<Sector>();
         }
 
-        if (!_allSectors.Any())
+        if (_allSectors != null && !_allSectors.Any())
         {
             // Usa a sintaxe CORRETA para o Snackbar
             Snackbar.Add(
@@ -173,7 +173,8 @@
     /// <summary>
     /// Called when form errors change to update the UI.
     /// </summary>
-    private void OnErrorsChanged() => StateHasChanged();
+    private void OnErrorsChanged() => 
+        StateHasChanged();
 
     /// <summary>
     /// Valida o formulário e, se for válido, fecha o diálogo retornando os dados.
@@ -199,5 +200,6 @@
     /// <summary>
     /// Cancela a operação e fecha o diálogo sem salvar.
     /// </summary>
-    private void Cancel() => MudDialog.Cancel();
+    private void Cancel() => 
+        MudDialog.Cancel();
 }

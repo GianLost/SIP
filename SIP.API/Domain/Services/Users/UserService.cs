@@ -1,65 +1,29 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Primitives;
 using SIP.API.Domain.DTOs.Users;
 using SIP.API.Domain.DTOs.Users.Responses;
 using SIP.API.Domain.Entities.Users;
 using SIP.API.Domain.Interfaces.Users;
+using SIP.API.Infrastructure.Caching;
 using SIP.API.Infrastructure.Database;
+using System.Reflection;
 
 namespace SIP.API.Domain.Services.Users;
 
 /// <summary>
 /// Service implementation for managing user entities in the database.
 /// </summary>
-public class UserService(ApplicationContext context, IMemoryCache cache) : IUser
+public class UserService(ApplicationContext context, EntityCacheManager cache) : IUser
 {
     private readonly ApplicationContext _context = context;
-    private readonly IMemoryCache _cache = cache;
+    private readonly EntityCacheManager _cache = cache;
+    private const string EntityType = nameof(User);
     private const int MaxPageSize = 100;
-
-    private static CancellationTokenSource _totalUsersCountCacheCts = new();
-
-    /// <inheritdoc/>
-    public async Task<int> GetTotalUsersCountAsync(string? searchString)
-    {
-        IQueryable<User> query = _context.Users;
-
-        if (!string.IsNullOrWhiteSpace(searchString))
-        {
-            query = query.Where(s =>
-                s.FullName.Contains(searchString) ||
-                s.Login.Contains(searchString) ||
-                s.Email.Contains(searchString));
-        }
-
-        string cacheKey = $"UserCount_Search_{searchString ?? "NoSearch"}";
-
-        if (!_cache.TryGetValue(cacheKey, out int totalCount))
-        {
-            totalCount = await query.CountAsync();
-
-            var cacheEntryOptions = new MemoryCacheEntryOptions()
-                .SetAbsoluteExpiration(TimeSpan.FromMinutes(2)) 
-                .AddExpirationToken(new CancellationChangeToken(_totalUsersCountCacheCts.Token));
-
-            _cache.Set(cacheKey, totalCount, cacheEntryOptions);
-        }
-
-        return totalCount;
-    }
-
-    public void ClearTotalUsersCountCache()
-    {
-        _totalUsersCountCacheCts.Cancel();
-        _totalUsersCountCacheCts = new CancellationTokenSource();
-    }
 
     /// <inheritdoc/>
     public async Task<User> CreateAsync(UserCreateDTO dto)
     {
 
-        var entity = new User
+        User entity = new()
         {
             FullName = dto.FullName,
             Login = dto.Login,
@@ -79,12 +43,11 @@ public class UserService(ApplicationContext context, IMemoryCache cache) : IUser
     }
 
     /// <inheritdoc/>
-    public async Task<User?> GetByIdAsync(Guid id)
-    {
-        return await _context.Users.FindAsync(id);
-    }
+    public async Task<User?> GetByIdAsync(Guid id) => 
+        await _context.Users.FindAsync(id);
 
-    public async Task<List<User>> GetAllAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection, string? searchString)
+    /// <inheritdoc/>
+    public async Task<ICollection<User>> GetAllAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection, string? searchString)
     {
         IQueryable<User> query = _context.Users.AsQueryable();
 
@@ -93,14 +56,19 @@ public class UserService(ApplicationContext context, IMemoryCache cache) : IUser
             query = query.Where(s =>
                 s.FullName.Contains(searchString) ||
                 s.Login.Contains(searchString) ||
-                s.Email.Contains(searchString));
+                s.Email.Contains(searchString) ||
+                (s.Sector != null && s.Sector.Acronym.Contains(searchString)));
         }
 
         // Dinamic sorting
         // If sortLabel or sortDirection is provided, apply sorting
         if (!string.IsNullOrWhiteSpace(sortLabel) && !string.IsNullOrWhiteSpace(sortDirection))
         {
-            var property = typeof(User).GetProperty(sortLabel, System.Reflection.BindingFlags.IgnoreCase | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+            PropertyInfo? property = typeof(User).GetProperty(sortLabel, 
+                BindingFlags.IgnoreCase | 
+                BindingFlags.Public | 
+                BindingFlags.Instance);
+
             if (property != null)
             {
                 query = sortDirection.Trim().Equals("asc", StringComparison.CurrentCultureIgnoreCase)
@@ -117,7 +85,7 @@ public class UserService(ApplicationContext context, IMemoryCache cache) : IUser
             query = query.OrderBy(s => s.FullName); // default sorting if no sorting parameters are provided
         }
 
-        var result = await query
+        ICollection<User> result = await query
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
@@ -130,23 +98,33 @@ public class UserService(ApplicationContext context, IMemoryCache cache) : IUser
     {
         pageSize = Math.Min(pageSize, MaxPageSize); // Limite máximo
 
-        IQueryable<User> query = _context.Users.AsQueryable();
+        IQueryable<User> query = _context.Users.Include(s => s.Sector);
 
         if (!string.IsNullOrWhiteSpace(searchString))
         {
             query = query.Where(s =>
+                s.Masp.ToString().Contains(searchString) ||
                 s.FullName.Contains(searchString) ||
                 s.Login.Contains(searchString) ||
-                s.Email.Contains(searchString));
+                s.Email.Contains(searchString) ||
+                (s.Sector != null && s.Sector.Acronym.Contains(searchString)));
         }
 
         // Get total count (this will use or re-cache based on the token)
-        int totalCount = await GetTotalUsersCountAsync(searchString);
+        int? totalCount = _cache.Get<int?>($"UserCount_Search_{searchString ?? "NoSearch"}");
 
-        // Ordenação dinâmica (igual ao seu código atual)
+        if (!totalCount.HasValue)
+        {
+            totalCount = await query.CountAsync();
+            _cache.Set($"UserCount_Search_{searchString ?? "NoSearch"}", totalCount.Value, EntityType);
+        }
+
         if (!string.IsNullOrWhiteSpace(sortLabel) && !string.IsNullOrWhiteSpace(sortDirection))
         {
-            var property = typeof(User).GetProperty(sortLabel, System.Reflection.BindingFlags.IgnoreCase | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+            PropertyInfo? property = typeof(User).GetProperty(sortLabel, 
+                BindingFlags.IgnoreCase | 
+                BindingFlags.Public | 
+                BindingFlags.Instance);
             if (property != null)
             {
                 query = sortDirection.Trim().Equals("asc", StringComparison.CurrentCultureIgnoreCase)
@@ -163,7 +141,7 @@ public class UserService(ApplicationContext context, IMemoryCache cache) : IUser
             query = query.OrderBy(s => s.FullName);
         }
 
-        var items = await query
+        ICollection<User> items = await query
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
@@ -171,14 +149,14 @@ public class UserService(ApplicationContext context, IMemoryCache cache) : IUser
         return new UserPagedResultDTO
         {
             Items = items,
-            TotalCount = totalCount
+            TotalCount = totalCount.Value
         };
     }
 
     /// <inheritdoc/>
     public async Task<User?> UpdateAsync(Guid id, UserUpdateDTO dto)
     {
-        var user = await GetByIdAsync(id);
+        User? user = await GetByIdAsync(id);
 
         if (user == null)
             return null;
@@ -193,6 +171,8 @@ public class UserService(ApplicationContext context, IMemoryCache cache) : IUser
 
         _context.Users.Update(user);
 
+        ClearTotalUsersCountCache();
+
         await _context.SaveChangesAsync();
         return user;
     }
@@ -200,7 +180,7 @@ public class UserService(ApplicationContext context, IMemoryCache cache) : IUser
     /// <inheritdoc/>
     public async Task<bool> DeleteAsync(Guid id)
     {
-        var user = await _context.Users.FindAsync(id);
+        User? user = await _context.Users.FindAsync(id);
 
         if (user == null)
             return false;
@@ -215,4 +195,33 @@ public class UserService(ApplicationContext context, IMemoryCache cache) : IUser
 
         return true;
     }
+
+    /// <inheritdoc/>
+    public async Task<int> GetTotalUsersCountAsync(string? searchString)
+    {
+        IQueryable<User> query = _context.Users;
+
+        if (!string.IsNullOrWhiteSpace(searchString))
+        {
+            query = query.Where(s =>
+                s.FullName.Contains(searchString) ||
+                s.Login.Contains(searchString) ||
+                s.Email.Contains(searchString));
+        }
+
+        string cacheKey = $"UserCount_Search_{searchString ?? "NoSearch"}";
+        int? totalCount = _cache.Get<int?>(cacheKey);
+
+        if (!totalCount.HasValue)
+        {
+            totalCount = await query.CountAsync();
+            _cache.Set(cacheKey, totalCount.Value, EntityType);
+        }
+
+        return totalCount.Value;
+    }
+
+    /// <inheritdoc/>
+    public void ClearTotalUsersCountCache() => 
+        _cache.Invalidate(EntityType);
 }

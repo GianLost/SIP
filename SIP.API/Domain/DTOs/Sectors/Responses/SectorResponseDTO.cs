@@ -1,7 +1,7 @@
 ﻿using SIP.API.Domain.Models.Sectors;
 using System.Text.Json.Serialization;
 
-namespace SIP.API.Domain.DTOs.Sectors;
+namespace SIP.API.Domain.DTOs.Sectors.Responses;
 
 /// <summary>
 /// Represents the data transfer object (DTO) used to return sector information in API responses.

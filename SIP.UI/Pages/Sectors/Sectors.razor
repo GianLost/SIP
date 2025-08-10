@@ -27,7 +27,7 @@
     <MudPaper Class="pa-4 ma-2" Elevation="1">
 
         @* Componente de tabela do MudBlazor *@
-        <MudTable T="Sector" ServerData="LoadServerData" Dense="true" Hover="true" Bordered="false" @ref="table" RowsPerPage="pageSize" LoadingProgressColor="Color.Primary" SortLabel="sortLabel" Elevation="0" MultiSelection="true" @bind-SelectedItems="_selectedSectors">
+        <MudTable T="Sector" ServerData="LoadServerData" Dense="true" Hover="true" Bordered="false" @ref="table" RowsPerPage="pageSize" LoadingProgressColor="Color.Primary" Loading="@isLoading" SortLabel="sortLabel" Elevation="0" MultiSelection="true" @bind-SelectedItems="_selectedSectors">
 
             @* Barra superior da tabela contendo o campo de filtragem e os botões de exportação *@
             <ToolBarContent>
@@ -204,7 +204,7 @@
     /// </summary>
     private MudTable<Sector>? table;
 
-    private HashSet<Sector> _selectedSectors = new HashSet<Sector>();
+    private HashSet<Sector> _selectedSectors = new();
 
     /// <summary>
     /// Indicates if the table is loading data.
@@ -233,12 +233,11 @@
 
     private bool _isModalOpen = false;
 
-    private string GetButtonClass()
-    {
-        return $"mud-elevation-3 animated-fab-button-manual-icon {(_isModalOpen ? "force-expanded-button" : "")}";
-    }
+    private string GetButtonClass() =>
+        $"mud-elevation-3 animated-fab-button-manual-icon {(_isModalOpen ? "force-expanded-button" : "")}";
 
-    protected override void OnInitialized() => _selectedSectors.Clear();
+    protected override void OnInitialized() => 
+        _selectedSectors.Clear();
 
     /// <summary>
     /// Loads paginated sector data from the server for MudTable component.
@@ -263,6 +262,8 @@
             else
                 sortLabel = "Name";
         }
+
+        lastSortLabel = sortLabel;
 
         try
         {
@@ -297,16 +298,15 @@
     /// Toggles the visibility of related users for a sector.
     /// </summary>
     /// <param name="sector">The sector to toggle.</param>
-    private void ToggleShowUsers(Sector sector)
-    {
+    private void ToggleShowUsers(Sector sector) => 
         sector.ShowUsers = !sector.ShowUsers;
-    }
 
     /// <summary>
     /// Updates the last used sort label.
     /// </summary>
     /// <param name="label">The sort label.</param>
-    private void OnSortLabelChanged(string? label) => lastSortLabel = label;
+    private void OnSortLabelChanged(string? label) => 
+        lastSortLabel = label;
 
     /// <summary>
     /// Handles search input and reloads table data.
@@ -315,6 +315,7 @@
     private async Task OnSearch(string text)
     {
         searchString = text;
+
         if (table is not null)
             await table.ReloadServerData();
     }
@@ -360,7 +361,7 @@
 
         _isModalOpen = true;
 
-        var parameters = new DialogParameters<SectorEditDialog>();
+        DialogParameters<SectorEditDialog> parameters = new();
 
         parameters.Add(x => x.Sector, new Sector { Id = Guid.Empty });
 
@@ -372,7 +373,7 @@
 
         if (result is not null && !result.Canceled)
         {
-            var savedSector = result.Data as Sector;
+            Sector? savedSector = result.Data as Sector;
 
             if (savedSector != null)
             {
@@ -391,6 +392,10 @@
                 }
             }
         }
+        else
+        {
+            Snackbar.Add("Inserção de setor cancelada.", Severity.Info);
+        }
 
     }
 
@@ -400,7 +405,7 @@
     /// <param name="sector">Sector to edit.</param>
     private async Task ShowEditDialog(Sector sector)
     {
-        var parameters = new DialogParameters<SectorEditDialog>();
+        DialogParameters<SectorEditDialog> parameters = new();
 
         parameters.Add(x => x.Sector, new Sector
         {
@@ -410,13 +415,13 @@
             Phone = sector.Phone
         });
 
-        var dialog = await DialogService.ShowAsync<SectorEditDialog>("", parameters);
+        IDialogReference dialog = await DialogService.ShowAsync<SectorEditDialog>("", parameters);
 
-        var result = await dialog.Result;
+        DialogResult? result = await dialog.Result;
 
         if (result is not null && !result.Canceled)
         {
-            var updatedSector = result.Data as Sector;
+            Sector? updatedSector = result.Data as Sector;
 
             if (updatedSector != null)
             {
@@ -435,6 +440,10 @@
                 }
             }
         }
+        else
+        {
+            Snackbar.Add("Edição de setor cancelada.", Severity.Info);
+        }
     }
 
     /// <summary>
@@ -443,13 +452,13 @@
     /// <param name="sector">Sector to delete.</param>
     private async Task ShowDeleteDialog(Sector sector)
     {
-        var parameters = new DialogParameters<SectorDeleteDialog>();
+        DialogParameters<SectorDeleteDialog> parameters = new();
 
         parameters.Add(x => x.SectorToDelete, sector);
 
-        var dialog = await DialogService.ShowAsync<SectorDeleteDialog>("", parameters);
+        IDialogReference dialog = await DialogService.ShowAsync<SectorDeleteDialog>("", parameters);
 
-        var result = await dialog.Result;
+        DialogResult? result = await dialog.Result;
 
         if (result is not null && !result.Canceled)
         {
@@ -474,6 +483,10 @@
             {
                 Snackbar.Add($"Ocorreu um erro inesperado: {ex.Message}", Severity.Error);
             }
+        }
+        else
+        {
+            Snackbar.Add("Exclusão de setor cancelada.", Severity.Info);
         }
     }
 

@@ -1,4 +1,5 @@
 ﻿using SIP.API.Domain.DTOs.Sectors;
+using SIP.API.Domain.DTOs.Sectors.Responses;
 using SIP.API.Domain.Entities.Sectors;
 
 namespace SIP.API.Domain.Interfaces.Sectors;
@@ -27,14 +28,6 @@ public interface ISector
     Task<Sector?> GetByIdAsync(Guid id);
 
     /// <summary>
-    /// Retrieves all sectors records.
-    /// </summary>
-    /// <returns>
-    /// A task that represents the asynchronous operation. The task result contains a list with all <see cref="Sector"/> entities
-    /// </returns>
-    Task<List<Sector>> GetAllSectorsAsync();
-
-    /// <summary>
     /// Gets a paginated result of sectors from the API, including total count. Use in-memory caching and limit the number of records per page to avoid multiple requests for the same data.
     /// </summary>
     /// <param name="pageNumber">The page number (starting from 1).</param>
@@ -46,20 +39,12 @@ public interface ISector
     Task<SectorPagedResultDTO> GetPagedAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection, string? searchString);
 
     /// <summary>
-    /// Asynchronously retrieves the total number of sectors that match the given search criteria.
+    /// Retrieves all sectors records.
     /// </summary>
-    /// <param name="searchString">
-    /// A keyword used to filter the sectors by name or other relevant fields. If <c>null</c> or empty, all sectors are counted.
-    /// </param>
     /// <returns>
-    /// A task that represents the asynchronous operation. The task result contains the total number of matching sectors as an integer.
+    /// A task that represents the asynchronous operation. The task result contains a list with all <see cref="Sector"/> entities
     /// </returns>
-    Task<int> GetTotalSectorsCountAsync(string? searchString);
-
-    /// <summary>
-    /// Clears all cached total sector counts.
-    /// </summary>
-    void ClearTotalSectorsCountCache();
+    Task<ICollection<Sector>> GetAllSectorsAsync();
 
     /// <summary>
     /// Asynchronously updates an existing sector in the database.
@@ -79,4 +64,20 @@ public interface ISector
     /// A task that represents the asynchronous operation. The task result is <c>true</c> if the sector was deleted; otherwise, <c>false</c>.
     /// </returns>
     Task<bool> DeleteAsync(Guid id);
+
+    /// <summary>
+    /// Asynchronously retrieves the total number of sectors that match the given search criteria.
+    /// </summary>
+    /// <param name="searchString">
+    /// A keyword used to filter the sectors by name or other relevant fields. If <c>null</c> or empty, all sectors are counted.
+    /// </param>
+    /// <returns>
+    /// A task that represents the asynchronous operation. The task result contains the total number of matching sectors as an integer.
+    /// </returns>
+    Task<int> GetTotalSectorsCountAsync(string? searchString);
+
+    /// <summary>
+    /// Clears all cached total sector counts.
+    /// </summary>
+    void ClearTotalSectorsCountCache();
 }
