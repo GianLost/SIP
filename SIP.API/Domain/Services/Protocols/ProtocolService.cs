@@ -159,7 +159,7 @@ public class ProtocolService(ApplicationContext contex, EntityCacheManager cache
         protocol.DestinationSectorId = dto.DestinationSectorId;
         protocol.UpdatedAt = DateTime.UtcNow;
 
-        await _context.Protocols.AddAsync(protocol);
+        _context.Protocols.Update(protocol);
         await _context.SaveChangesAsync();
 
         ClearTotalProtocolsCountCache();

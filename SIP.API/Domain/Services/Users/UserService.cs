@@ -47,51 +47,11 @@ public class UserService(ApplicationContext context, EntityCacheManager cache) :
         await _context.Users.FindAsync(id);
 
     /// <inheritdoc/>
-    public async Task<ICollection<User>> GetAllAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection, string? searchString)
-    {
-        IQueryable<User> query = _context.Users.AsQueryable();
-
-        if (!string.IsNullOrWhiteSpace(searchString))
-        {
-            query = query.Where(s =>
-                s.FullName.Contains(searchString) ||
-                s.Login.Contains(searchString) ||
-                s.Email.Contains(searchString) ||
-                (s.Sector != null && s.Sector.Acronym.Contains(searchString)));
-        }
-
-        // Dinamic sorting
-        // If sortLabel or sortDirection is provided, apply sorting
-        if (!string.IsNullOrWhiteSpace(sortLabel) && !string.IsNullOrWhiteSpace(sortDirection))
-        {
-            PropertyInfo? property = typeof(User).GetProperty(sortLabel, 
-                BindingFlags.IgnoreCase | 
-                BindingFlags.Public | 
-                BindingFlags.Instance);
-
-            if (property != null)
-            {
-                query = sortDirection.Trim().Equals("asc", StringComparison.CurrentCultureIgnoreCase)
-                    ? query.OrderBy(e => EF.Property<object>(e, property.Name))
-                    : query.OrderByDescending(e => EF.Property<object>(e, property.Name));
-            }
-            else
-            {
-                query = query.OrderBy(s => s.FullName); // default sorting if property not found
-            }
-        }
-        else
-        {
-            query = query.OrderBy(s => s.FullName); // default sorting if no sorting parameters are provided
-        }
-
-        ICollection<User> result = await query
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize)
+    public async Task<ICollection<User>> GetAllAsync() =>
+        await _context.Users
+            .OrderBy(s => s.FullName)
+            .AsNoTracking()
             .ToListAsync();
-
-        return result;
-    }
 
     /// <inheritdoc/>
     public async Task<UserPagedResultDTO> GetPagedAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection, string? searchString)

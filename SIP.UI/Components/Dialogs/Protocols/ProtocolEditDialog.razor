@@ -1,0 +1,123 @@
+﻿@using SIP.UI.Models.Protocols
+@using SIP.UI.Models.Users
+@using SIP.UI.Models.Sectors
+@using SIP.UI.Domain.Services.Sectors
+@using SIP.UI.Domain.Services.Users
+@using SIP.API.Domain.Enums
+@using MudBlazor
+
+@inject SectorService SectorService
+@inject UserService UserService
+@inject ISnackbar Snackbar
+
+<MudDialog Style="width:600px">
+    <DialogContent>
+        <MudForm @ref="form" @bind-IsValid="isValid" ErrorsChanged="OnErrorsChanged">
+            <MudGrid Spacing="2">
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="Protocol.Number" Label="Número" Required="true" Variant="Variant.Outlined" Margin="Margin.Normal" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="Protocol.Subject" Label="Assunto" Required="true" Variant="Variant.Outlined" Margin="Margin.Normal" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudSelect T="Sector" Label="Setor de Destino" @bind-Value="SelectedSector" Required="true" Variant="Variant.Outlined" Margin="Margin.Normal" ToStringFunc="@(s => s == null ? "" : $"{s.Name} ({s.Acronym})")">
+                        <MudSelectItem Value="default(Sector)">Selecione...</MudSelectItem>
+                        @foreach (var sector in Sectors)
+                        {
+                            <MudSelectItem Value="sector">@sector.Name (@sector.Acronym)</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudSelect T="User" Label="Criado Por" @bind-Value="SelectedUser" Required="true" Variant="Variant.Outlined" Margin="Margin.Normal" Disabled="SelectedSector is null" ToStringFunc="@(u => u?.FullName)">
+                        <MudSelectItem Value="default(User)">Selecione...</MudSelectItem>
+                        @foreach (var user in FilteredUsers)
+                        {
+                            <MudSelectItem Value="user">@user.FullName</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudSelect T="ProtocolStatus" Label="Status" @bind-Value="Protocol.Status" Required="true" Variant="Variant.Outlined" Margin="Margin.Normal">
+                        @foreach (ProtocolStatus status in Enum.GetValues(typeof(ProtocolStatus)))
+                        {
+                            <MudSelectItem Value="status">@status.ToString()</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudCheckBox @bind-Value="Protocol.IsArchived" Color="Color.Primary">Arquivado</MudCheckBox>
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudStack Row="true" Class="justify-end pa-4">
+            <MudButton OnClick="Submit" Color="Color.Primary" Variant="Variant.Filled" Disabled="!isValid" Class="mr-3">Salvar</MudButton>
+            <MudButton Color="Color.Secondary" Variant="Variant.Outlined" OnClick="Cancel">Cancelar</MudButton>
+        </MudStack>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public Protocol Protocol { get; set; } = new();
+
+    private MudForm? form;
+    private bool isValid;
+
+    private List<Sector> Sectors = new();
+    private List<User> AllUsers = new();
+    private List<User> FilteredUsers => SelectedSector is null ? new() : AllUsers.Where(u => u.SectorId == SelectedSector.Id).ToList();
+
+    private Sector? SelectedSector;
+    private User? SelectedUser;
+
+    protected override async Task OnInitializedAsync()
+    {
+        ICollection<Sector>? sectorsResult = await SectorService.GetAllSectorsAsync();
+        Sectors = sectorsResult is List<Sector> list ? list : sectorsResult?.ToList() ?? new List<Sector>();
+
+        ICollection<User>? usersResult = await UserService.GetAllUsersAsync();
+        AllUsers = usersResult is List<User> listUsers ? listUsers : usersResult?.ToList() ?? new List<User>();
+
+        // Only pre-select if editing (values are set)
+        if (Protocol.Id != Guid.Empty)
+        {
+            if (Protocol.DestinationSectorId != Guid.Empty)
+                SelectedSector = Sectors.FirstOrDefault(s => s.Id == Protocol.DestinationSectorId);
+
+            if (Protocol.CreatedById != Guid.Empty)
+                SelectedUser = AllUsers.FirstOrDefault(u => u.Id == Protocol.CreatedById);
+        }
+        else
+        {
+            SelectedSector = null;
+            SelectedUser = null;
+        }
+    }
+
+    private void OnErrorsChanged() => StateHasChanged();
+
+    private async Task Submit()
+    {
+        await form!.Validate();
+        if (isValid && SelectedSector != null && SelectedUser != null)
+        {
+            Protocol.DestinationSectorId = SelectedSector.Id;
+            Protocol.CreatedById = SelectedUser.Id;
+            MudDialog.Close(DialogResult.Ok(Protocol));
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    // When sector changes, clear user selection
+    private void OnSectorChanged(Sector? sector)
+    {
+        SelectedSector = sector;
+        SelectedUser = null;
+        StateHasChanged();
+    }
+}

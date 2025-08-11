@@ -22,6 +22,11 @@
 
         <MudSpacer />
 
+        @* Ícone de notificações *@
+        <MudTooltip Text="atualizações" Arrow="true" Placement="Placement.Bottom">
+            <MudIconButton Class="ms-4" Icon="@Icons.Material.Filled.Notifications" Color="Color.Inherit" Edge="Edge.End" />
+        </MudTooltip>
+
         @* Ícone de login *@
         <MudTooltip Text="Fazer login" Arrow="true" Placement="Placement.Bottom">
             <MudIconButton Class="ms-4" Icon="@Icons.Material.Filled.Person" Color="Color.Inherit" Edge="Edge.End" />
@@ -44,6 +49,7 @@
             <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Início</MudNavLink>
             <MudNavLink Href="/sectors" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Business">Secretarias</MudNavLink>
             <MudNavLink Href="/users" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.People">Usuários</MudNavLink>
+            <MudNavLink Href="/protocols" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Book">Protocolos</MudNavLink>
             <MudDivider Class="my-2" />
             <MudNavLink Href="/settings" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Settings">Configurações</MudNavLink>
             <MudNavLink Href="/help" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Help">Ajuda</MudNavLink>

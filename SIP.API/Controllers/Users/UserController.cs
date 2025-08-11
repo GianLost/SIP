@@ -76,26 +76,14 @@ public class UserController(IUser user, IUserConfiguration userConfiguration) : 
     }
 
     /// <summary>
-    /// Retrieves a paginated, optionally sorted and filtered list of users.
+    /// Retrieves all users records.
     /// </summary>
-    /// <param name="pageNumber">The page number to retrieve. Defaults to 1.</param>
-    /// <param name="pageSize">The number of users to include per page. Defaults to 20.</param>
-    /// <param name="sortLabel">The field name to sort by (optional).</param>
-    /// <param name="sortDirection">The direction of sorting: "asc" for ascending or "desc" for descending (optional).</param>
-    /// <param name="searchString">A keyword used to filter users by name or other relevant fields (optional).</param>
-    /// <returns>
-    /// Returns an <see cref="IActionResult"/> containing a list of sectors matching the criteria, wrapped in an HTTP 200 OK response.
-    /// </returns>
+    /// Returns an <see cref="IActionResult"/> containing a list of users, wrapped in an HTTP 200 OK response.
     [HttpGet("show")]
     [ProducesResponseType(typeof(IEnumerable<User>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAllAsync(
-    [FromQuery] int pageNumber = 1,
-    [FromQuery] int pageSize = 15,
-    [FromQuery] string? sortLabel = null,
-    [FromQuery] string? sortDirection = null,
-    [FromQuery] string? searchString = null)
+    public async Task<IActionResult> GetAllAsync()
     {
-        ICollection<User> sectors = await _userService.GetAllAsync(pageNumber, pageSize, sortLabel, sortDirection, searchString);
+        ICollection<User> sectors = await _userService.GetAllAsync();
         return Ok(sectors);
     }
 
@@ -106,7 +94,7 @@ public class UserController(IUser user, IUserConfiguration userConfiguration) : 
     /// <param name="pageSize">The number of records per page.</param>
     /// <param name="sortLabel">The property name to sort by.</param>
     /// <param name="sortDirection">The sort direction ("asc" or "desc").</param>
-    /// <param name="searchString">Optional search string to filter sectors.</param>
+    /// <param name="searchString">Optional search string to filter users.</param>
     /// <returns>A paged result DTO containing the users and total count.</returns>
     [HttpGet("show_paged")]
     public async Task<IActionResult> GetPagedAsync([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 15, [FromQuery] string? sortLabel = null, [FromQuery] string? sortDirection = null, [FromQuery] string? searchString = null)
@@ -120,7 +108,7 @@ public class UserController(IUser user, IUserConfiguration userConfiguration) : 
     /// </summary>
     /// <param name="searchString">A keyword used to filter users by name or other relevant fields (optional).</param>
     /// <returns>
-    /// Returns an <see cref="ActionResult{T}"/> containing the total count of sectors as an integer, wrapped in an HTTP 200 OK response.
+    /// Returns an <see cref="ActionResult{T}"/> containing the total count of users as an integer, wrapped in an HTTP 200 OK response.
     /// </returns>
     [HttpGet("count")]
     public async Task<ActionResult<int>> GetTotalCountAsync([FromQuery] string? searchString = null)
@@ -138,7 +126,7 @@ public class UserController(IUser user, IUserConfiguration userConfiguration) : 
     /// Returns <see cref="OkObjectResult"/> with the updated <see cref="User"/> if successful,
     /// or <see cref="NotFoundResult"/> if the user does not exist.
     /// </returns>
-    [HttpPut("update_user/{id}")]
+    [HttpPatch("default_update_user/{id}")]
     [ProducesResponseType(typeof(User), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateAsync(Guid id, [FromBody] UserUpdateDTO userDTO)

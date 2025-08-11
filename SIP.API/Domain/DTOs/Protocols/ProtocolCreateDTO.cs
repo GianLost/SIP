@@ -12,13 +12,7 @@ public class ProtocolCreateDTO : BaseProtocol
     [ForeignKey(nameof(User))]
     public Guid CreatedByID { get; set; }
 
-    [JsonPropertyOrder(8)]
-    public User? CreatedBy { get; set; }
-
     [JsonPropertyOrder(9)]
     [ForeignKey(nameof(Sector))]
     public Guid DestinationSectorId { get; set; }
-
-    [JsonPropertyOrder(10)]
-    public Sector? DestinationSector { get; set; }
 }

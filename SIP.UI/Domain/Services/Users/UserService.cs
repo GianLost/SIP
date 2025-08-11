@@ -16,7 +16,7 @@ public class UserService(HttpClient http)
     /// <param name="user">The user entity to create.</param>
     public async Task CreateUserAsync(User user)
     {
-        HttpResponseMessage response = await _http.PostAsJsonAsync("sip_api/User/register_user", user);
+        HttpResponseMessage response = await _http.PostAsJsonAsync(UsersEndpoints._createUser, user);
         response.EnsureSuccessStatusCode();
 
         await InvalidateUserCacheAsync();
@@ -48,7 +48,7 @@ public class UserService(HttpClient http)
         if (!string.IsNullOrEmpty(searchString))
             queryParams.Add($"searchString={Uri.EscapeDataString(searchString)}");
 
-        string url = $"sip_api/User/show?{string.Join("&", queryParams)}";
+        string url = $"{UsersEndpoints._getAllUsers}{string.Join("&", queryParams)}";
 
         try
         {
@@ -67,7 +67,7 @@ public class UserService(HttpClient http)
     /// <param name="id">The unique identifier of the user.</param>
     /// <returns>The user entity if found; otherwise, null.</returns>
     public async Task<User?> GetUsersAsync(Guid id)
-        => await _http.GetFromJsonAsync<User>($"sip_api/User/{id}");
+        => await _http.GetFromJsonAsync<User>($"{UsersEndpoints._getUsersById}{id}");
 
     /// <summary>
     /// Gets a paginated result of users from the API, including total count. Use in-memory caching and limit the number of records per page to avoid multiple requests for the same data.
@@ -82,7 +82,7 @@ public class UserService(HttpClient http)
     {
         pageSize = Math.Min(pageSize, 100);
 
-        string url = $"sip_api/User/show_paged?pageNumber={pageNumber}&pageSize={pageSize}&sortLabel={sortLabel}&sortDirection={sortDirection}&searchString={searchString}";
+        string url = $"{UsersEndpoints._usersPaginationFull}pageNumber={pageNumber}&pageSize={pageSize}&sortLabel={sortLabel}&sortDirection={sortDirection}&searchString={searchString}";
 
         UserPagedResultDTO? response = await _http.GetFromJsonAsync<UserPagedResultDTO>(url);
 
@@ -96,7 +96,7 @@ public class UserService(HttpClient http)
     /// <returns>The total number of users matching the filter.</returns>
     public async Task<int> GetTotalUsersCountAsync(string? searchString = null)
     {
-        string url = "sip_api/User/count";
+        string url = UsersEndpoints._usersCounter;
 
         if (!string.IsNullOrEmpty(searchString))
             url += $"?searchString={Uri.EscapeDataString(searchString)}";
@@ -113,12 +113,33 @@ public class UserService(HttpClient http)
     }
 
     /// <summary>
+    /// Busca TODOS os setores da API para usar em dropdowns e seletores.
+    /// </summary>
+    /// <returns>Uma lista completa de todos os setores.</returns>
+    public async Task<ICollection<User>?> GetAllUsersAsync()
+    {
+        try
+        {
+            string endpoint = UsersEndpoints._getAllUsers;
+
+            ICollection<User>? sectors = await _http.GetFromJsonAsync<ICollection<User>>(endpoint);
+
+            return sectors ?? [];
+        }
+        catch (HttpRequestException ex)
+        {
+            Console.WriteLine($"Falha ao carregar a lista completa de usuários: {ex.Message}");
+            return null;
+        }
+    }
+
+    /// <summary>
     /// Updates an existing user via the API.
     /// </summary>
     /// <param name="user">The user entity to update.</param>
     public async Task UpdateUserAsync(User user)
     {
-        HttpResponseMessage response = await _http.PutAsJsonAsync($"sip_api/User/update_user/{user.Id}", user);
+        HttpResponseMessage response = await _http.PatchAsJsonAsync($"{UsersEndpoints._defaultUpdateUser}{user.Id}", user);
         response.EnsureSuccessStatusCode();
         await InvalidateUserCacheAsync();
     }
@@ -131,7 +152,7 @@ public class UserService(HttpClient http)
     /// <exception cref="HttpRequestException">Thrown if the request fails.</exception>
     public async Task DeleteUserAsync(Guid id)
     {
-        HttpResponseMessage response = await _http.DeleteAsync($"sip_api/User/delete/{id}");
+        HttpResponseMessage response = await _http.DeleteAsync($"{UsersEndpoints._deleteUser}{id}");
 
         if (!response.IsSuccessStatusCode)
         {
@@ -179,7 +200,7 @@ public class UserService(HttpClient http)
                 Password = newPassword
             };
 
-            HttpResponseMessage response = await _http.PatchAsJsonAsync("sip_api/User/default-change-password", changePasswordDto);
+            HttpResponseMessage response = await _http.PatchAsJsonAsync(UsersEndpoints._defaultUpdatePassword, changePasswordDto);
 
             response.EnsureSuccessStatusCode();
 
