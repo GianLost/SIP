@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore;
+using SIP.API.Domain.Interfaces.Protocols;
 using SIP.API.Domain.Interfaces.Sectors;
 using SIP.API.Domain.Interfaces.Users;
 using SIP.API.Domain.Interfaces.Users.Configurations;
+using SIP.API.Domain.Services.Protocols;
 using SIP.API.Domain.Services.Sectors;
 using SIP.API.Domain.Services.Users;
 using SIP.API.Domain.Services.Users.Configurations;
@@ -27,6 +29,7 @@ builder.Services.AddScoped<IUser, UserService>();
 builder.Services.AddScoped<IUserConfiguration, UserConfigurationService>();
 
 builder.Services.AddScoped<ISector, SectorService>();
+builder.Services.AddScoped<IProtocol, ProtocolService>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>

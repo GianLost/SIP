@@ -180,7 +180,7 @@ public class UserService(ApplicationContext context, EntityCacheManager cache) :
     /// <inheritdoc/>
     public async Task<bool> DeleteAsync(Guid id)
     {
-        User? user = await _context.Users.FindAsync(id);
+        User? user = await GetByIdAsync(id);
 
         if (user == null)
             return false;

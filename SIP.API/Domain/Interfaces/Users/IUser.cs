@@ -28,17 +28,6 @@ public interface IUser
     Task<User?> GetByIdAsync(Guid id);
 
     /// <summary>
-    /// Retorna usuários paginados, com filtro, ordenação e total de registros.
-    /// </summary>
-    /// <param name="pageNumber">Número da página (iniciando em 1).</param>
-    /// <param name="pageSize">Quantidade de registros por página.</param>
-    /// <param name="sortLabel">Campo para ordenação.</param>
-    /// <param name="sortDirection">Direção da ordenação ("asc" ou "desc").</param>
-    /// <param name="searchString">Texto para filtro de pesquisa.</param>
-    /// <returns>Objeto UserPagedResultDTO.</returns>
-    Task<UserPagedResultDTO> GetPagedAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection, string? searchString);
-
-    /// <summary>
     /// Asynchronously retrieves a paginated list of users, optionally sorted and filtered.
     /// </summary>
     /// <param name="pageNumber">The page number to retrieve (starting from 1).</param>
@@ -55,6 +44,17 @@ public interface IUser
     /// that match the given pagination, sorting, and filtering criteria.
     /// </returns>
     Task<ICollection<User>> GetAllAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection, string? searchString);
+
+    /// <summary>
+    /// Retorna usuários paginados, com filtro, ordenação e total de registros.
+    /// </summary>
+    /// <param name="pageNumber">Número da página (iniciando em 1).</param>
+    /// <param name="pageSize">Quantidade de registros por página.</param>
+    /// <param name="sortLabel">Campo para ordenação.</param>
+    /// <param name="sortDirection">Direção da ordenação ("asc" ou "desc").</param>
+    /// <param name="searchString">Texto para filtro de pesquisa.</param>
+    /// <returns>Objeto UserPagedResultDTO.</returns>
+    Task<UserPagedResultDTO> GetPagedAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection, string? searchString);
 
     /// <summary>
     /// Asynchronously updates an existing user in the database.
