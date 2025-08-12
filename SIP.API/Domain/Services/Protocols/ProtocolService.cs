@@ -43,50 +43,13 @@ public class ProtocolService(ApplicationContext contex, EntityCacheManager cache
         await _context.Protocols.FindAsync(id);
 
     /// <inheritdoc/>
-    public async Task<ICollection<Protocol>> GetAllAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection, string? searchString)
-    {
-        IQueryable<Protocol> query = _context.Protocols.AsQueryable();
-
-        if (!string.IsNullOrWhiteSpace(searchString))
-        {
-            query = query.Where(s =>
-                s.Number.Contains(searchString) ||
-                s.Subject.Contains(searchString));
-        }
-
-        // Dinamic sorting
-        // If sortLabel or sortDirection is provided, apply sorting
-        if (!string.IsNullOrWhiteSpace(sortLabel) && !string.IsNullOrWhiteSpace(sortDirection))
-        {
-            PropertyInfo? property = typeof(Protocol).GetProperty(sortLabel,
-                BindingFlags.IgnoreCase |
-                BindingFlags.Public |
-                BindingFlags.Instance);
-
-            if (property != null)
-            {
-                query = sortDirection.Trim().Equals("asc", StringComparison.CurrentCultureIgnoreCase)
-                    ? query.OrderBy(e => EF.Property<object>(e, property.Name))
-                    : query.OrderByDescending(e => EF.Property<object>(e, property.Name));
-            }
-            else
-            {
-                query = query.OrderBy(s => s.CreatedAt); // default sorting if property not found
-            }
-        }
-        else
-        {
-            query = query.OrderBy(s => s.CreatedAt); // default sorting if no sorting parameters are provided
-        }
-
-        ICollection<Protocol> result = await query
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize)
+    public async Task<ICollection<Protocol>> GetAllAsync() =>
+        await _context.Protocols
+            .OrderBy(s => s.CreatedAt)
+            .AsNoTracking()
             .ToListAsync();
 
-        return result;
-    }
-
+    /// <inheritdoc/>
     public async Task<ProtocolPagedResultDTO> GetPagedAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection, string? searchString)
     {
         pageSize = Math.Min(pageSize, MaxPageSize); // Limite máximo

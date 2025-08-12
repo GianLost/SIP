@@ -68,26 +68,14 @@ public class ProtocolController(IProtocol protocol) : ControllerBase
     }
 
     /// <summary>
-    /// Retrieves a paginated, optionally sorted and filtered list of protocols.
+    /// Retrieves all protocols records.
     /// </summary>
-    /// <param name="pageNumber">The page number to retrieve. Defaults to 1.</param>
-    /// <param name="pageSize">The number of protocols to include per page. Defaults to 20.</param>
-    /// <param name="sortLabel">The field name to sort by (optional).</param>
-    /// <param name="sortDirection">The direction of sorting: "asc" for ascending or "desc" for descending (optional).</param>
-    /// <param name="searchString">A keyword used to filter protocols by name or other relevant fields (optional).</param>
-    /// <returns>
-    /// Returns an <see cref="IActionResult"/> containing a list of sectors matching the criteria, wrapped in an HTTP 200 OK response.
-    /// </returns>
+    /// Returns an <see cref="IActionResult"/> containing a list of protocols, wrapped in an HTTP 200 OK response.
     [HttpGet("show")]
     [ProducesResponseType(typeof(IEnumerable<Protocol>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAllAsync(
-    [FromQuery] int pageNumber = 1,
-    [FromQuery] int pageSize = 15,
-    [FromQuery] string? sortLabel = null,
-    [FromQuery] string? sortDirection = null,
-    [FromQuery] string? searchString = null)
+    public async Task<IActionResult> GetAllAsync()
     {
-        ICollection<Protocol> sectors = await _protocolService.GetAllAsync(pageNumber, pageSize, sortLabel, sortDirection, searchString);
+        ICollection<Protocol> sectors = await _protocolService.GetAllAsync();
         return Ok(sectors);
     }
 

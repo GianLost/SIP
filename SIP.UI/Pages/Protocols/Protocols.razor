@@ -72,17 +72,23 @@
             </ToolBarContent>
 
             <HeaderContent>
+                <MudTh Style="font-weight: bold;">Status</MudTh>
                 <MudTh Style="font-weight: bold;">Número</MudTh>
                 <MudTh Style="font-weight: bold;">Criado Por</MudTh>
                 <MudTh Style="font-weight: bold;">Setor Destino</MudTh>
+                <MudTh Style="font-weight: bold;">Assunto</MudTh>
                 <MudTh Style="font-weight: bold;">Data de Criação</MudTh>
+                <MudTh Style="font-weight: bold;">Atualizado em</MudTh>
             </HeaderContent>
 
             <RowTemplate Context="protocol">
+                <MudTd DataLabel="Status">@protocol.Status</MudTd>
                 <MudTd DataLabel="Número">@protocol.Number</MudTd>
                 <MudTd DataLabel="Criado Por">@protocol.CreatedBy?.FullName</MudTd>
                 <MudTd DataLabel="Setor Destino">@protocol.DestinationSector?.Acronym</MudTd>
-                <MudTd DataLabel="Data de Criação">@protocol.CreatedAt.ToString("dd/MM/yyyy HH:mm")</MudTd>
+                <MudTd DataLabel="Setor Destino">@protocol.Subject</MudTd>
+                <MudTd DataLabel="Data de Criação">@protocol.CreatedAt.ToString("dd/MM/yyyy")</MudTd>
+                <MudTd DataLabel="Data de Atualização">@protocol.UpdatedAt?.ToString("dd/MM/yyyy")</MudTd>
             </RowTemplate>
 
             <NoRecordsContent>
@@ -225,6 +231,8 @@
             Id = protocol.Id,
             Number = protocol.Number,
             Subject = protocol.Subject,
+             IsArchived = protocol.IsArchived,
+            Status = protocol.Status,
             CreatedById = protocol.CreatedById,
             DestinationSectorId = protocol.DestinationSectorId,
             CreatedAt = protocol.CreatedAt,

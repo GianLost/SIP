@@ -8,7 +8,7 @@ public interface IProtocol
 {
     Task<Protocol> CreateAsync(ProtocolCreateDTO dto);
     Task<Protocol?> GetByIdAsync(Guid id);
-    Task<ICollection<Protocol>> GetAllAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection, string? searchString);
+    Task<ICollection<Protocol>> GetAllAsync();
     Task<ProtocolPagedResultDTO> GetPagedAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection, string? searchString);
     Task<Protocol?> UpdateAsync(Guid id, ProtocolUpdateDTO protocol);
     Task<bool> DeleteAsync(Guid id);
