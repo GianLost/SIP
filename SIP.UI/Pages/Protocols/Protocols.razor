@@ -23,70 +23,54 @@
     </MudStack>
 
     <MudPaper Class="pa-4 ma-2" Elevation="1">
-        <MudTable T="Protocol"
-          ServerData="LoadServerData"
-          Dense="true"
-          Hover="true"
-          Bordered="false"
-          @ref="table"
-          RowsPerPage="pageSize"
-          LoadingProgressColor="Color.Primary"
-          Loading="@isLoading"
-          Elevation="0"
-          MultiSelection="true"
-          @bind-SelectedItems="_selectedProtocols">
-
-    <ToolBarContent>
-        <MudStack Style="width: 100%; margin-left: -0.75rem;" Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
-            <MudStack Row="true" AlignItems="AlignItems.Center">
-                @if (_selectedProtocols.Any())
-                {
-                    <MudTooltip Text="@($"Ações aplicáveis para {_selectedProtocols.Count} protocolo(s) selecionado(s)")" Arrow="true" Placement="Placement.Bottom">
-                        <MudMenu Dense="true" Icon="@Icons.Material.Filled.SettingsApplications" Color="Color.Primary" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
-                            @if (_selectedProtocols.Count == 1)
-                            {
-                                <MudMenuItem OnClick="@(() => ShowEditDialog(_selectedProtocols.First()))">
-                                    <MudStack Row="true" AlignItems="AlignItems.Center">
-                                        <MudIcon Icon="@Icons.Material.Filled.Edit" Size="Size.Small" />
-                                        <MudText Typo="Typo.body2">Editar</MudText>
-                                    </MudStack>
-                                </MudMenuItem>
-                                <MudDivider Class="my-2" />
-                                <MudMenuItem OnClick="@(() => ShowDeleteDialog(_selectedProtocols.First()))" Style="color: var(--mud-palette-error);">
-                                    <MudStack Row="true" AlignItems="AlignItems.Center">
-                                        <MudIcon Icon="@Icons.Material.Filled.Delete" Size="Size.Small" />
-                                        <MudText Typo="Typo.body2">Excluir</MudText>
-                                    </MudStack>
-                                </MudMenuItem>
-                            }
-                            @if (_selectedProtocols.Count > 1)
-                            {
-                                <MudMenuItem OnClick="ShowDeleteSelectedProtocolsDialog" Style="color: var(--mud-palette-error);">
-                                    <MudStack Row="true" AlignItems="AlignItems.Center">
-                                        <MudIcon Icon="@Icons.Material.Filled.Delete" Size="Size.Small" />
-                                        <MudText Typo="Typo.body2">Excluir</MudText>
-                                    </MudStack>
-                                </MudMenuItem>
-                            }
-                        </MudMenu>
-                    </MudTooltip>
-                }
-            </MudStack>
-            <MudStack Row="true" AlignItems="AlignItems.Center">
-                <MudTextField T="string"
-                              ValueChanged="@OnSearch"
-                              Immediate="false"
-                              DebounceInterval="300"
-                              Placeholder="digite sua busca..."
-                              Adornment="Adornment.Start"
-                              AdornmentIcon="@Icons.Material.Filled.Search"
-                              IconSize="Size.Medium"
-                              Class="m-auto"
-                              Clearable="true"
-                              Style="max-width: 300px;" />
-            </MudStack>
-        </MudStack>
-    </ToolBarContent>
+        <MudTable T="Protocol" ServerData="LoadServerData" Dense="true" Hover="true" Bordered="false" @ref="table" RowsPerPage="pageSize" LoadingProgressColor="Color.Primary" SortLabel="sortLabel" Loading="@isLoading" Elevation="0" MultiSelection="true" @bind-SelectedItems="_selectedProtocols">
+            <ToolBarContent>
+                <MudStack Style="width: 100%; margin-left: -0.75rem;" Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                    <MudStack Row="true" AlignItems="AlignItems.Center">
+                        @if (_selectedProtocols.Any())
+                        {
+                            <MudTooltip Text="@($"Ações aplicáveis para {_selectedProtocols.Count} protocolo(s) selecionado(s)")" Arrow="true" Placement="Placement.Bottom">
+                                <MudMenu Dense="true" Icon="@Icons.Material.Filled.SettingsApplications" Color="Color.Primary" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                                    @if (_selectedProtocols.Count == 1)
+                                    {
+                                        <MudMenuItem OnClick="@(() => ShowEditDialog(_selectedProtocols.First()))">
+                                            <MudStack Row="true" AlignItems="AlignItems.Center">
+                                                <MudIcon Icon="@Icons.Material.Filled.Edit" Size="Size.Small" />
+                                                <MudText Typo="Typo.body2">Editar</MudText>
+                                            </MudStack>
+                                        </MudMenuItem>
+                                        <MudDivider Class="my-2" />
+                                        <MudMenuItem OnClick="@(() => ShowDeleteDialog(_selectedProtocols.First()))" Style="color: var(--mud-palette-error);">
+                                            <MudStack Row="true" AlignItems="AlignItems.Center">
+                                                <MudIcon Icon="@Icons.Material.Filled.Delete" Size="Size.Small" />
+                                                <MudText Typo="Typo.body2">Excluir</MudText>
+                                            </MudStack>
+                                        </MudMenuItem>
+                                    }
+                                    @if (_selectedProtocols.Count > 1)
+                                    {
+                                        <MudMenuItem OnClick="ShowDeleteSelectedProtocolsDialog" Style="color: var(--mud-palette-error);">
+                                            <MudStack Row="true" AlignItems="AlignItems.Center">
+                                                <MudIcon Icon="@Icons.Material.Filled.Delete" Size="Size.Small" />
+                                                <MudText Typo="Typo.body2">Excluir</MudText>
+                                            </MudStack>
+                                        </MudMenuItem>
+                                    }
+                                </MudMenu>
+                            </MudTooltip>
+                        }
+                    </MudStack>
+                    <MudStack Row="true" AlignItems="AlignItems.Center">
+                        <MudTextField T="string" ValueChanged="@OnSearch" Immediate="false" DebounceInterval="300" Placeholder="digite sua busca..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="m-auto" Clearable="true" Style="max-width: 300px;" />
+                        <MudTooltip Text="Exportar para formatos compatíveis ..." Arrow="true" Placement="Placement.Bottom">
+                            <MudMenu Icon="@Icons.Material.Filled.MoreVert" Color="Color.Primary" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                                <MudMenuItem OnClick="ExportToCsv">Exportar CSV</MudMenuItem>
+                                <MudMenuItem OnClick="ExportToPdf">Exportar PDF</MudMenuItem>
+                            </MudMenu>
+                        </MudTooltip>
+                    </MudStack>
+                </MudStack>
+            </ToolBarContent>
 
             <HeaderContent>
                 <MudTh Style="font-weight: bold;">
@@ -108,20 +92,28 @@
                 <MudTh Style="font-weight: bold;">Atualizado em</MudTh>
             </HeaderContent>
 
-    <RowTemplate Context="protocol">
-        <MudTd DataLabel="Status">@GetStatusChip(protocol.Status)</MudTd>
-        <MudTd DataLabel="Número">@protocol.Number</MudTd>
-        <MudTd DataLabel="Criado Por">@protocol.CreatedBy?.FullName</MudTd>
-        <MudTd DataLabel="Setor Destino">@protocol.DestinationSector?.Acronym</MudTd>
-        <MudTd DataLabel="Assunto">@protocol.Subject</MudTd>
-        <MudTd DataLabel="Data de Criação">@protocol.CreatedAt.ToString("dd/MM/yyyy")</MudTd>
-        <MudTd DataLabel="Data de Atualização">@protocol.UpdatedAt?.ToString("dd/MM/yyyy")</MudTd>
-    </RowTemplate>
+            <RowTemplate Context="protocol">
+                <MudTd DataLabel="Status">@GetStatusChip(protocol.Status)</MudTd>
+                <MudTd DataLabel="Número">@protocol.Number</MudTd>
+                <MudTd DataLabel="Criado Por">@protocol.CreatedBy?.FullName</MudTd>
+                <MudTd DataLabel="Setor Destino">@protocol.DestinationSector?.Acronym</MudTd>
+                <MudTd DataLabel="Setor Destino">@protocol.Subject</MudTd>
+                <MudTd DataLabel="Data de Criação">@protocol.CreatedAt.ToString("dd/MM/yyyy")</MudTd>
+                <MudTd DataLabel="Data de Atualização">@protocol.UpdatedAt?.ToString("dd/MM/yyyy")</MudTd>
+            </RowTemplate>
 
-    <NoRecordsContent>
-        <MudText Class="pa-6 text-center mud-text-secondary">Nenhum protocolo encontrado para exibir.</MudText>
-    </NoRecordsContent>
-</MudTable>
+            <NoRecordsContent>
+                <MudText Class="pa-6 text-center mud-text-secondary">Nenhum protocolo encontrado para exibir.</MudText>
+            </NoRecordsContent>
+
+            <LoadingContent>
+                <MudText Class="pa-6 text-center mud-text-secondary">Carregando protocolos, por favor aguarde...</MudText>
+            </LoadingContent>
+
+            <PagerContent>
+                <MudTablePager PageSizeOptions="new int[] { 15, 25, 50, 100 }" />
+            </PagerContent>
+        </MudTable>
     </MudPaper>
 </MudContainer>
 
@@ -165,23 +157,51 @@
     private async Task<TableData<Protocol>> LoadServerData(TableState state, CancellationToken cancellationToken)
     {
         isLoading = true;
+        StateHasChanged();
 
-        var sortLabel = string.IsNullOrWhiteSpace(state.SortLabel) ? "CreatedAt" : state.SortLabel;
+        // Clear selection when data reloads to prevent stale selections
+        _selectedProtocols.Clear();
 
-        var protocols = await _protocolService.GetPagedProtocolsAsync(
-            state.Page + 1,
-            state.PageSize,
-            sortLabel,
-            state.SortDirection == SortDirection.Ascending ? "asc" : "desc",
-            searchString);
+        pageSize = state.PageSize;
+        string? sortLabel = state.SortLabel;
 
-        isLoading = false;
-
-        return new TableData<Protocol>
+        if (string.IsNullOrWhiteSpace(sortLabel))
         {
-            Items = protocols.Items,
-            TotalItems = protocols.TotalCount
-        };
+            if (state.SortDirection != SortDirection.None)
+                sortLabel = lastSortLabel ?? "Status";
+            else
+                sortLabel = "Status";
+        }
+
+        lastSortLabel = sortLabel;
+
+        try
+        {
+            ProtocolPagedResultDTO protocols = await _protocolService.GetPagedProtocolsAsync(
+                state.Page + 1,
+                state.PageSize,
+                sortLabel,
+                GetSortDirectionString(state.SortDirection),
+                searchString);
+
+            totalItems = await _protocolService.GetTotalProtocolsCountAsync(searchString);
+
+            return new TableData<Protocol>
+            {
+                Items = protocols.Items,
+                TotalItems = protocols.TotalCount
+            };
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Erro ao carregar dados: {ex.Message}", Severity.Error);
+            return new TableData<Protocol> { Items = [], TotalItems = 0 };
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
     }
 
     private string GetSortDirectionString(SortDirection direction) =>

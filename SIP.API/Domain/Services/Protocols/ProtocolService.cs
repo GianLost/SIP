@@ -2,9 +2,11 @@
 using SIP.API.Domain.DTOs.Protocols;
 using SIP.API.Domain.DTOs.Protocols.Responses;
 using SIP.API.Domain.Entities.Protocols;
+using SIP.API.Domain.Enums;
 using SIP.API.Domain.Interfaces.Protocols;
 using SIP.API.Infrastructure.Caching;
 using SIP.API.Infrastructure.Database;
+using System.Linq.Expressions;
 using System.Reflection;
 
 namespace SIP.API.Domain.Services.Protocols;
@@ -60,52 +62,73 @@ public class ProtocolService(ApplicationContext contex, EntityCacheManager cache
         pageSize = Math.Min(pageSize, MaxPageSize);
 
         IQueryable<Protocol> query = _context.Protocols
-            .Include(u => u.CreatedBy)
-            .Include(s => s.DestinationSector);
+            .Include(s => s.DestinationSector)
+            .Include(u => u.CreatedBy);
 
-        // Filtro
         if (!string.IsNullOrWhiteSpace(searchString))
         {
-            var lowered = searchString.ToLower();
             query = query.Where(s =>
-                s.Number.ToLower().Contains(lowered) ||
-                s.Subject.ToLower().Contains(lowered) ||
-                (s.CreatedBy != null && s.CreatedBy.FullName.ToLower().Contains(lowered)) ||
-                (s.DestinationSector != null && s.DestinationSector.Acronym.ToLower().Contains(lowered)) ||
-                s.Status.ToString().ToLower().Contains(lowered));
+                s.Number.Contains(searchString) ||
+                s.Subject.Contains(searchString) ||
+                (s.DestinationSector != null && s.DestinationSector.Acronym.Contains(searchString)) ||
+                (s.CreatedBy != null && s.CreatedBy.FullName.Contains(searchString)));
         }
 
-        // Ordenação
-        sortLabel = sortLabel?.Trim();
-        bool asc = sortDirection?.Equals("asc", StringComparison.OrdinalIgnoreCase) ?? true;
+        int? totalCount = _cache.Get<int?>($"ProtocolCount_Search_{searchString ?? "NoSearch"}");
 
-        query = sortLabel switch
+        if (!totalCount.HasValue)
         {
-            "CreatedByName" => asc
-                ? query.OrderBy(s => s.CreatedBy!.FullName)
-                : query.OrderByDescending(s => s.CreatedBy!.FullName),
+            totalCount = await query.CountAsync();
+            _cache.Set($"ProtocolCount_Search_{searchString ?? "NoSearch"}", totalCount.Value, EntityType);
+        }
 
-            "DestinationSectorAcronym" => asc
-                ? query.OrderBy(s => s.DestinationSector!.Acronym)
-                : query.OrderByDescending(s => s.DestinationSector!.Acronym),
+        bool asc = sortDirection?.Trim().Equals("asc", StringComparison.CurrentCultureIgnoreCase) ?? true;
 
-            _ => asc
-                ? query.OrderBy(e => EF.Property<object>(e, sortLabel ?? "CreatedAt"))
-                : query.OrderByDescending(e => EF.Property<object>(e, sortLabel ?? "CreatedAt"))
-        };
+        Expression<Func<Protocol, int>> statusOrderExpr = s =>
+            s.Status == ProtocolStatus.Open ? 1 :
+            s.Status == ProtocolStatus.SentForReview ? 2 :
+            s.Status == ProtocolStatus.Received ? 3 :
+            s.Status == ProtocolStatus.UnderReview ? 4 :
+            s.Status == ProtocolStatus.CorrectionRequested ? 5 :
+            s.Status == ProtocolStatus.Finalized ? 6 : 99;
 
-        // Paginação
-        var totalCount = await query.CountAsync();
-        var items = await query
+        if (!string.IsNullOrWhiteSpace(sortLabel))
+        {
+            query = sortLabel.ToLower() switch
+            {
+                "status" => asc
+                    ? query.OrderBy(statusOrderExpr)
+                    : query.OrderByDescending(statusOrderExpr),
+                "number" => asc
+                    ? query.OrderBy(s => s.Number)
+                    : query.OrderByDescending(s => s.Number),
+                "createdby" => asc
+                    ? query.OrderBy(s => s.CreatedBy!.FullName)
+                    : query.OrderByDescending(s => s.CreatedBy!.FullName),
+                "destinationsector" => asc
+                    ? query.OrderBy(s => s.DestinationSector!.Acronym)
+                    : query.OrderByDescending(s => s.DestinationSector!.Acronym),
+                _ => asc
+                    ? query.OrderBy(statusOrderExpr)
+                    : query.OrderByDescending(statusOrderExpr),
+            };
+        }
+        else
+        {
+            // Ordenação padrão
+            query = query.OrderBy(statusOrderExpr);
+        }
+
+        // 📄 Paginação
+        ICollection<Protocol> items = await query
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
-            .AsNoTracking()
             .ToListAsync();
 
         return new ProtocolPagedResultDTO
         {
             Items = items,
-            TotalCount = totalCount
+            TotalCount = totalCount.Value
         };
     }
 
