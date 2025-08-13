@@ -2,15 +2,41 @@
 @using MudBlazor
 
 <MudDialog>
+
     <DialogContent>
-        <MudText Typo="Typo.h6" Color="Color.Error">Confirma a exclusão do protocolo?</MudText>
-        <MudText Typo="Typo.body2">Número: @ProtocolToDelete.Number</MudText>
-        <MudText Typo="Typo.body2">Assunto: @ProtocolToDelete.Subject</MudText>
+
+        <MudStack AlignItems="AlignItems.Center" Spacing="2">
+            <MudIcon Icon="@Icons.Material.Filled.DeleteForever" Color="Color.Error" Size="Size.Large" />
+            <MudText Typo="Typo.h6" Align="Align.Center" Color="Color.Error">
+                Confirmar exclusão do protocolo
+            </MudText>
+        </MudStack>
+
+        <MudPaper Class="pa-3 mt-3" Elevation="0" Style="background-color: rgba(255, 0, 0, 0.05); border-radius: 8px;">
+            <MudText Typo="Typo.body1" Align="Align.Center">
+                Tem certeza que deseja excluir o protocolo
+                <b style="color: var(--mud-palette-primary);">Nº @ProtocolToDelete.Number</b>?
+            </MudText>
+            <MudText Typo="Typo.body2" Align="Align.Center" Class="mt-2">
+                <b>Assunto:</b> @ProtocolToDelete.Subject
+            </MudText>
+        </MudPaper>
+
+        <MudAlert Severity="Severity.Warning" Variant="Variant.Text" Dense="true" Class="mt-3">
+            Esta ação <b>não poderá ser desfeita</b>.
+        </MudAlert>
+
     </DialogContent>
+
     <DialogActions>
-        <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="Delete">Excluir</MudButton>
-        <MudButton Variant="Variant.Text" OnClick="Cancel">Cancelar</MudButton>
+        <MudButton Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete" OnClick="Submit">
+            Excluir
+        </MudButton>
+        <MudButton Color="Color.Secondary" Variant="Variant.Outlined" OnClick="Cancel">
+            Cancelar
+        </MudButton>
     </DialogActions>
+
 </MudDialog>
 
 @code {
@@ -20,7 +46,7 @@
     [Parameter] 
     public Protocol ProtocolToDelete { get; set; } = new();
 
-    private void Delete() => 
+    private void Submit() => 
         MudDialog.Close(DialogResult.Ok(true));
 
     private void Cancel() => 

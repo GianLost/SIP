@@ -1,4 +1,4 @@
-﻿using SIP.API.Domain.Enums;
+﻿using SIP.UI.Domain.Enums;
 
 namespace SIP.UI.Domain.DTOs.Protocols;
 

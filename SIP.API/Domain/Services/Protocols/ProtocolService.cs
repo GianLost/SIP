@@ -50,59 +50,62 @@ public class ProtocolService(ApplicationContext contex, EntityCacheManager cache
             .ToListAsync();
 
     /// <inheritdoc/>
-    public async Task<ProtocolPagedResultDTO> GetPagedAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection, string? searchString)
+    public async Task<ProtocolPagedResultDTO> GetPagedAsync(
+    int pageNumber,
+    int pageSize,
+    string? sortLabel,
+    string? sortDirection,
+    string? searchString)
     {
-        pageSize = Math.Min(pageSize, MaxPageSize); // Limite máximo
+        pageSize = Math.Min(pageSize, MaxPageSize);
 
-        IQueryable<Protocol> query = _context.Protocols.Include(u => u.CreatedBy).Include(s => s.DestinationSector);
+        IQueryable<Protocol> query = _context.Protocols
+            .Include(u => u.CreatedBy)
+            .Include(s => s.DestinationSector);
 
+        // Filtro
         if (!string.IsNullOrWhiteSpace(searchString))
         {
+            var lowered = searchString.ToLower();
             query = query.Where(s =>
-                s.Number.Contains(searchString) ||
-                s.Subject.Contains(searchString));
+                s.Number.ToLower().Contains(lowered) ||
+                s.Subject.ToLower().Contains(lowered) ||
+                (s.CreatedBy != null && s.CreatedBy.FullName.ToLower().Contains(lowered)) ||
+                (s.DestinationSector != null && s.DestinationSector.Acronym.ToLower().Contains(lowered)) ||
+                s.Status.ToString().ToLower().Contains(lowered));
         }
 
-        // Get total count (this will use or re-cache based on the token)
-        int? totalCount = _cache.Get<int?>($"UserCount_Search_{searchString ?? "NoSearch"}");
+        // Ordenação
+        sortLabel = sortLabel?.Trim();
+        bool asc = sortDirection?.Equals("asc", StringComparison.OrdinalIgnoreCase) ?? true;
 
-        if (!totalCount.HasValue)
+        query = sortLabel switch
         {
-            totalCount = await query.CountAsync();
-            _cache.Set($"UserCount_Search_{searchString ?? "NoSearch"}", totalCount.Value, EntityType);
-        }
+            "CreatedByName" => asc
+                ? query.OrderBy(s => s.CreatedBy!.FullName)
+                : query.OrderByDescending(s => s.CreatedBy!.FullName),
 
-        if (!string.IsNullOrWhiteSpace(sortLabel) && !string.IsNullOrWhiteSpace(sortDirection))
-        {
-            PropertyInfo? property = typeof(Protocol).GetProperty(sortLabel,
-                BindingFlags.IgnoreCase |
-                BindingFlags.Public |
-                BindingFlags.Instance);
-            if (property != null)
-            {
-                query = sortDirection.Trim().Equals("asc", StringComparison.CurrentCultureIgnoreCase)
-                    ? query.OrderBy(e => EF.Property<object>(e, property.Name))
-                    : query.OrderByDescending(e => EF.Property<object>(e, property.Name));
-            }
-            else
-            {
-                query = query.OrderBy(s => s.CreatedAt);
-            }
-        }
-        else
-        {
-            query = query.OrderBy(s => s.CreatedAt);
-        }
+            "DestinationSectorAcronym" => asc
+                ? query.OrderBy(s => s.DestinationSector!.Acronym)
+                : query.OrderByDescending(s => s.DestinationSector!.Acronym),
 
-        ICollection<Protocol> items = await query
+            _ => asc
+                ? query.OrderBy(e => EF.Property<object>(e, sortLabel ?? "CreatedAt"))
+                : query.OrderByDescending(e => EF.Property<object>(e, sortLabel ?? "CreatedAt"))
+        };
+
+        // Paginação
+        var totalCount = await query.CountAsync();
+        var items = await query
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
+            .AsNoTracking()
             .ToListAsync();
 
         return new ProtocolPagedResultDTO
         {
             Items = items,
-            TotalCount = totalCount.Value
+            TotalCount = totalCount
         };
     }
 
@@ -139,7 +142,7 @@ public class ProtocolService(ApplicationContext contex, EntityCacheManager cache
             return false;
 
         if (protocol.IsArchived)
-            throw new InvalidOperationException("Cannot delete an archived protocol.");
+            throw new InvalidOperationException("Não é possível excluir um protocolo que está arquivado.");
 
         _context.Protocols.Remove(protocol);
         await _context.SaveChangesAsync();

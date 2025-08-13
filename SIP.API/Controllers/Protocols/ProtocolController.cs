@@ -56,7 +56,7 @@ public class ProtocolController(IProtocol protocol) : ControllerBase
     /// Returns <see cref="OkObjectResult"/> with the <see cref="Protocol"/> if found,
     /// or <see cref="NotFoundResult"/> if no protocol exists with the specified ID.
     /// </returns>
-    [HttpGet("{id}", Name = "GeProtocolByIdAsync")]
+    [HttpGet("{id}", Name = "GetProtocolByIdAsync")]
     [ProducesResponseType(typeof(Protocol), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GeProtocolByIdAsync(Guid id)
@@ -89,7 +89,12 @@ public class ProtocolController(IProtocol protocol) : ControllerBase
     /// <param name="searchString">Optional search string to filter protocols.</param>
     /// <returns>A paged result DTO containing the protocols and total count.</returns>
     [HttpGet("show_paged")]
-    public async Task<IActionResult> GetPagedAsync([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 15, [FromQuery] string? sortLabel = null, [FromQuery] string? sortDirection = null, [FromQuery] string? searchString = null)
+    public async Task<IActionResult> GetPagedAsync(
+    [FromQuery] int pageNumber = 1, 
+    [FromQuery] int pageSize = 15, 
+    [FromQuery] string? sortLabel = null, 
+    [FromQuery] string? sortDirection = null, 
+    [FromQuery] string? searchString = null)
     {
         ProtocolPagedResultDTO result = await _protocolService.GetPagedAsync(pageNumber, pageSize, sortLabel, sortDirection, searchString);
         return Ok(result);
@@ -166,7 +171,7 @@ public class ProtocolController(IProtocol protocol) : ControllerBase
             if (!deleted)
                 return NotFound();
 
-            return Ok(new { Message = "Protocol was deleted with success." });
+            return Ok(new { Message = "Protocolo deletado com sucesso." });
         }
         catch (InvalidOperationException ex)
         {

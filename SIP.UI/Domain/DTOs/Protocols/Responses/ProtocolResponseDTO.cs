@@ -1,4 +1,4 @@
-﻿using SIP.API.Domain.Enums;
+﻿using SIP.UI.Domain.Enums;
 using SIP.UI.Domain.DTOs.Sectors.Responses;
 using SIP.UI.Domain.DTOs.Users.Responses;
 

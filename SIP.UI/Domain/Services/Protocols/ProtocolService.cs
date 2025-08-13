@@ -1,6 +1,7 @@
 ﻿using SIP.UI.Domain.DTOs.Protocols.Responses;
 using SIP.UI.Domain.Helpers.Endpoints;
 using SIP.UI.Models.Protocols;
+using System.Net;
 using System.Net.Http.Json;
 
 namespace SIP.UI.Domain.Services.Protocols;
@@ -9,58 +10,66 @@ public class ProtocolService(HttpClient http)
 {
     private readonly HttpClient _http = http;
 
-    public async Task<ProtocolPagedResultDTO> GetPagedProtocolsAsync(int page, int pageSize, string sortLabel, string sortDirection, string search)
+    public async Task<ProtocolPagedResultDTO> GetPagedProtocolsAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection, string? searchString)
     {
-        var url = $"sip_api/Protocol/show_paged?page={page}&pageSize={pageSize}&sort={sortLabel}&direction={sortDirection}&search={search}";
-        return await _http.GetFromJsonAsync<ProtocolPagedResultDTO>(url) ?? new ProtocolPagedResultDTO();
+        pageSize = Math.Min(pageSize, 100);
+
+        string url = $"{ProtocolsEndpoints._protocolsPaginationFull}pageNumber={pageNumber}&pageSize={pageSize}&sortLabel={sortLabel}&sortDirection={sortDirection}&searchString={searchString}";
+
+        ProtocolPagedResultDTO? response = await _http.GetFromJsonAsync<ProtocolPagedResultDTO>(url);
+
+        return response ?? new ProtocolPagedResultDTO();
     }
 
-    public async Task<int> GetTotalProtocolsCountAsync(string search)
+    public async Task<int> GetTotalProtocolsCountAsync(string? searchString = null)
     {
-        var url = $"sip_api/Protocol/count?search={search}";
-        return await _http.GetFromJsonAsync<int>(url);
+        string url = ProtocolsEndpoints._protocolsCounter;
+
+        if (!string.IsNullOrEmpty(searchString))
+            url += $"?searchString={Uri.EscapeDataString(searchString)}";
+
+        try
+        {
+            int count = await _http.GetFromJsonAsync<int>(url);
+            return count;
+        }
+        catch (HttpRequestException ex)
+        {
+            throw new Exception($"Falha ao obter o total de protocolos. Detalhes: {ex.Message}");
+        }
     }
 
     public async Task CreateProtocolAsync(Protocol protocol)
     {
         await _http.PostAsJsonAsync("sip_api/Protocol/register_protocol", protocol);
+        await InvalidateSectorCacheAsync();
     }
 
     public async Task UpdateProtocolAsync(Protocol protocol)
     {
         await _http.PutAsJsonAsync($"sip_api/Protocol/update_protocol/{protocol.Id}", protocol);
+        await InvalidateSectorCacheAsync();
     }
 
     public async Task DeleteProtocolAsync(Guid id)
     {
-        HttpResponseMessage response = await _http.DeleteAsync($"sip_api/Protocol/delete/{id}");
+        HttpResponseMessage response = await _http.DeleteAsync($"{ProtocolsEndpoints._deleteProtocol}{id}");
 
-        if (!response.IsSuccessStatusCode)
+        if (response.StatusCode == HttpStatusCode.Conflict)
         {
-            string errorContent = await response.Content.ReadAsStringAsync();
-
-            if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
-            {
-                try
-                {
-                    ErrorResponse? errorObject = System.Text.Json.JsonSerializer.Deserialize<ErrorResponse>(errorContent);
-
-                    throw new InvalidOperationException(errorObject?.Error ?? "Erro desconhecido ao excluir protocolo.");
-                }
-                catch (System.Text.Json.JsonException)
-                {
-                    throw new InvalidOperationException($"Erro de formato ao excluir protocolo: {errorContent}");
-                }
-            }
-            else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
-            {
-                throw new InvalidOperationException("protocolo não encontrada.");
-            }
-            else
-            {
-                throw new HttpRequestException($"Erro na requisição: {response.StatusCode} - {errorContent}");
-            }
+            var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+            throw new InvalidOperationException(error?.Error ?? "Erro ao excluir protocolo.");
         }
+        response.EnsureSuccessStatusCode();
+
+        await InvalidateSectorCacheAsync();
+    }
+
+    private async Task InvalidateSectorCacheAsync()
+    {
+        string url = CacheEndpoints._invalidateSectorCount;
+        HttpResponseMessage response = await _http.PostAsync(url, null);
+        response.EnsureSuccessStatusCode();
     }
 }
 

@@ -1,4 +1,4 @@
-﻿namespace SIP.API.Domain.Enums;
+﻿namespace SIP.UI.Domain.Enums;
 public enum ProtocolStatus
 {
     Open = 0,

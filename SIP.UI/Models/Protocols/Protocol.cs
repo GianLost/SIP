@@ -1,4 +1,4 @@
-﻿using SIP.API.Domain.Enums;
+﻿using SIP.UI.Domain.Enums;
 using SIP.UI.Models.Sectors;
 using SIP.UI.Models.Users;
 using System.Text.Json.Serialization;
