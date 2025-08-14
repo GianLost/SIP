@@ -19,16 +19,51 @@ public class ProtocolService(ApplicationContext contex, EntityCacheManager cache
     private const int MaxPageSize = 100;
 
     /// <inheritdoc/>
+    public async Task<string> GenerateProtocolNumberAsync()
+    {
+        int year = DateTime.UtcNow.Year;
+
+        string? prefix = year.ToString();
+
+        // 1. Busca o último número gerado para o ano atual no banco
+        var lastProtocolNumber = await _context.Protocols
+            .Where(p => p.Number.StartsWith(prefix))
+            .OrderByDescending(p => p.Number)
+            .Select(p => p.Number)
+            .FirstOrDefaultAsync();
+
+        // 2. Calcula o próximo número sequencial
+        int nextSequence = 1;
+
+        if (lastProtocolNumber != null)
+        {
+            // Extrai a parte sequencial (ex: de "202500123" pega "123")
+            string lastSequencePart = lastProtocolNumber[prefix.Length..];
+            if (int.TryParse(lastSequencePart, out int lastSequence))
+            {
+                nextSequence = lastSequence + 1;
+            }
+        }
+
+        // 3. Formata o número final com pelo menos 5 dígitos para a sequência (ex: 202500001)
+        // "D5" garante que o número terá no mínimo 5 dígitos, preenchendo com zeros à esquerda
+        return $"{prefix}{nextSequence:D5}";
+    }
+
+    /// <inheritdoc/>
     public async Task<Protocol> CreateAsync(ProtocolCreateDTO dto)
     {
         Protocol entity = new()
         {
-            Number = dto.Number,
+            Number = await GenerateProtocolNumberAsync(),
             Subject = dto.Subject,
+            Description = dto.Description,
             Status = dto.Status,
             IsArchived = dto.IsArchived,
-            CreatedById = dto.CreatedByID,
-            DestinationSectorId = dto.DestinationSectorId
+            CreatedById = dto.CreatedById,
+            OriginSectorId = dto.OriginSectorId,
+            DestinationSectorId = dto.DestinationSectorId,
+            DestinationUserId = dto.DestinationUserId
         };
 
         await _context.Protocols.AddAsync(entity);
@@ -67,8 +102,10 @@ public class ProtocolService(ApplicationContext contex, EntityCacheManager cache
             query = query.Where(s =>
                 s.Number.Contains(searchString) ||
                 s.Subject.Contains(searchString) ||
-                (s.DestinationSector != null && s.DestinationSector.Acronym.Contains(searchString)) ||
-                (s.CreatedBy != null && s.CreatedBy.FullName.Contains(searchString)));
+                (s.CreatedBy != null && s.CreatedBy.FullName.Contains(searchString)) ||
+                (s.OriginSector != null && s.OriginSector.Acronym.Contains(searchString)) ||
+                (s.DestinationUser != null && s.DestinationUser.FullName.Contains(searchString)) ||
+                (s.DestinationSector != null && s.DestinationSector.Acronym.Contains(searchString)));
         }
 
         int? totalCount = _cache.Get<int?>($"ProtocolCount_Search_{searchString ?? "NoSearch"}");
@@ -125,8 +162,11 @@ public class ProtocolService(ApplicationContext contex, EntityCacheManager cache
             Id = p.Id,
             Number = p.Number,
             Subject = p.Subject,
+            Description = p.Description,
             Status = p.Status,
             CreatedByFullName = p.CreatedBy != null ? p.CreatedBy.FullName : null,
+            OriginSectorAcronym = p.OriginSector != null ? p.OriginSector.Acronym : null,
+            DestinationUserFullName = p.DestinationUser != null ? p.DestinationUser.FullName : null,
             DestinationSectorAcronym = p.DestinationSector != null ? p.DestinationSector.Acronym : null
         });
 
@@ -150,9 +190,10 @@ public class ProtocolService(ApplicationContext contex, EntityCacheManager cache
 
         protocol.Number = dto.Number;
         protocol.Subject = dto.Subject;
+        protocol.Description = dto.Description;
         protocol.Status = dto.Status;
         protocol.IsArchived = dto.IsArchived;
-        protocol.CreatedById = dto.CreatedByID;
+        protocol.DestinationUserId = dto.DestinationUserId;
         protocol.DestinationSectorId = dto.DestinationSectorId;
         protocol.UpdatedAt = DateTime.UtcNow;
 

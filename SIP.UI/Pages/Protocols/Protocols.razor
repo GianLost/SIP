@@ -23,7 +23,8 @@
     </MudStack>
 
     <MudPaper Class="pa-4 ma-2" Elevation="1">
-        <MudTable T="ProtocolListItemDto" ServerData="LoadServerData" Dense="true" Hover="true" Bordered="false" @ref="table" RowsPerPage="pageSize" LoadingProgressColor="Color.Primary" SortLabel="sortLabel" Loading="@isLoading" Elevation="0" MultiSelection="true" @bind-SelectedItems="_selectedProtocols">
+        <MudTable T="ProtocolListItemDto" ServerData="LoadServerData" Dense="true" Hover="true" Bordered="false" @ref="table" RowsPerPage="pageSize" LoadingProgressColor="Color.Primary" Loading="@isLoading" Elevation="0" MultiSelection="true" @bind-SelectedItems="_selectedProtocols">
+
             <ToolBarContent>
                 <MudStack Style="width: 100%; margin-left: -0.75rem;" Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
                     <MudStack Row="true" AlignItems="AlignItems.Center">
@@ -33,7 +34,7 @@
                                 <MudMenu Dense="true" Icon="@Icons.Material.Filled.SettingsApplications" Color="Color.Primary" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
                                     @if (_selectedProtocols.Count == 1)
                                     {
-                                        <MudMenuItem OnClick="@(() => EditSelectedProtocol())">
+                                        <MudMenuItem OnClick="@EditSelectedProtocol">
                                             <MudStack Row="true" AlignItems="AlignItems.Center">
                                                 <MudIcon Icon="@Icons.Material.Filled.Edit" Size="Size.Small" />
                                                 <MudText Typo="Typo.body2">Editar</MudText>
@@ -83,17 +84,27 @@
                     <MudTableSortLabel SortLabel="CreatedBy" SortBy="new Func<ProtocolListItemDto, object>(p => p.CreatedByFullName!)">Criado Por</MudTableSortLabel>
                 </MudTh>
                 <MudTh Style="font-weight: bold;">
+                    <MudTableSortLabel SortLabel="OriginSector" SortBy="new Func<ProtocolListItemDto, object>(p => p.OriginSectorAcronym!)">Setor Origem</MudTableSortLabel>
+                </MudTh>
+                <MudTh Style="font-weight: bold;">
+                    <MudTableSortLabel SortLabel="DesinationTo" SortBy="new Func<ProtocolListItemDto, object>(p => p.DestinationUserFullName!)">Destinado a</MudTableSortLabel>
+                </MudTh>
+                <MudTh Style="font-weight: bold;">
                     <MudTableSortLabel SortLabel="DestinationSector" SortBy="new Func<ProtocolListItemDto, object>(p => p.DestinationSectorAcronym!)">Setor Destino</MudTableSortLabel>
                 </MudTh>
                 <MudTh Style="font-weight: bold;">Assunto</MudTh>
+                <MudTh Style="font-weight: bold;">Descrição</MudTh>
             </HeaderContent>
 
             <RowTemplate Context="protocol">
                 <MudTd DataLabel="Status">@GetStatusChip(protocol.Status)</MudTd>
                 <MudTd DataLabel="Número">@protocol.Number</MudTd>
                 <MudTd DataLabel="Criado Por">@protocol.CreatedByFullName</MudTd>
+                <MudTd DataLabel="Setor Origem">@protocol.OriginSectorAcronym</MudTd>
+                <MudTd DataLabel="Destinado a">@protocol.DestinationUserFullName</MudTd>
                 <MudTd DataLabel="Setor Destino">@protocol.DestinationSectorAcronym</MudTd>
                 <MudTd DataLabel="Assunto">@protocol.Subject</MudTd>
+                <MudTd DataLabel="Descricao">@protocol.Description</MudTd>
             </RowTemplate>
 
             <NoRecordsContent>
@@ -123,7 +134,6 @@
     private RenderFragment GetStatusChip(ProtocolStatus status)
     {
         var (text, icon, color) = GetStatusDetails(status);
-        // --- AJUSTE: O Chip agora é 'ExtraSmall' para se alinhar com a tabela Densa ---
         return @<MudChip T="string" Label="true" Icon="@icon" Color="@color" Size="Size.Small" Class="rounded-md" Style="width: 6rem;justify-content: center;">@text</MudChip>;
     }
 
@@ -151,7 +161,7 @@
         isLoading = true;
         StateHasChanged();
 
-        _selectedProtocols.Clear(); // Limpa a seleção a cada recarga
+        _selectedProtocols.Clear();
 
         pageSize = state.PageSize;
         string? sortLabel = state.SortLabel;
@@ -169,10 +179,10 @@
                 searchString);
 
             return new TableData<ProtocolListItemDto>
-                {
-                    Items = protocols.Items,
-                    TotalItems = protocols.TotalCount
-                };
+            {
+                Items = protocols.Items,
+                TotalItems = protocols.TotalCount
+            };
         }
         catch (Exception ex)
         {
@@ -207,7 +217,7 @@
 
         DialogParameters<ProtocolEditDialog> parameters = new();
         parameters.Add(x => x.Protocol, new Protocol { Id = Guid.Empty });
-        IDialogReference dialog = await DialogService.ShowAsync<ProtocolEditDialog>("", parameters);
+        IDialogReference dialog = await DialogService.ShowAsync<ProtocolEditDialog>("Novo Protocolo", parameters);
         DialogResult? result = await dialog.Result;
 
         _isModalOpen = false;
@@ -239,22 +249,15 @@
 
     private async Task ShowEditDialog(Protocol protocol)
     {
-        DialogParameters<ProtocolEditDialog> parameters = new();
-        parameters.Add(x => x.Protocol, new Protocol
-        {
-            Id = protocol.Id,
-            Number = protocol.Number,
-            Subject = protocol.Subject,
-             IsArchived = protocol.IsArchived,
-            Status = protocol.Status,
-            CreatedById = protocol.CreatedById,
-            DestinationSectorId = protocol.DestinationSectorId,
-            CreatedAt = protocol.CreatedAt,
-            UpdatedAt = protocol.UpdatedAt
-        });
+        _isModalOpen = true;
 
-        IDialogReference dialog = await DialogService.ShowAsync<ProtocolEditDialog>("", parameters);
+        DialogParameters<ProtocolEditDialog> parameters = new();
+        parameters.Add(x => x.Protocol, protocol);
+
+        IDialogReference dialog = await DialogService.ShowAsync<ProtocolEditDialog>("Editar Protocolo", parameters);
         DialogResult? result = await dialog.Result;
+
+        _isModalOpen = false;
 
         if (result is not null && !result.Canceled)
         {
@@ -304,24 +307,24 @@
 
     private async Task ShowDeleteDialog(ProtocolListItemDto protocolDto)
     {
+        _isModalOpen = true;
         var parameters = new DialogParameters<ProtocolDeleteDialog>();
-        // Passa o DTO para o parâmetro do diálogo (que agora espera um DTO)
         parameters.Add(x => x.ProtocolToDelete, protocolDto);
 
-        var dialog = await DialogService.ShowAsync<ProtocolDeleteDialog>("", parameters);
+        var dialog = await DialogService.ShowAsync<ProtocolDeleteDialog>("Excluir Protocolo", parameters);
         var result = await dialog.Result;
+
+        _isModalOpen = false;
 
         if (result is not null && !result.Canceled)
         {
             try
             {
-                // --- CORREÇÃO: Usa o Id diretamente do DTO ---
                 await _protocolService.DeleteProtocolAsync(protocolDto.Id);
                 Snackbar.Add("Protocolo excluído com sucesso!", Severity.Success);
 
                 if (table is not null)
                 {
-                    // Remove o item da seleção local antes de recarregar os dados
                     _selectedProtocols.Remove(protocolDto);
                     await table.ReloadServerData();
                 }

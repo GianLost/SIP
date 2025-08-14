@@ -15,40 +15,75 @@
         <MudForm @ref="form" @bind-IsValid="isValid" Model="_protocol">
             <MudGrid Spacing="2">
                 <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="_protocol.Number" Label="Número" For="() => _protocol.Number" Required="true" Variant="Variant.Outlined" Margin="Margin.Normal" />
-                </MudItem>
-                <MudItem xs="12" sm="6">
                     <MudTextField @bind-Value="_protocol.Subject" Label="Assunto" For="() => _protocol.Subject" Required="true" Variant="Variant.Outlined" Margin="Margin.Normal" />
                 </MudItem>
+
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_protocol.Description" Label="Descrição" For="() => _protocol.Description" Required="true" Variant="Variant.Outlined" Margin="Margin.Normal" />
+                </MudItem>
+
                 <MudItem xs="12" sm="6">
                     <MudAutocomplete T="Sector"
-                                     @bind-Value="SelectedSector"
-                                     Label="Setor de Destino"
+                                     @bind-Value="SelectedOriginSector"
+                                     Label="Setor de Origem"
                                      SearchFunc="SearchSectors"
-                                     For="() => SelectedSector"
+                                     For="() => SelectedOriginSector"
                                      Required="true"
                                      Variant="Variant.Outlined"
                                      Margin="Margin.Normal"
                                      ToStringFunc="@(s => s == null ? null : $"{s.Name} ({s.Acronym})")"
                                      Clearable="true"
                                      Placeholder="Pesquisar setor..."
-                                     MaxItems="int.MaxValue"/>
+                                     MaxItems="int.MaxValue" />
                 </MudItem>
+
                 <MudItem xs="12" sm="6">
                     <MudAutocomplete T="User"
-                                     @bind-Value="SelectedUser"
+                                     @bind-Value="SelectedCreator"
                                      Label="Criado Por"
-                                     SearchFunc="SearchUsers"
-                                     For="() => SelectedUser"
+                                     SearchFunc="SearchUsersForOrigin"
+                                     For="() => SelectedCreator"
                                      Required="true"
                                      Variant="Variant.Outlined"
                                      Margin="Margin.Normal"
                                      Clearable="true"
                                      Placeholder="Pesquisar usuário..."
                                      ToStringFunc="@(u => u?.FullName)"
-                                     Disabled="SelectedSector is null"
+                                     Disabled="SelectedOriginSector is null"
                                      MaxItems="int.MaxValue" />
                 </MudItem>
+
+                <MudItem xs="12" sm="6">
+                    <MudAutocomplete T="Sector"
+                                     @bind-Value="SelectedDestinationSector"
+                                     Label="Setor de Destino"
+                                     SearchFunc="SearchSectors"
+                                     For="() => SelectedDestinationSector"
+                                     Required="true"
+                                     Variant="Variant.Outlined"
+                                     Margin="Margin.Normal"
+                                     ToStringFunc="@(s => s == null ? null : $"{s.Name} ({s.Acronym})")"
+                                     Clearable="true"
+                                     Placeholder="Pesquisar setor..."
+                                     MaxItems="int.MaxValue" />
+                </MudItem>
+
+                <MudItem xs="12" sm="6">
+                    <MudAutocomplete T="User"
+                                     @bind-Value="SelectedDestinationUser"
+                                     Label="Destinado a"
+                                     SearchFunc="SearchUsersForDestination"
+                                     For="() => SelectedDestinationUser"
+                                     Required="true"
+                                     Variant="Variant.Outlined"
+                                     Margin="Margin.Normal"
+                                     Clearable="true"
+                                     Placeholder="Pesquisar usuário..."
+                                     ToStringFunc="@(u => u?.FullName)"
+                                     Disabled="SelectedDestinationSector is null"
+                                     MaxItems="int.MaxValue" />
+                </MudItem>
+
                 <MudItem xs="12" sm="6">
                     <MudSelect T="ProtocolStatus" Label="Status" @bind-Value="_protocol.Status" For="() => _protocol.Status" Required="true" Variant="Variant.Outlined" Margin="Margin.Normal">
                         @foreach (ProtocolStatus status in Enum.GetValues(typeof(ProtocolStatus)))
@@ -57,6 +92,7 @@
                         }
                     </MudSelect>
                 </MudItem>
+
                 <MudItem xs="12" sm="6" Class="m-0">
                     <MudCheckBox Size="Size.Small" @bind-Value="_protocol.IsArchived" Color="@Color.Primary"> @(_protocol.IsArchived == true ? "Desarquivar" : "Arquivar")</MudCheckBox>
                 </MudItem>
@@ -83,18 +119,34 @@
     private List<Sector> Sectors = new();
     private List<User> AllUsers = new();
 
-    private Sector? _selectedSector;
-    private User? SelectedUser;
+    private Sector? _selectedOriginSector;
+    private User? SelectedCreator;
 
-    private Sector? SelectedSector
+    private Sector? _selectedDestinationSector;
+    private User? SelectedDestinationUser;
+
+    private Sector? SelectedOriginSector
     {
-        get => _selectedSector;
+        get => _selectedOriginSector;
         set
         {
-            if (_selectedSector != value)
+            if (_selectedOriginSector != value)
             {
-                _selectedSector = value;
-                SelectedUser = null;
+                _selectedOriginSector = value;
+                SelectedCreator = null; // Limpa a seleção de usuário quando o setor de origem muda
+            }
+        }
+    }
+
+    private Sector? SelectedDestinationSector
+    {
+        get => _selectedDestinationSector;
+        set
+        {
+            if (_selectedDestinationSector != value)
+            {
+                _selectedDestinationSector = value;
+                SelectedDestinationUser = null; // Limpa a seleção de usuário quando o setor de destino muda
             }
         }
     }
@@ -102,15 +154,18 @@
     protected override async Task OnInitializedAsync()
     {
         _protocol = new Protocol
-            {
-                Id = Protocol.Id,
-                Number = Protocol.Number,
-                Subject = Protocol.Subject,
-                DestinationSectorId = Protocol.DestinationSectorId,
-                CreatedById = Protocol.CreatedById,
-                Status = Protocol.Status,
-                IsArchived = Protocol.IsArchived
-            };
+        {
+            Id = Protocol.Id,
+            Number = Protocol.Number,
+            Subject = Protocol.Subject,
+            Description = Protocol.Description,
+            OriginSectorId = Protocol.OriginSectorId,
+            CreatedById = Protocol.CreatedById,
+            DestinationSectorId = Protocol.DestinationSectorId,
+            DestinationUserId = Protocol.DestinationUserId,
+            Status = Protocol.Status,
+            IsArchived = Protocol.IsArchived
+        };
 
         ICollection<Sector>? sectorsResult = await SectorService.GetAllSectorsAsync();
         Sectors = sectorsResult?.ToList() ?? new List<Sector>();
@@ -118,14 +173,24 @@
         var usersResult = await UserService.GetAllUsersAsync();
         AllUsers = usersResult?.ToList() ?? new List<User>();
 
-        if (_protocol.DestinationSectorId != Guid.Empty)
+        if (_protocol.OriginSectorId != Guid.Empty)
         {
-            SelectedSector = Sectors.FirstOrDefault(s => s.Id == _protocol.DestinationSectorId);
+            SelectedOriginSector = Sectors.FirstOrDefault(s => s.Id == _protocol.OriginSectorId);
         }
 
         if (_protocol.CreatedById != Guid.Empty)
         {
-            SelectedUser = AllUsers.FirstOrDefault(u => u.Id == _protocol.CreatedById);
+            SelectedCreator = AllUsers.FirstOrDefault(u => u.Id == _protocol.CreatedById);
+        }
+
+        if (_protocol.DestinationSectorId != Guid.Empty)
+        {
+            SelectedDestinationSector = Sectors.FirstOrDefault(s => s.Id == _protocol.DestinationSectorId);
+        }
+
+        if (_protocol.DestinationUserId != Guid.Empty)
+        {
+            SelectedDestinationUser = AllUsers.FirstOrDefault(u => u.Id == _protocol.DestinationUserId);
         }
     }
 
@@ -137,12 +202,12 @@
         return Task.FromResult(Sectors.Where(s => s.Name.Contains(value, StringComparison.OrdinalIgnoreCase) || s.Acronym.Contains(value, StringComparison.OrdinalIgnoreCase)));
     }
 
-    private Task<IEnumerable<User>> SearchUsers(string value, CancellationToken cancellationToken)
+    private Task<IEnumerable<User>> SearchUsersForOrigin(string value, CancellationToken cancellationToken)
     {
-        if (SelectedSector is null)
+        if (SelectedOriginSector is null)
             return Task.FromResult(Enumerable.Empty<User>());
 
-        var usersFilteredBySector = AllUsers.Where(u => u.SectorId == SelectedSector.Id);
+        var usersFilteredBySector = AllUsers.Where(u => u.SectorId == SelectedOriginSector.Id);
 
         if (string.IsNullOrEmpty(value))
             return Task.FromResult(usersFilteredBySector);
@@ -150,17 +215,25 @@
         return Task.FromResult(usersFilteredBySector.Where(u => u.FullName.Contains(value, StringComparison.OrdinalIgnoreCase)));
     }
 
-    /// <summary>
-    /// Retorna o nome de exibição personalizado para cada status.
-    /// </summary>
-    /// <param name="status">O valor do status.</param>
-    /// <returns>A string de exibição correspondente.</returns>
+    private Task<IEnumerable<User>> SearchUsersForDestination(string value, CancellationToken cancellationToken)
+    {
+        if (SelectedDestinationSector is null)
+            return Task.FromResult(Enumerable.Empty<User>());
+
+        var usersFilteredBySector = AllUsers.Where(u => u.SectorId == SelectedDestinationSector.Id);
+
+        if (string.IsNullOrEmpty(value))
+            return Task.FromResult(usersFilteredBySector);
+
+        return Task.FromResult(usersFilteredBySector.Where(u => u.FullName.Contains(value, StringComparison.OrdinalIgnoreCase)));
+    }
+
     private string GetStatusDisplayName(ProtocolStatus status)
     {
         return status switch
         {
             ProtocolStatus.Open => "Em Aberto",
-            ProtocolStatus.SentForReview => "Eviado",
+            ProtocolStatus.SentForReview => "Enviado",
             ProtocolStatus.Received => "Recebido",
             ProtocolStatus.UnderReview => "Em Análise",
             ProtocolStatus.Approved => "Aprovado",
@@ -177,14 +250,16 @@
 
         if (!isValid) return;
 
-        if (SelectedSector is null || SelectedUser is null)
+        if (SelectedOriginSector is null || SelectedCreator is null || SelectedDestinationSector is null || SelectedDestinationUser is null)
         {
-            Snackbar.Add("Por favor, selecione o setor de destino e o criador.", Severity.Warning);
+            Snackbar.Add("Por favor, preencha todos os campos obrigatórios de setor e usuário.", Severity.Warning);
             return;
         }
 
-        _protocol.DestinationSectorId = SelectedSector.Id;
-        _protocol.CreatedById = SelectedUser.Id;
+        _protocol.OriginSectorId = SelectedOriginSector.Id;
+        _protocol.CreatedById = SelectedCreator.Id;
+        _protocol.DestinationSectorId = SelectedDestinationSector.Id;
+        _protocol.DestinationUserId = SelectedDestinationUser.Id;
 
         MudDialog.Close(DialogResult.Ok(_protocol));
     }

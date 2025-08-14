@@ -1,6 +1,4 @@
-﻿using SIP.UI.Models.Protocols;
-
-namespace SIP.UI.Domain.DTOs.Protocols.Responses;
+﻿namespace SIP.UI.Domain.DTOs.Protocols.Responses;
 
 public class ProtocolPagedResultDTO
 {

@@ -1,4 +1,5 @@
-﻿using SIP.UI.Domain.DTOs.Protocols.Responses;
+﻿using SIP.UI.Domain.DTOs.Protocols;
+using SIP.UI.Domain.DTOs.Protocols.Responses;
 using SIP.UI.Domain.Helpers.Endpoints;
 using SIP.UI.Models.Protocols;
 using System.Net;
@@ -53,7 +54,20 @@ public class ProtocolService(HttpClient http)
 
     public async Task CreateProtocolAsync(Protocol protocol)
     {
-        await _http.PostAsJsonAsync("sip_api/Protocol/register_protocol", protocol);
+        // Mapeia o objeto Protocol para o DTO de criação
+        ProtocolCreateDTO protocolCreateDto = new()
+        {
+            Subject = protocol.Subject,
+            Description = protocol.Description,
+            OriginSectorId = protocol.OriginSectorId,
+            CreatedById = protocol.CreatedById,
+            DestinationSectorId = protocol.DestinationSectorId,
+            DestinationUserId = protocol.DestinationUserId,
+            Status = protocol.Status,
+            IsArchived = protocol.IsArchived
+        };
+
+        await _http.PostAsJsonAsync(ProtocolsEndpoints._createProtocol, protocolCreateDto);
         await InvalidateSectorCacheAsync();
     }
 

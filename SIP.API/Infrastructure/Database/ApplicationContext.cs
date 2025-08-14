@@ -52,16 +52,35 @@ public class ApplicationContext(DbContextOptions options) : DbContext(options)
         modelBuilder.Entity<Protocol>(entity =>
         {
 
-            entity.HasOne(p => p.CreatedBy)
-                 .WithMany(u => u.Protocols)
-                 .HasForeignKey(p => p.CreatedById)
-                 .OnDelete(DeleteBehavior.Restrict);
-
-            entity.Property(u => u.Status)
-                .HasConversion<string>()
-                .IsRequired();
-
             entity.ToTable("tbl_protocols");
+
+            entity.Property(p => p.Status)
+                  .HasConversion<string>()
+                  .IsRequired();
+
+            // Relacionamento com o usuário que criou o protocolo
+            entity.HasOne(p => p.CreatedBy)
+                  .WithMany(u => u.Protocols) // Assumindo que User tem uma ICollection<Protocol> Protocols
+                  .HasForeignKey(p => p.CreatedById)
+                  .OnDelete(DeleteBehavior.Restrict); // Impede a exclusão de um usuário se ele tiver protocolos
+
+            // Relacionamento com o setor de origem
+            entity.HasOne(p => p.OriginSector)
+                  .WithMany() // Sem navegação de volta (um setor não precisa de uma lista de "protocolos originados")
+                  .HasForeignKey(p => p.OriginSectorId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            // Relacionamento com o setor de destino
+            entity.HasOne(p => p.DestinationSector)
+                  .WithMany() // Sem navegação de volta
+                  .HasForeignKey(p => p.DestinationSectorId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            // Relacionamento com o usuário de destino
+            entity.HasOne(p => p.DestinationUser)
+                  .WithMany() // Sem navegação de volta
+                  .HasForeignKey(p => p.DestinationUserId)
+                  .OnDelete(DeleteBehavior.Restrict); // Impede a exclusão do usuário de destino
         });
 
         // Attachment entity configuration

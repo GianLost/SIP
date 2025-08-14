@@ -16,10 +16,6 @@ public class ProtocolController(IProtocol protocol) : ControllerBase
     /// Registers a new protocol in the system.
     /// </summary>
     /// <param name="protocolDTO">The data transfer object containing the protocol's information.</param>
-    /// <returns>
-    /// Returns <see cref="CreatedAtActionResult"/> with the created protocol and location header if successful,
-    /// or <see cref="BadRequestObjectResult"/> with error details if the request is invalid.
-    /// </returns>
     [HttpPost("register_protocol")]
     [ProducesResponseType(typeof(Protocol), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -35,6 +31,7 @@ public class ProtocolController(IProtocol protocol) : ControllerBase
             ProtocolResponseDTO response = new()
             {
                 Number = entity.Number,
+                Description = entity.Description,
                 Subject = entity.Subject,
                 IsArchived = entity.IsArchived,
                 CreatedAt = entity.CreatedAt
@@ -52,11 +49,7 @@ public class ProtocolController(IProtocol protocol) : ControllerBase
     /// Retrieves a protocol by their unique identifier.
     /// </summary>
     /// <param name="id">The unique identifier of the protocol.</param>
-    /// <returns>
-    /// Returns <see cref="OkObjectResult"/> with the <see cref="Protocol"/> if found,
-    /// or <see cref="NotFoundResult"/> if no protocol exists with the specified ID.
-    /// </returns>
-    [HttpGet("{id}", Name = "GetProtocolByIdAsync")]
+    [HttpGet("{id:guid}", Name = nameof(GeProtocolByIdAsync))]
     [ProducesResponseType(typeof(Protocol), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GeProtocolByIdAsync(Guid id)
@@ -140,6 +133,7 @@ public class ProtocolController(IProtocol protocol) : ControllerBase
         ProtocolResponseDTO response = new()
         {
             Number = updated.Number,
+            Description = updated.Description,
             Subject = updated.Subject,
             IsArchived = updated.IsArchived,
             CreatedAt = updated.CreatedAt,

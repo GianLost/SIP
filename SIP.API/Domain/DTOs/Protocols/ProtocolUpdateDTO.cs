@@ -1,18 +1,24 @@
-﻿using SIP.API.Domain.Entities.Sectors;
-using SIP.API.Domain.Entities.Users;
-using SIP.API.Domain.Models.Protocols;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using SIP.API.Domain.Models.Protocols;
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
 namespace SIP.API.Domain.DTOs.Protocols;
 
 public class ProtocolUpdateDTO : BaseProtocol
 {
-    [JsonPropertyOrder(7)]
-    [ForeignKey(nameof(User))]
-    public Guid CreatedByID { get; set; }
-
+    [Required]
     [JsonPropertyOrder(9)]
-    [ForeignKey(nameof(Sector))]
+    public Guid CreatedById { get; set; }
+
+    [Required]
+    [JsonPropertyOrder(12)]
+    public Guid OriginSectorId { get; set; }
+
+    [Required]
+    [JsonPropertyOrder(13)]
     public Guid DestinationSectorId { get; set; }
+
+    [Required]
+    [JsonPropertyOrder(15)]
+    public Guid? DestinationUserId { get; set; }
 }
