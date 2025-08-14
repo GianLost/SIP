@@ -1,3 +1,4 @@
+@using SIP.UI.Domain.DTOs.Protocols.Responses
 @using SIP.UI.Models.Protocols
 @using MudBlazor
 
@@ -44,7 +45,7 @@
     private IMudDialogInstance MudDialog { get; set; } = default!;
 
     [Parameter] 
-    public Protocol ProtocolToDelete { get; set; } = new();
+    public ProtocolListItemDto ProtocolToDelete { get; set; } = new();
 
     private void Submit() => 
         MudDialog.Close(DialogResult.Ok(true));

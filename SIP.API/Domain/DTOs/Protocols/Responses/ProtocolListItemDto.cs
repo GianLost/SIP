@@ -1,0 +1,16 @@
+﻿using SIP.API.Domain.Enums;
+
+namespace SIP.API.Domain.DTOs.Protocols.Responses;
+
+public class ProtocolListItemDto
+{
+    public Guid Id { get; set; }
+    public string? Number { get; set; } = string.Empty;
+    public string? Subject { get; set; } = string.Empty;
+    public ProtocolStatus Status { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+
+    public string? CreatedByFullName { get; set; }
+    public string? DestinationSectorAcronym { get; set; }
+}

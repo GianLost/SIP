@@ -7,7 +7,6 @@ using SIP.API.Domain.Interfaces.Protocols;
 using SIP.API.Infrastructure.Caching;
 using SIP.API.Infrastructure.Database;
 using System.Linq.Expressions;
-using System.Reflection;
 
 namespace SIP.API.Domain.Services.Protocols;
 
@@ -61,9 +60,7 @@ public class ProtocolService(ApplicationContext contex, EntityCacheManager cache
     {
         pageSize = Math.Min(pageSize, MaxPageSize);
 
-        IQueryable<Protocol> query = _context.Protocols
-            .Include(s => s.DestinationSector)
-            .Include(u => u.CreatedBy);
+        IQueryable<Protocol> query = _context.Protocols.AsNoTracking();
 
         if (!string.IsNullOrWhiteSpace(searchString))
         {
@@ -90,7 +87,9 @@ public class ProtocolService(ApplicationContext contex, EntityCacheManager cache
             s.Status == ProtocolStatus.Received ? 3 :
             s.Status == ProtocolStatus.UnderReview ? 4 :
             s.Status == ProtocolStatus.CorrectionRequested ? 5 :
-            s.Status == ProtocolStatus.Finalized ? 6 : 99;
+            s.Status == ProtocolStatus.Approved ? 6 :
+            s.Status == ProtocolStatus.Rejected ? 7 :
+            s.Status == ProtocolStatus.Finalized ? 8 : 99;
 
         if (!string.IsNullOrWhiteSpace(sortLabel))
         {
@@ -115,15 +114,24 @@ public class ProtocolService(ApplicationContext contex, EntityCacheManager cache
         }
         else
         {
-            // Ordenação padrão
             query = query.OrderBy(statusOrderExpr);
         }
 
-        // 📄 Paginação
-        ICollection<Protocol> items = await query
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
+        IQueryable<ProtocolListItemDto> pagedDataQuery = query
+        .Skip((pageNumber - 1) * pageSize)
+        .Take(pageSize)
+        .Select(p => new ProtocolListItemDto
+        {
+            Id = p.Id,
+            Number = p.Number,
+            Subject = p.Subject,
+            Status = p.Status,
+            CreatedByFullName = p.CreatedBy != null ? p.CreatedBy.FullName : null,
+            DestinationSectorAcronym = p.DestinationSector != null ? p.DestinationSector.Acronym : null
+        });
+
+
+        ICollection<ProtocolListItemDto> items = await pagedDataQuery.ToListAsync();
 
         return new ProtocolPagedResultDTO
         {

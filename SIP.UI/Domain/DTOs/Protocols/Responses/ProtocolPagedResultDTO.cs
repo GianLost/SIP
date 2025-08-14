@@ -4,6 +4,6 @@ namespace SIP.UI.Domain.DTOs.Protocols.Responses;
 
 public class ProtocolPagedResultDTO
 {
-    public ICollection<Protocol>? Items { get; set; }
+    public ICollection<ProtocolListItemDto>? Items { get; set; } = [];
     public int TotalCount { get; set; }
 }

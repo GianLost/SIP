@@ -21,6 +21,18 @@ public class ProtocolService(HttpClient http)
         return response ?? new ProtocolPagedResultDTO();
     }
 
+    public async Task<Protocol?> GetProtocolByIdAsync(Guid id)
+    {
+        try
+        {
+            return await _http.GetFromJsonAsync<Protocol>($"{ProtocolsEndpoints._getProtocolsById}{id}");
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
     public async Task<int> GetTotalProtocolsCountAsync(string? searchString = null)
     {
         string url = ProtocolsEndpoints._protocolsCounter;

@@ -31,7 +31,8 @@
                                      Margin="Margin.Normal"
                                      ToStringFunc="@(s => s == null ? null : $"{s.Name} ({s.Acronym})")"
                                      Clearable="true"
-                                     Placeholder="Pesquisar setor..." />
+                                     Placeholder="Pesquisar setor..."
+                                     MaxItems="int.MaxValue"/>
                 </MudItem>
                 <MudItem xs="12" sm="6">
                     <MudAutocomplete T="User"
@@ -45,7 +46,8 @@
                                      Clearable="true"
                                      Placeholder="Pesquisar usuário..."
                                      ToStringFunc="@(u => u?.FullName)"
-                                     Disabled="SelectedSector is null" />
+                                     Disabled="SelectedSector is null"
+                                     MaxItems="int.MaxValue" />
                 </MudItem>
                 <MudItem xs="12" sm="6">
                     <MudSelect T="ProtocolStatus" Label="Status" @bind-Value="_protocol.Status" For="() => _protocol.Status" Required="true" Variant="Variant.Outlined" Margin="Margin.Normal">
@@ -110,7 +112,7 @@
                 IsArchived = Protocol.IsArchived
             };
 
-        var sectorsResult = await SectorService.GetAllSectorsAsync();
+        ICollection<Sector>? sectorsResult = await SectorService.GetAllSectorsAsync();
         Sectors = sectorsResult?.ToList() ?? new List<Sector>();
 
         var usersResult = await UserService.GetAllUsersAsync();
