@@ -2,30 +2,43 @@
 @using MudBlazor
 @using SIP.UI.Models.Users
 
-@* Diálogo para exclusão de usuário *@
-<MudDialog Style="width:450px">
+<MudDialog>
 
-    @* Conteúdo do diálogo de exclusão *@
     <DialogContent>
 
-        <MudStack AlignItems="AlignItems.Center" Class="mb-4">
-            <MudIcon Icon="@Icons.Material.Filled.Warning" Color="Color.Warning" Size="Size.Large" Class="mb-2" />
+        <MudStack AlignItems="AlignItems.Center" Spacing="2">
+            <MudIcon Icon="@Icons.Material.Filled.DeleteForever" Class="mb-2" Color="Color.Error" Size="Size.Large" />
+            <MudText Typo="Typo.h5" Align="Align.Center" class="mb-2" Color="Color.Error">
+                Confirmar exclusão de usuário
+            </MudText>
         </MudStack>
 
-        <MudText Typo="Typo.body2" Class="mt-4 text-start p-0">
-            Você tem certeza que deseja excluir o usuário: <b>@UserToDelete?.FullName - (@UserToDelete?.Login)</b>? Esta ação <span class="text-danger"><b>não poderá ser desfeita</b></span>.
-        </MudText>
+        <MudPaper Class="pa-3 mt-3" Elevation="0" Style="background-color: rgba(255, 0, 0, 0.05); border-radius: 8px;">
+            <MudText Class="mb-4">
+                Você tem certeza que deseja excluir permanentemente o usuário abaixo?
+            </MudText>
+
+            <MudStack Spacing="0">
+                <MudText Typo="Typo.body2">Nome: <b>@UserToDelete?.FullName</b></MudText>
+                <MudText Typo="Typo.body2">Login: <b>@UserToDelete?.Login</b></MudText>
+                <MudText Typo="Typo.body2" Class="mt-2">Setor: <b>@UserToDelete?.Sector!.Acronym - @UserToDelete?.Sector!.Name</b></MudText>
+            </MudStack>
+
+        </MudPaper>
+
+        <MudAlert Severity="Severity.Warning" Variant="Variant.Text" Dense="true" Class="mt-4" Icon="@Icons.Material.Filled.Warning">
+            <b>Atenção:</b> Esta ação não pode ser desfeita.
+        </MudAlert>
 
     </DialogContent>
 
-    @* Componente com os botões excluir e cancelar *@
     <DialogActions>
-
-        <MudStack Row="true" Class="justify-content-start pa-4">
-            <MudButton Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete" OnClick="Submit" Class="mr-3">Excluir</MudButton>
-            <MudButton Color="Color.Secondary" Variant="Variant.Outlined" OnClick="Cancel">Cancelar</MudButton>
-        </MudStack>
-
+        <MudButton Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete" OnClick="Submit">
+            Excluir
+        </MudButton>
+        <MudButton Color="Color.Secondary" Variant="Variant.Outlined" OnClick="Cancel">
+            Cancelar
+        </MudButton>
     </DialogActions>
 
 </MudDialog>

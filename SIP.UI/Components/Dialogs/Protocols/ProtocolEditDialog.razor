@@ -159,13 +159,13 @@
     {
         return status switch
         {
-            ProtocolStatus.Open => "Aberto",
-            ProtocolStatus.SentForReview => "Eviado p/ rev.",
+            ProtocolStatus.Open => "Em Aberto",
+            ProtocolStatus.SentForReview => "Eviado",
             ProtocolStatus.Received => "Recebido",
-            ProtocolStatus.UnderReview => "Em revisão",
+            ProtocolStatus.UnderReview => "Em Análise",
             ProtocolStatus.Approved => "Aprovado",
             ProtocolStatus.Rejected => "Rejeitado",
-            ProtocolStatus.CorrectionRequested => "Solicitação de correção",
+            ProtocolStatus.CorrectionRequested => "Correção",
             ProtocolStatus.Finalized => "Finalizado",
             _ => status.ToString()
         };

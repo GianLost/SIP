@@ -74,7 +74,7 @@
 
             <HeaderContent>
                 <MudTh Style="font-weight: bold;">
-                    <MudTableSortLabel SortBy="new Func<ProtocolListItemDto, object>(p => p.Status)">Status</MudTableSortLabel>
+                    <MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<ProtocolListItemDto, object>(p => p.Status)">Status</MudTableSortLabel>
                 </MudTh>
                 <MudTh Style="font-weight: bold;">
                     <MudTableSortLabel SortBy="new Func<ProtocolListItemDto, object>(p => p.Number!)">Número</MudTableSortLabel>
@@ -115,9 +115,7 @@
     private MudTable<ProtocolListItemDto>? table;
     private bool isLoading = false;
     private int pageSize = 15;
-    private int totalItems = 0;
     private string searchString = string.Empty;
-    private string? lastSortLabel;
     private bool _isModalOpen = false;
 
     private HashSet<ProtocolListItemDto> _selectedProtocols = new();
