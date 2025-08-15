@@ -188,13 +188,14 @@ public class ProtocolService(ApplicationContext contex, EntityCacheManager cache
         if (protocol == null)
             return null;
 
-        protocol.Number = dto.Number;
         protocol.Subject = dto.Subject;
         protocol.Description = dto.Description;
         protocol.Status = dto.Status;
         protocol.IsArchived = dto.IsArchived;
         protocol.DestinationUserId = dto.DestinationUserId;
         protocol.DestinationSectorId = dto.DestinationSectorId;
+        protocol.OriginSectorId = dto.OriginSectorId;
+        protocol.OriginSectorId = dto.OriginSectorId;
         protocol.UpdatedAt = DateTime.UtcNow;
 
         _context.Protocols.Update(protocol);

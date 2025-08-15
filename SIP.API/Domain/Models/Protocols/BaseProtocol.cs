@@ -6,7 +6,6 @@ namespace SIP.API.Domain.Models.Protocols;
 
 public class BaseProtocol
 {
-    [Required]
     [JsonPropertyOrder(1)]
     public string Number { get; set; } = string.Empty;
 
