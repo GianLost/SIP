@@ -68,23 +68,25 @@ public class SeedController(ApplicationContext context) : ControllerBase
         await _context.SaveChangesAsync();
 
         //// Obter IDs de usuários
-        //var userIds = _context.Users.Select(u => u.Id).ToList();
+        var userIds = _context.Users.Select(u => u.Id).ToList();
 
-        //// 3. Criar protocolos
-        //var protocolEntities = seedData?.Protocols?.Select(p => new Protocol
-        //{
-        //    Number = p.Number,
-        //    Subject = p.Subject,
-        //    Status = Enum.Parse<ProtocolStatus>(p.Status!),
-        //    IsArchived = p.IsArchived,
-        //    CreatedAt = DateTime.Parse(p.CreatedAt),
-        //    UpdatedAt = p.UpdatedAt != null ? DateTime.Parse(p.UpdatedAt) : null,
-        //    CreatedById = userIds[random.Next(userIds.Count)],
-        //    DestinationSectorId = sectorIds[random.Next(sectorIds.Count)]
-        //}).ToList() ?? [];
+        // 3. Criar protocolos
+        var protocolEntities = seedData?.Protocols?.Select(p => new Protocol
+        {
+            Subject = p.Subject,
+            Description = p.Description,
+            Status = Enum.Parse<ProtocolStatus>(p.Status!),
+            IsArchived = p.IsArchived,
+            CreatedAt = DateTime.Parse(p.CreatedAt),
+            UpdatedAt = p.UpdatedAt != null ? DateTime.Parse(p.UpdatedAt) : null,
+            CreatedById = userIds[random.Next(userIds.Count)],
+            OriginSectorId = sectorIds[random.Next(sectorIds.Count)],
+            DestinationUserId = userIds.Count > 0 ? userIds[random.Next(userIds.Count)] : null,
+            DestinationSectorId = sectorIds[random.Next(sectorIds.Count)]
+        }).ToList() ?? [];
 
-        //_context.Protocols.AddRange(protocolEntities);
-        //await _context.SaveChangesAsync();
+        _context.Protocols.AddRange(protocolEntities);
+        await _context.SaveChangesAsync();
 
 
         return Ok("Seed importado com sucesso!");
@@ -95,7 +97,7 @@ public class SeedData
 {
     public List<SectorSeed>? Sectors { get; set; }
     public List<UserSeed>? Users { get; set; }
-    //public List<ProtocolSeed>? Protocols { get; set; }
+    public List<ProtocolSeed>? Protocols { get; set; }
 }
 
 public class SectorSeed
@@ -121,12 +123,13 @@ public class UserSeed
     public bool IsActive { get; set; }
 }
 
-//public class ProtocolSeed
-//{
-//    public string Number { get; set; } = string.Empty;
-//    public string Subject { get; set; } = string.Empty;
-//    public string? Status { get; set; }
-//    public bool IsArchived { get; set; }
-//    public string CreatedAt { get; set; } = string.Empty;
-//    public string? UpdatedAt { get; set; }
-//}
+public class ProtocolSeed
+{
+    public string Number { get; set; } = string.Empty;
+    public string Subject { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public string? Status { get; set; }
+    public bool IsArchived { get; set; }
+    public string CreatedAt { get; set; } = string.Empty;
+    public string? UpdatedAt { get; set; }
+}
