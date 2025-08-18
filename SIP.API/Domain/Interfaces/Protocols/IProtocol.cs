@@ -6,6 +6,9 @@ namespace SIP.API.Domain.Interfaces.Protocols;
 
 public interface IProtocol
 {
+    string FormatProtocolNumber(int nextSequence);
+    int GetNextSequence(string? lastProtocolNumber);
+    Task<string?> GetLastProtocolNumberAsync();
     Task<string> GenerateProtocolNumberAsync();
     Task<Protocol> CreateAsync(ProtocolCreateDTO dto);
     Task<Protocol?> GetByIdAsync(Guid id);

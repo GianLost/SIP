@@ -1,4 +1,5 @@
 ﻿using SIP.UI.Domain.Enums;
+using SIP.UI.Models.Protocols;
 using SIP.UI.Models.Sectors;
 
 namespace SIP.UI.Models.Users;
@@ -23,5 +24,5 @@ public class User
     public Guid SectorId { get; set; }
     public Sector? Sector { get; set; }
 
-    //public ICollection<Protocol> Protocols { get; set; } = [];
+    public ICollection<Protocol> Protocols { get; set; } = [];
 }

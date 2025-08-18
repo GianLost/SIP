@@ -140,13 +140,16 @@ public class UserService(ApplicationContext context, EntityCacheManager cache) :
     /// <inheritdoc/>
     public async Task<bool> DeleteAsync(Guid id)
     {
+        bool userHasProtocols = await _context.Protocols
+        .AnyAsync(p => p.CreatedById == id || p.DestinationUserId == id);
+
+        if (userHasProtocols)
+            throw new InvalidOperationException("Não é possível excluir um usuário que possua um ou mais protocolos vinculados.");
+
         User? user = await GetByIdAsync(id);
 
         if (user == null)
             return false;
-
-        if (user.Protocols.Count > 0)
-            throw new InvalidOperationException("Cannot delete user with associated protocols.");
 
         _context.Users.Remove(user);
         await _context.SaveChangesAsync();

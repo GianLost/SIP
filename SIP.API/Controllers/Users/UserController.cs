@@ -216,7 +216,7 @@ public class UserController(IUser user, IUserConfiguration userConfiguration) : 
         }
         catch (InvalidOperationException ex)
         {
-            return Conflict(new { Error = ex.Message });
+            return Conflict( new ErrorResponse(ex.Message));
         }
 
     }

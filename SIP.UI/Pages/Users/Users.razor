@@ -392,9 +392,11 @@
     private async Task ShowDeleteDialog(User user)
     {
         DialogParameters<UserDeleteDialog> parameters = new();
+
         parameters.Add(x => x.UserToDelete, user);
 
-        IDialogReference dialog = await DialogService.ShowAsync<UserDeleteDialog>("", parameters); // Adicionado título
+        IDialogReference dialog = await DialogService.ShowAsync<UserDeleteDialog>("", parameters);
+
         DialogResult? result = await dialog.Result;
 
         if (result is not null && !result.Canceled)
@@ -406,9 +408,17 @@
                 if (table is not null)
                     await table.ReloadServerData();
             }
-            catch (Exception ex)
+            catch (InvalidOperationException ex)
             {
                 Snackbar.Add($"Erro ao excluir usuário: {ex.Message}", Severity.Error);
+            }
+            catch (HttpRequestException ex)
+            {
+                Snackbar.Add($"Erro de comunicação: {ex.Message}", Severity.Error);
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Ocorreu um erro inesperado: {ex.Message}", Severity.Error);
             }
         }
         else

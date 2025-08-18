@@ -1,0 +1,41 @@
+﻿/* =============================================== */
+/* == Estilos Customizados para a Tabela de Protocolos == */
+/* =============================================== */
+
+/* Classe para o cabeçalho da tabela.
+  Garante que o texto seja negrito e não quebre a linha.
+*/
+.mud-table-header-custom {
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+/* Classe para células com texto longo.
+  Esconde o excesso de texto, adiciona '...' no final
+  e prepara o terreno para o Tooltip funcionar bem.
+  A largura máxima (max-width) deve ser definida inline no 
+  elemento, pois cada coluna pode ter uma largura diferente.
+*/
+.mud-table-cell-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.truncate-cell {
+    max-width: 200px; /* largura máxima da célula */
+    white-space: nowrap; /* não quebrar linha */
+    overflow: hidden; /* esconder o que passar */
+    text-overflow: ellipsis; /* mostrar "…" no final */
+    text-align: justify; /* justifica o texto */
+}
+
+/* Aplica apenas nos tooltips da descrição */
+.desc-tooltip .mud-tooltip-content {
+    width: 15rem;
+    padding: 0.5rem;
+    white-space: normal;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    text-align: justify;
+}
