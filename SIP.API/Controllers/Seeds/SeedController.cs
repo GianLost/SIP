@@ -5,15 +5,19 @@ using SIP.API.Domain.Entities.Protocols;
 using SIP.API.Domain.Entities.Sectors;
 using SIP.API.Domain.Entities.Users;
 using SIP.API.Domain.Enums;
+using SIP.API.Domain.Interfaces.Protocols;
+using SIP.API.Domain.Interfaces.Users;
+using SIP.API.Domain.Services.Protocols;
 using SIP.API.Infrastructure.Database;
 
 namespace SIP.API.Controllers.Seeds;
 
 [Route("sip_api/[controller]")]
 [ApiController]
-public class SeedController(ApplicationContext context) : ControllerBase
+public class SeedController(ApplicationContext context, IProtocol protocolService) : ControllerBase
 {
     private readonly ApplicationContext _context = context;
+    private readonly IProtocol _protocolService = protocolService;
 
     [HttpPost("import")]
     public async Task<IActionResult> ImportSeed()
@@ -68,24 +72,41 @@ public class SeedController(ApplicationContext context) : ControllerBase
         await _context.SaveChangesAsync();
 
         //// Obter IDs de usuários
-        //var userIds = _context.Users.Select(u => u.Id).ToList();
+        var userIds = _context.Users.Select(u => u.Id).ToList();
 
-        //// 3. Criar protocolos
-        //var protocolEntities = seedData?.Protocols?.Select(p => new Protocol
-        //{
-        //    Number = p.Number,
-        //    Subject = p.Subject,
-        //    Status = Enum.Parse<ProtocolStatus>(p.Status!),
-        //    IsArchived = p.IsArchived,
-        //    CreatedAt = DateTime.Parse(p.CreatedAt),
-        //    UpdatedAt = p.UpdatedAt != null ? DateTime.Parse(p.UpdatedAt) : null,
-        //    CreatedById = userIds[random.Next(userIds.Count)],
-        //    DestinationSectorId = sectorIds[random.Next(sectorIds.Count)]
-        //}).ToList() ?? [];
+        if (seedData?.Protocols == null)
+        {
+            return BadRequest("Nenhum dado de protocolo para importar.");
+        }
 
-        //_context.Protocols.AddRange(protocolEntities);
-        //await _context.SaveChangesAsync();
+        // 3. Busque o último número de protocolo UMA ÚNICA VEZ antes do loop
+        var lastProtocolNumber = await _protocolService.GetLastProtocolNumberAsync();
+        int nextSequence = _protocolService.GetNextSequence(lastProtocolNumber);
 
+        // 4. Crie os protocolos em memória, incrementando o número sequencial localmente
+        var protocolEntities = new List<Protocol>();
+        foreach (var p in seedData.Protocols)
+        {
+            protocolEntities.Add(new Protocol
+            {
+                Number = _protocolService.FormatProtocolNumber(nextSequence),
+                Subject = p.Subject,
+                Description = p.Description,
+                Status = Enum.Parse<ProtocolStatus>(p.Status!),
+                IsArchived = p.IsArchived,
+                CreatedAt = DateTime.Parse(p.CreatedAt),
+                UpdatedAt = p.UpdatedAt != null ? DateTime.Parse(p.UpdatedAt) : null,
+                CreatedById = userIds[random.Next(userIds.Count)],
+                OriginSectorId = sectorIds[random.Next(sectorIds.Count)],
+                DestinationUserId = userIds.Count > 0 ? userIds[random.Next(userIds.Count)] : null,
+                DestinationSectorId = sectorIds[random.Next(sectorIds.Count)]
+            });
+            nextSequence++; // Incrementa o número para o próximo protocolo
+        }
+
+        // 5. Adicione todos os protocolos de uma vez e salve as mudanças
+        _context.Protocols.AddRange(protocolEntities);
+        await _context.SaveChangesAsync();
 
         return Ok("Seed importado com sucesso!");
     }
@@ -95,7 +116,7 @@ public class SeedData
 {
     public List<SectorSeed>? Sectors { get; set; }
     public List<UserSeed>? Users { get; set; }
-    //public List<ProtocolSeed>? Protocols { get; set; }
+    public List<ProtocolSeed>? Protocols { get; set; }
 }
 
 public class SectorSeed
@@ -121,12 +142,14 @@ public class UserSeed
     public bool IsActive { get; set; }
 }
 
-//public class ProtocolSeed
-//{
-//    public string Number { get; set; } = string.Empty;
-//    public string Subject { get; set; } = string.Empty;
-//    public string? Status { get; set; }
-//    public bool IsArchived { get; set; }
-//    public string CreatedAt { get; set; } = string.Empty;
-//    public string? UpdatedAt { get; set; }
-//}
+public class ProtocolSeed
+{
+    public string Number { get; set; } = string.Empty;
+    public string Subject { get; set; } = string.Empty;
+    public string Description { get;} = 
+        "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.";
+    public string? Status { get; set; }
+    public bool IsArchived { get; set; }
+    public string CreatedAt { get; set; } = string.Empty;
+    public string? UpdatedAt { get; set; }
+}

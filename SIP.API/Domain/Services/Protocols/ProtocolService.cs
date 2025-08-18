@@ -19,35 +19,50 @@ public class ProtocolService(ApplicationContext contex, EntityCacheManager cache
     private const int MaxPageSize = 100;
 
     /// <inheritdoc/>
-    public async Task<string> GenerateProtocolNumberAsync()
+    public async Task<string?> GetLastProtocolNumberAsync()
     {
         int year = DateTime.UtcNow.Year;
+        string prefix = year.ToString();
 
-        string? prefix = year.ToString();
+        // Busca o último número gerado para o ano atual no banco
+        return await _context.Protocols
+        .Where(p => p.Number.StartsWith(prefix))
+        .OrderByDescending(p => p.Number)
+        .Select(p => p.Number)
+        .FirstOrDefaultAsync();
+    }
 
-        // 1. Busca o último número gerado para o ano atual no banco
-        var lastProtocolNumber = await _context.Protocols
-            .Where(p => p.Number.StartsWith(prefix))
-            .OrderByDescending(p => p.Number)
-            .Select(p => p.Number)
-            .FirstOrDefaultAsync();
-
-        // 2. Calcula o próximo número sequencial
+    public int GetNextSequence(string? lastProtocolNumber)
+    {
+        int year = DateTime.UtcNow.Year;
+        string prefix = year.ToString();
         int nextSequence = 1;
 
         if (lastProtocolNumber != null)
         {
-            // Extrai a parte sequencial (ex: de "202500123" pega "123")
+            // Extrai a parte sequencial
             string lastSequencePart = lastProtocolNumber[prefix.Length..];
             if (int.TryParse(lastSequencePart, out int lastSequence))
             {
                 nextSequence = lastSequence + 1;
             }
         }
+        return nextSequence;
+    }
 
-        // 3. Formata o número final com pelo menos 5 dígitos para a sequência (ex: 202500001)
-        // "D5" garante que o número terá no mínimo 5 dígitos, preenchendo com zeros à esquerda
+    public string FormatProtocolNumber(int nextSequence)
+    {
+        int year = DateTime.UtcNow.Year;
+        string prefix = year.ToString();
         return $"{prefix}{nextSequence:D5}";
+    }
+
+    // MANTENHA ESTE MÉTODO PARA USO EM OUTROS LUGARES, COMO NA CRIAÇÃO DE UM ÚNICO PROTOCOLO
+    public async Task<string> GenerateProtocolNumberAsync()
+    {
+        var lastNumber = await GetLastProtocolNumberAsync();
+        var nextSequence = GetNextSequence(lastNumber);
+        return FormatProtocolNumber(nextSequence);
     }
 
     /// <inheritdoc/>
@@ -116,8 +131,6 @@ public class ProtocolService(ApplicationContext contex, EntityCacheManager cache
             _cache.Set($"ProtocolCount_Search_{searchString ?? "NoSearch"}", totalCount.Value, EntityType);
         }
 
-        bool asc = sortDirection?.Trim().Equals("asc", StringComparison.CurrentCultureIgnoreCase) ?? true;
-
         Expression<Func<Protocol, int>> statusOrderExpr = s =>
             s.Status == ProtocolStatus.Open ? 1 :
             s.Status == ProtocolStatus.SentForReview ? 2 :
@@ -130,6 +143,8 @@ public class ProtocolService(ApplicationContext contex, EntityCacheManager cache
 
         if (!string.IsNullOrWhiteSpace(sortLabel))
         {
+            bool asc = sortDirection?.Trim().Equals("asc", StringComparison.CurrentCultureIgnoreCase) ?? true;
+
             query = sortLabel.ToLower() switch
             {
                 "status" => asc

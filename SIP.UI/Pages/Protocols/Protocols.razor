@@ -74,37 +74,69 @@
             </ToolBarContent>
 
             <HeaderContent>
-                <MudTh Style="font-weight: bold;">
+                <MudTh Class="mud-table-header-custom">
                     <MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<ProtocolListItemDto, object>(p => p.Status)">Status</MudTableSortLabel>
                 </MudTh>
-                <MudTh Style="font-weight: bold;">
+                <MudTh Class="mud-table-header-custom">
                     <MudTableSortLabel SortBy="new Func<ProtocolListItemDto, object>(p => p.Number!)">Número</MudTableSortLabel>
                 </MudTh>
-                <MudTh Style="font-weight: bold;">
+                <MudTh Class="mud-table-header-custom">
                     <MudTableSortLabel SortLabel="CreatedBy" SortBy="new Func<ProtocolListItemDto, object>(p => p.CreatedByFullName!)">Criado Por</MudTableSortLabel>
                 </MudTh>
-                <MudTh Style="font-weight: bold;">
+                <MudTh Class="mud-table-header-custom">
                     <MudTableSortLabel SortLabel="OriginSector" SortBy="new Func<ProtocolListItemDto, object>(p => p.OriginSectorAcronym!)">Setor Origem</MudTableSortLabel>
                 </MudTh>
-                <MudTh Style="font-weight: bold;">
+                <MudTh Class="mud-table-header-custom">
                     <MudTableSortLabel SortLabel="DesinationTo" SortBy="new Func<ProtocolListItemDto, object>(p => p.DestinationUserFullName!)">Destinado a</MudTableSortLabel>
                 </MudTh>
-                <MudTh Style="font-weight: bold;">
+                <MudTh Class="mud-table-header-custom">
                     <MudTableSortLabel SortLabel="DestinationSector" SortBy="new Func<ProtocolListItemDto, object>(p => p.DestinationSectorAcronym!)">Setor Destino</MudTableSortLabel>
                 </MudTh>
-                <MudTh Style="font-weight: bold;">Assunto</MudTh>
-                <MudTh Style="font-weight: bold;">Descrição</MudTh>
+                <MudTh Class="mud-table-header-custom">Assunto</MudTh>
+                <MudTh Class="mud-table-header-custom">Descrição</MudTh>
             </HeaderContent>
 
             <RowTemplate Context="protocol">
                 <MudTd DataLabel="Status">@GetStatusChip(protocol.Status)</MudTd>
                 <MudTd DataLabel="Número">@protocol.Number</MudTd>
-                <MudTd DataLabel="Criado Por">@protocol.CreatedByFullName</MudTd>
-                <MudTd DataLabel="Setor Origem">@protocol.OriginSectorAcronym</MudTd>
-                <MudTd DataLabel="Destinado a">@protocol.DestinationUserFullName</MudTd>
-                <MudTd DataLabel="Setor Destino">@protocol.DestinationSectorAcronym</MudTd>
-                <MudTd DataLabel="Assunto">@protocol.Subject</MudTd>
-                <MudTd DataLabel="Descricao">@protocol.Description</MudTd>
+
+                <MudTd Class="mud-table-cell-truncate" Style="max-width: 200px;" DataLabel="Criado Por">
+                    <MudTooltip Text="@protocol.CreatedByFullName">
+                        <span>@protocol.CreatedByFullName</span>
+                    </MudTooltip>
+                </MudTd>
+
+                <MudTd Class="mud-table-cell-truncate" Style="max-width: 120px;" DataLabel="Setor Origem">
+                    <MudTooltip Text="@protocol.OriginSectorAcronym">
+                        <span>@protocol.OriginSectorAcronym</span>
+                    </MudTooltip>
+                </MudTd>
+
+                <MudTd Class="mud-table-cell-truncate" Style="max-width: 200px;" DataLabel="Destinado a">
+                    <MudTooltip Text="@protocol.DestinationUserFullName">
+                        <span>@protocol.DestinationUserFullName</span>
+                    </MudTooltip>
+                </MudTd>
+
+                <MudTd Class="mud-table-cell-truncate" Style="max-width: 120px;" DataLabel="Setor Destino">
+                    <MudTooltip Text="@protocol.DestinationSectorAcronym">
+                        <span>@protocol.DestinationSectorAcronym</span>
+                    </MudTooltip>
+                </MudTd>
+
+                <MudTd Class="mud-table-cell-truncate" Style="max-width: 250px;" DataLabel="Assunto">
+                    <MudTooltip Text="@protocol.Subject">
+                        <span>@protocol.Subject</span>
+                    </MudTooltip>
+                </MudTd>
+
+                <MudTd DataLabel="Descrição">
+                    <MudTooltip Text="@TruncateText(protocol.Description!, 200)" Style="width: 15rem; padding: 0.5rem; white-space: normal; word-wrap: break-word; overflow-wrap: break-word; text-align: justify;">
+                        <div class="truncate-cell">
+                            @protocol.Description
+                        </div>
+                    </MudTooltip>
+                </MudTd>
             </RowTemplate>
 
             <NoRecordsContent>
@@ -152,6 +184,22 @@
 
     private string GetButtonClass() =>
         $"mud-elevation-3 animated-fab-button-manual-icon {(_isModalOpen ? "force-expanded-button" : "")}";
+
+    /// <summary>
+    /// Trunca um texto para um comprimento máximo e adiciona "..." se necessário.
+    /// Ideal para limitar o conteúdo de tooltips longos.
+    /// </summary>
+    /// <param name="text">O texto a ser truncado.</param>
+    /// <param name="maxLength">O comprimento máximo desejado.</param>
+    /// <returns>O texto truncado.</returns>
+    private string TruncateText(string text, int maxLength = 200)
+    {
+        if (string.IsNullOrEmpty(text) || text.Length <= maxLength)
+        {
+            return text;
+        }
+        return text.Substring(0, maxLength) + "...";
+    }
 
     protected override void OnInitialized() =>
         _selectedProtocols.Clear();
