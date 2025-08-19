@@ -11,18 +11,6 @@ public class UserService(HttpClient http)
     private readonly HttpClient _http = http;
 
     /// <summary>
-    /// Creates a new User via the API.
-    /// </summary>
-    /// <param name="user">The user entity to create.</param>
-    public async Task CreateUserAsync(User user)
-    {
-        HttpResponseMessage response = await _http.PostAsJsonAsync(UsersEndpoints._createUser, user);
-        response.EnsureSuccessStatusCode();
-
-        await InvalidateUserCacheAsync();
-    }
-
-    /// <summary>
     /// Gets a paginated list of users from the API.
     /// </summary>
     /// <param name="pageNumber">The page number (starting from 1).</param>
@@ -31,7 +19,7 @@ public class UserService(HttpClient http)
     /// <param name="sortDirection">The sort direction ("asc" or "desc").</param>
     /// <param name="searchString">Optional search string to filter sectors.</param>
     /// <returns>A list of users for the specified page, or null if not found.</returns>
-    public async Task<List<User>?> GetUsersAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection = null, string? searchString = null)
+    public async Task<ICollection<User>?> GetUsersAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection = null, string? searchString = null)
     {
         List<string> queryParams =
         [
@@ -52,8 +40,8 @@ public class UserService(HttpClient http)
 
         try
         {
-            List<User>? sectors = await _http.GetFromJsonAsync<List<User>>(url);
-            return sectors;
+            ICollection<User>? users = await _http.GetFromJsonAsync<ICollection<User>>(url);
+            return users;
         }
         catch (HttpRequestException ex)
         {
@@ -131,6 +119,18 @@ public class UserService(HttpClient http)
             Console.WriteLine($"Falha ao carregar a lista completa de usuários: {ex.Message}");
             return null;
         }
+    }
+
+    /// <summary>
+    /// Creates a new User via the API.
+    /// </summary>
+    /// <param name="user">The user entity to create.</param>
+    public async Task CreateUserAsync(User user)
+    {
+        HttpResponseMessage response = await _http.PostAsJsonAsync(UsersEndpoints._createUser, user);
+        response.EnsureSuccessStatusCode();
+
+        await InvalidateUserCacheAsync();
     }
 
     /// <summary>

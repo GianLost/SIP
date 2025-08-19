@@ -44,7 +44,7 @@ public class UserService(ApplicationContext context, EntityCacheManager cache) :
 
     /// <inheritdoc/>
     public async Task<User?> GetByIdAsync(Guid id) => 
-        await _context.Users.FindAsync(id);
+        await _context.Users.Include(p => p.Protocols).FirstOrDefaultAsync(p => p.Id == id);
 
     /// <inheritdoc/>
     public async Task<ICollection<User>> GetAllAsync() =>
@@ -58,7 +58,7 @@ public class UserService(ApplicationContext context, EntityCacheManager cache) :
     {
         pageSize = Math.Min(pageSize, MaxPageSize); // Limite máximo
 
-        IQueryable<User> query = _context.Users.Include(s => s.Sector);
+        IQueryable<User> query = _context.Users.Include(s => s.Sector).Include(p => p.Protocols);
 
         if (!string.IsNullOrWhiteSpace(searchString))
         {

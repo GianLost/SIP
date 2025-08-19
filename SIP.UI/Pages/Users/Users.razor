@@ -3,7 +3,10 @@
 @using SIP.UI.Components.Dialogs.Users
 @using SIP.UI.Domain.DTOs.Users
 @using SIP.UI.Domain.DTOs.Users.Configurations
+@using SIP.UI.Domain.Enums
+@using SIP.UI.Domain.Services.Protocols
 @using SIP.UI.Domain.Services.Users
+@using SIP.UI.Models.Protocols
 @using SIP.UI.Models.Sectors
 @using SIP.UI.Models.Users
 @using MudBlazor
@@ -12,6 +15,7 @@
 @using static SIP.UI.Components.Dialogs.Users.UserChangePasswordDialog
 
 @inject UserService _userService
+@inject ProtocolService _protocolService
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 
@@ -25,6 +29,7 @@
     </MudStack>
 
     <MudPaper Class="pa-4 ma-2" Elevation="1">
+
         <MudTable T="User" ServerData="LoadServerData" Dense="true" Hover="true" Bordered="false" @ref="table" RowsPerPage="pageSize" LoadingProgressColor="Color.Primary" SortLabel="sortLabel" Loading="@isLoading" Elevation="0" MultiSelection="true" @bind-SelectedItems="_selectedUsers">
 
             <ToolBarContent>
@@ -97,8 +102,11 @@
             </ToolBarContent>
 
             <HeaderContent>
+                <MudTh></MudTh>
                 <MudTh Style="font-weight: bold;">Status</MudTh>
+
                 <MudTh Style="font-weight: bold;">Masp</MudTh>
+
                 <MudTh Style="font-weight: bold;">
                     <MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<User, object?>(x => x.Sector?.Acronym)">Secretaria</MudTableSortLabel>
                 </MudTh>
@@ -110,6 +118,13 @@
             </HeaderContent>
 
             <RowTemplate Context="user">
+
+                <MudTd>
+                    <MudTooltip Text="vizualizar protocolos cadastrados ..." Arrow="true" Placement="Placement.Left">
+                        <MudIconButton Icon="@(user.ShowProtocols? @Icons.Material.Filled.Book : @Icons.Material.Outlined.Book)" Color="Color.Primary" Size="Size.Small" OnClick="@(() => ToggleShowProtocols(user))" />
+                    </MudTooltip>
+                </MudTd>
+
                 <MudTd DataLabel="Status">
                     <MudTooltip Text="@(user.IsActive ? "Ativo" : "Inativo")" Arrow="true" Placement="Placement.Left">
                         <MudIcon Icon="@Icons.Material.Filled.Circle" Color="@(user.IsActive? Color.Success: Color.Error)" Size="Size.Small" />
@@ -121,6 +136,46 @@
                 <MudTd DataLabel="Login">@user.Login</MudTd>
                 <MudTd DataLabel="Email">@user.Email</MudTd>
             </RowTemplate>
+
+            <ChildRowContent Context="userDetail">
+                @if (userDetail.ShowProtocols)
+                {
+                    <MudTr>
+                        <td colspan="8">
+                            @* <-- colspan deve ser igual ao número total de colunas (7 + 1 do botão) *@
+                            <MudCard Elevation="3" Class="ma-2">
+                                <MudCardHeader>
+                                    <CardHeaderContent>
+                                        <MudStack Row="true" AlignItems="AlignItems.Center">
+                                            <MudText Typo="Typo.body1">Protocolos cadastrados por:</MudText>
+                                            <MudText Typo="Typo.body1" Color="Color.Primary" Style="font-weight: bold;">@userDetail.FullName</MudText>
+                                        </MudStack>
+                                    </CardHeaderContent>
+                                </MudCardHeader>
+                                <MudCardContent Class="pa-0">
+                                    <MudTable T="Protocol" Items="userDetail.Protocols" Bordered="false" Hover="true" Dense="true" Elevation="0">
+                                        <HeaderContent>
+                                            <MudTh Style="font-weight: bold;">Status</MudTh>
+                                            <MudTh Style="font-weight: bold;">Número</MudTh>
+                                            <MudTh Style="font-weight: bold;">Assunto</MudTh>
+                                            <MudTh Style="font-weight: bold;">Data de Criação</MudTh>
+                                        </HeaderContent>
+                                        <RowTemplate Context="protocol">
+                                            <MudTd DataLabel="Status">@GetStatusChip(protocol.Status)</MudTd>
+                                            <MudTd DataLabel="Número">@protocol.Number</MudTd>
+                                            <MudTd DataLabel="Assunto">@protocol.Subject</MudTd>
+                                            <MudTd DataLabel="Data de Criação">@protocol.CreatedAt.ToShortDateString()</MudTd>
+                                        </RowTemplate>
+                                        <NoRecordsContent>
+                                            <MudText Class="pa-4">Nenhum protocolo vinculado a este usuário.</MudText>
+                                        </NoRecordsContent>
+                                    </MudTable>
+                                </MudCardContent>
+                            </MudCard>
+                        </td>
+                    </MudTr>
+                }
+            </ChildRowContent>
 
             <NoRecordsContent>
                 <MudText Class="pa-6 text-center mud-text-secondary">Nenhum usuário encontrado para exibir.</MudText>
@@ -148,6 +203,25 @@
     private bool _isModalOpen = false;
 
     private HashSet<User> _selectedUsers = new();
+
+    private RenderFragment GetStatusChip(ProtocolStatus status)
+    {
+        var (text, icon, color) = GetStatusDetails(status);
+        return @<MudChip T="string" Label="true" Icon="@icon" Color="@color" Size="Size.Small" Class="rounded-md" Style="width: 6rem;justify-content: center;">@text</MudChip>;
+    }
+
+    private (string Text, string Icon, Color Color) GetStatusDetails(ProtocolStatus status) => status switch
+    {
+        ProtocolStatus.Open => ("Em Aberto", Icons.Material.Filled.FiberNew, Color.Primary),
+        ProtocolStatus.SentForReview => ("Enviado", Icons.Material.Filled.Send, Color.Tertiary),
+        ProtocolStatus.Received => ("Recebido", Icons.Material.Filled.MarkEmailRead, Color.Success),
+        ProtocolStatus.UnderReview => ("Em Análise", Icons.Material.Filled.Search, Color.Warning),
+        ProtocolStatus.Approved => ("Aprovado", Icons.Material.Filled.CheckCircle, Color.Success),
+        ProtocolStatus.Rejected => ("Rejeitado", Icons.Material.Filled.Cancel, Color.Error),
+        ProtocolStatus.CorrectionRequested => ("Correção", Icons.Material.Filled.Edit, Color.Warning),
+        ProtocolStatus.Finalized => ("Finalizado", Icons.Material.Filled.DoneAll, Color.Dark),
+        _ => ("Desconhecido", Icons.Material.Filled.HelpOutline, Color.Default)
+    };
 
     private string GetButtonClass()
     {
@@ -214,6 +288,13 @@
             SortDirection.Descending => "desc",
             _ => string.Empty
         };
+
+    /// <summary>
+    /// Toggles the visibility of related protocols for a user.
+    /// </summary>
+    /// <param name="user">The sector to toggle.</param>
+    private void ToggleShowProtocols(User user) => 
+        user.ShowProtocols = !user.ShowProtocols;
 
     private async Task OnSearch(string value)
     {

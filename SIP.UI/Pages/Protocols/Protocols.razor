@@ -15,6 +15,7 @@
 @inject IDialogService DialogService
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="my-8 px-4">
+
     <MudStack Row="true" AlignItems="AlignItems.Stretch" Class="mb-3 ml-3">
         <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ShowAddDialog" Class="@GetButtonClass()">
             <MudIcon Icon="@Icons.Material.Filled.Add" Size="Size.Medium" />
@@ -23,15 +24,21 @@
     </MudStack>
 
     <MudPaper Class="pa-4 ma-2" Elevation="1">
+
         <MudTable T="ProtocolListItemDto" ServerData="LoadServerData" Dense="true" Hover="true" Bordered="false" @ref="table" RowsPerPage="pageSize" LoadingProgressColor="Color.Primary" Loading="@isLoading" Elevation="0" MultiSelection="true" @bind-SelectedItems="_selectedProtocols">
 
             <ToolBarContent>
+
                 <MudStack Style="width: 100%; margin-left: -0.75rem;" Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+
                     <MudStack Row="true" AlignItems="AlignItems.Center">
+
                         @if (_selectedProtocols.Any())
                         {
                             <MudTooltip Text="@($"Ações aplicáveis para {_selectedProtocols.Count} protocolo(s) selecionado(s)")" Arrow="true" Placement="Placement.Bottom">
+
                                 <MudMenu Dense="true" Icon="@Icons.Material.Filled.SettingsApplications" Color="Color.Primary" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+
                                     @if (_selectedProtocols.Count == 1)
                                     {
                                         <MudMenuItem OnClick="@EditSelectedProtocol">
@@ -58,22 +65,30 @@
                                         </MudMenuItem>
                                     }
                                 </MudMenu>
+
                             </MudTooltip>
                         }
                     </MudStack>
+
                     <MudStack Row="true" AlignItems="AlignItems.Center">
+
                         <MudTextField T="string" ValueChanged="@OnSearch" Immediate="false" DebounceInterval="300" Placeholder="digite sua busca..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="m-auto" Clearable="true" Style="max-width: 300px;" />
+
                         <MudTooltip Text="Exportar para formatos compatíveis ..." Arrow="true" Placement="Placement.Bottom">
                             <MudMenu Icon="@Icons.Material.Filled.MoreVert" Color="Color.Primary" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
                                 <MudMenuItem OnClick="ExportToCsv">Exportar CSV</MudMenuItem>
                                 <MudMenuItem OnClick="ExportToPdf">Exportar PDF</MudMenuItem>
                             </MudMenu>
                         </MudTooltip>
+
                     </MudStack>
+
                 </MudStack>
+
             </ToolBarContent>
 
             <HeaderContent>
+
                 <MudTh Class="mud-table-header-custom">
                     <MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<ProtocolListItemDto, object>(p => p.Status)">Status</MudTableSortLabel>
                 </MudTh>
@@ -94,10 +109,13 @@
                 </MudTh>
                 <MudTh Class="mud-table-header-custom">Assunto</MudTh>
                 <MudTh Class="mud-table-header-custom">Descrição</MudTh>
+
             </HeaderContent>
 
             <RowTemplate Context="protocol">
+
                 <MudTd DataLabel="Status">@GetStatusChip(protocol.Status)</MudTd>
+
                 <MudTd DataLabel="Número">@protocol.Number</MudTd>
 
                 <MudTd Class="mud-table-cell-truncate" Style="max-width: 200px;" DataLabel="Criado Por">
@@ -108,13 +126,13 @@
 
                 <MudTd Class="mud-table-cell-truncate" Style="max-width: 120px;" DataLabel="Setor Origem">
                     <MudTooltip Text="@protocol.OriginSectorAcronym">
-                        <span>@FormatName(protocol.OriginSectorAcronym)</span>
+                        <span>@protocol.OriginSectorAcronym</span>
                     </MudTooltip>
                 </MudTd>
 
                 <MudTd Class="mud-table-cell-truncate" Style="max-width: 200px;" DataLabel="Destinado a">
                     <MudTooltip Text="@protocol.DestinationUserFullName">
-                        <span>@protocol.DestinationUserFullName</span>
+                        <span>@FormatName(protocol.DestinationUserFullName)</span>
                     </MudTooltip>
                 </MudTd>
 
@@ -136,7 +154,9 @@
                             @protocol.Description
                         </div>
                     </MudTooltip>
+
                 </MudTd>
+
             </RowTemplate>
 
             <NoRecordsContent>
@@ -150,8 +170,11 @@
             <PagerContent>
                 <MudTablePager PageSizeOptions="new int[] { 15, 25, 50, 100 }" />
             </PagerContent>
+
         </MudTable>
+
     </MudPaper>
+
 </MudContainer>
 
 @code {
@@ -211,12 +234,32 @@
         if (string.IsNullOrWhiteSpace(fullName))
             return string.Empty;
 
-        var nameParts = fullName.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+        var nameParts = fullName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
-        if (nameParts.Length >= 2)
-            return $"{nameParts[0]} {nameParts[1]}";
+        if (nameParts.Length == 1)
+            return nameParts[0];
 
-        return fullName;
+        // Sempre pega o primeiro nome
+        var formattedName = nameParts[0];
+
+        // Avança pelos próximos nomes
+        for (int i = 1; i < nameParts.Length; i++)
+        {
+            var part = nameParts[i];
+
+            // Se for partícula (palavra pequena), adiciona
+            if (part.Length <= 3)
+            {
+                formattedName += $" {part}";
+                continue;
+            }
+
+            // Se já pegou um sobrenome, para
+            formattedName += $" {part}";
+            break;
+        }
+
+        return formattedName;
     }
 
     protected override void OnInitialized() =>

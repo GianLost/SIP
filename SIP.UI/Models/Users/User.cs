@@ -21,6 +21,8 @@ public class User
     public DateTime? LastLoginAt { get; set; } = null;
     public DateTime? UpdatedAt { get; set; } = null;
 
+    public bool ShowProtocols { get; set; }
+
     public Guid SectorId { get; set; }
     public Sector? Sector { get; set; }
 
