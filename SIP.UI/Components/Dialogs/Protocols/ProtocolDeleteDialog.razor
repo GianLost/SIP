@@ -4,20 +4,29 @@
 
 <MudDialog>
 
+    @* Conteúdo do diálogo *@
     <DialogContent>
 
+        @* Cabeçalho do diálogo *@
         <MudStack AlignItems="AlignItems.Center" Spacing="2">
+            @* Ícone de liceira *@
             <MudIcon Icon="@Icons.Material.Filled.DeleteForever" Class="mb-2" Color="Color.Error" Size="Size.Large" />
+
             <MudText Typo="Typo.h6" Align="Align.Center" class="mb-2" Color="Color.Error">
                 Confirmar exclusão do protocolo
             </MudText>
+
         </MudStack>
 
+        @* Texto de aviso *@
         <MudPaper Class="pa-3 mt-3" Elevation="0" Style="background-color: rgba(255, 0, 0, 0.05); border-radius: 8px;">
+
+            @* Texto de aviso *@
             <MudText Class="mb-4">
                 Você tem certeza que deseja excluir permanentemente o protocolo abaixo?
             </MudText>
 
+            @* Dados do relacionados a exclusão *@
             <MudStack Spacing="0">
                 <MudText Typo="Typo.body2">Número: <b style="color: var(--mud-palette-primary);">@ProtocolToDelete.Number</b></MudText>
                 <MudText Typo="Typo.body2">Assunto: <b>@ProtocolToDelete.Subject</b></MudText>
@@ -25,12 +34,14 @@
 
         </MudPaper>
 
+        @* Texto de aviso *@
         <MudAlert Severity="Severity.Warning" Variant="Variant.Text" Dense="true" Class="mt-4" Icon="@Icons.Material.Filled.Warning">
             <b>Atenção:</b> Esta ação não pode ser desfeita.
         </MudAlert>
 
     </DialogContent>
 
+    @* Botões de ações *@
     <DialogActions>
         <MudButton Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete" OnClick="Submit">
             Excluir
@@ -43,15 +54,34 @@
 </MudDialog>
 
 @code {
+
+    /// <summary>
+    /// A instância do diálogo do MudBlazor para controlar as ações do diálogo.
+    /// É injetada automaticamente pelo framework.
+    /// </summary>
     [CascadingParameter]
     private IMudDialogInstance MudDialog { get; set; } = default!;
 
-    [Parameter] 
+    /// <summary>
+    /// O objeto de protocolo a ser excluído. Este parâmetro é passado pelo componente pai
+    /// que invoca este diálogo.
+    /// </summary>
+    [Parameter]
     public ProtocolListItemDto ProtocolToDelete { get; set; } = new();
 
-    private void Submit() => 
+    /// <summary>
+    /// Manipula o clique no botão 'Excluir'.
+    /// Fecha o diálogo e retorna um resultado positivo (Ok) para o componente que o chama,
+    /// indicando que a exclusão deve ser processada.
+    /// </summary>
+    private void Submit() =>
         MudDialog.Close(DialogResult.Ok(true));
 
-    private void Cancel() => 
+    /// <summary>
+    /// Manipula o clique no botão 'Cancelar'.
+    /// Fecha o diálogo sem retornar nenhum resultado, cancelando a operação de exclusão.
+    /// </summary>
+    private void Cancel() =>
         MudDialog.Cancel();
+
 }

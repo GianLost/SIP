@@ -2,6 +2,7 @@
 
 @using SIP.UI.Components.Dialogs.Sectors
 @using SIP.UI.Domain.DTOs.Sectors
+@using SIP.UI.Domain.Helpers.DataFormatting.Strings
 @using SIP.UI.Domain.Services.Sectors
 @using SIP.UI.Models.Sectors
 @using SIP.UI.Models.Users
@@ -103,14 +104,24 @@
             <RowTemplate Context="sector">
 
                 @* Ícone de exibição dos usuários relacionados *@
-                <MudTd>
-                    <MudTooltip Text="usuários vinculados ..." Arrow="true" Placement="Placement.Left">
-                        <MudIconButton Icon="@(sector.ShowUsers? Icons.Material.Filled.People : Icons.Material.Filled.PeopleOutline)" Color="Color.Primary" Size="Size.Small" OnClick="@(() => ToggleShowUsers(sector))" />
-                    </MudTooltip>
-                </MudTd>
-
-                <MudTd DataLabel="Nome">@sector.Name</MudTd>
-                <MudTd DataLabel="Sigla">@sector.Acronym</MudTd>
+                @if(sector.Users.Count < 1)
+                {
+                    <MudTd>
+                        <MudTooltip Text="Esta secretaria não possui usuários cadastrados ..." Arrow="true" Placement="Placement.Left">
+                            <MudIconButton Icon="@Icons.Material.Filled.PeopleOutline" Color="Color.Primary" Size="Size.Small" Disabled="true"/>
+                        </MudTooltip>
+                    </MudTd>
+                }
+                else
+                {
+                    <MudTd>
+                        <MudTooltip Text="usuários vinculados ..." Arrow="true" Placement="Placement.Left">
+                            <MudIconButton Icon="@(sector.ShowUsers? Icons.Material.Filled.People : Icons.Material.Filled.PeopleOutline)" Color="Color.Primary" Size="Size.Small" OnClick="@(() => ToggleShowUsers(sector))" />
+                        </MudTooltip>
+                    </MudTd>
+                }
+                <MudTd DataLabel="Nome">@sector.Name.ToUppercase()</MudTd>
+                <MudTd DataLabel="Sigla">@sector.Acronym.ToUppercase()</MudTd>
                 <MudTd DataLabel="Telefone">@FormatPhoneNumber(@sector.Phone)</MudTd>
 
             </RowTemplate>
@@ -127,8 +138,8 @@
 
                                     <CardHeaderContent>
                                         <MudStack Row="true" AlignItems="AlignItems.Center">
-                                            <MudText Typo="Typo.body1">Usuários vinculados à:</MudText>
-                                            <MudText Typo="Typo.body1" Color="Color.Primary" Style="font-weight: bold;">@sectorDetail.Name</MudText>
+                                            <MudText Typo="Typo.body1" Style="font-weight: bold;">Usuários de:</MudText>
+                                            <MudText Typo="Typo.body1" Color="Color.Primary" Style="font-weight: bold;">@sectorDetail.Name.ToUppercase()</MudText>
                                         </MudStack>
                                     </CardHeaderContent>
 
@@ -157,7 +168,7 @@
                                             </MudTd>
 
                                             <MudTd DataLabel="MASP">@user.Masp</MudTd>
-                                            <MudTd DataLabel="Nome">@user.FullName</MudTd>
+                                            <MudTd DataLabel="Nome">@user.FullName.ToUppercase()</MudTd>
                                             <MudTd DataLabel="Login">@user.Login</MudTd>
                                             <MudTd DataLabel="Email">@user.Email</MudTd>
                                         </RowTemplate>

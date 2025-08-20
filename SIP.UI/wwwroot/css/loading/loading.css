@@ -1,47 +1,77 @@
-﻿/* CSS for the enhanced loading spinner */
+﻿/*
+ * Documentação do CSS para o componente de carregamento
+ *
+ * Este arquivo CSS é responsável por estilizar a tela de carregamento inicial da aplicação.
+ * Ele centraliza um spinner e uma mensagem na tela, garantindo uma experiência de usuário consistente
+ * enquanto a aplicação Blazor WebAssembly está sendo iniciada.
+ */
+
+/* =========================================================
+   Seção de Layout e Estrutura
+   Define a estrutura principal e a centralização do conteúdo.
+   ========================================================= */
+
+/* Estilização do contêiner principal da aplicação */
 #app {
-    display: flex;
-    min-height: 100vh;
-    font-family: 'Roboto', sans-serif;
+    display: flex; /* Flexbox para um layout flexível */
+    min-height: 100vh; /* Garante que o contêiner ocupe a altura total da tela (viewport) */
+    font-family: 'Roboto', sans-serif; /* Define a fonte padrão para toda a aplicação */
 }
 
+/* Contêiner para o spinner de carregamento e a mensagem */
 #spin {
+    /* Flexbox para empilhar os elementos verticalmente */
     display: flex;
     flex-direction: column;
-    align-items: center;
-    margin: auto;
+    align-items: center; /* Centraliza os itens (spinner e texto) horizontalmente */
+
+    margin: auto; /* Centraliza o contêiner #spin vertical e horizontalmente na tela */
 }
 
-/* Basic spinner animation - you can customize this heavily */
+/* =========================================================
+   Seção de Animação e Estilo do Spinner
+   Define a aparência e o comportamento do spinner de carregamento.
+   ========================================================= */
+
+/* Estilização do spinner circular */
 .loading-spinner {
-    border: 4px solid rgba(0, 0, 0, 0.1);
-    border-left-color: #2196F3;
-    border-radius: 50%;
+    border: 4px solid rgba(0, 0, 0, 0.1); /* borda (o "fundo" do círculo) */
+    border-left-color: #2196F3; /* cor da borda esquerda para criar o efeito de progresso */
+    border-radius: 50%; /* Transforma o elemento em um círculo perfeito */
+    /* Dimensões do spinner */
     width: 50px;
     height: 50px;
-    animation: spin 1s linear infinite;
-    margin-bottom: 15px;
+    animation: spin 1s linear infinite; /* Animação 'spin' com duração de 1s, velocidade linear e repetição infinita */
+    margin-bottom: 15px; /* Espaçamento abaixo do spinner */
 }
 
+/* Animação de rotação para o spinner */
 @keyframes spin {
     0% {
-        transform: rotate(0deg);
+        transform: rotate(0deg); /* Início da animação (0 graus) */
     }
 
     50% {
-        transform: rotate(180deg);
+        transform: rotate(180deg); /* Ponto intermediário (180 graus) para rotação suave */
     }
 
     100% {
-        transform: rotate(360deg);
+        transform: rotate(360deg); /* Fim da animação (360 graus) */
     }
 }
 
+/* =========================================================
+   Seção de Elementos de Texto e Progresso
+   Estilização dos elementos que acompanham o spinner.
+   ========================================================= */
+
+/* Estilização do texto de carregamento */
 .loading-text {
-    font-size: 1.3rem;
-    color: #555;
+    font-size: 1.3rem; /* Ttamanho da fonte */
+    color: #555; /* Cor do texto */
 }
 
+/* Componente de barra de progresso (inicialmente oculto) */
 .loading-progress {
     display: none;
 }

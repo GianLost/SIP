@@ -4,6 +4,8 @@
 @using SIP.UI.Domain.DTOs.Users
 @using SIP.UI.Domain.DTOs.Users.Configurations
 @using SIP.UI.Domain.Enums
+@using SIP.UI.Domain.Helpers.DataFormatting.DateTimes
+@using SIP.UI.Domain.Helpers.DataFormatting.Strings
 @using SIP.UI.Domain.Services.Protocols
 @using SIP.UI.Domain.Services.Users
 @using SIP.UI.Models.Protocols
@@ -119,11 +121,22 @@
 
             <RowTemplate Context="user">
 
-                <MudTd>
-                    <MudTooltip Text="vizualizar protocolos cadastrados ..." Arrow="true" Placement="Placement.Left">
-                        <MudIconButton Icon="@(user.ShowProtocols? @Icons.Material.Filled.Book : @Icons.Material.Outlined.Book)" Color="Color.Primary" Size="Size.Small" OnClick="@(() => ToggleShowProtocols(user))" />
-                    </MudTooltip>
-                </MudTd>
+                @if(user.Protocols.Count < 1)
+                {
+                    <MudTd>
+                        <MudTooltip Text="Este usuário não possui protocolos cadastrados..." Arrow="true" Placement="Placement.Bottom">
+                            <MudIconButton Icon="@Icons.Material.Outlined.Book" Color="Color.Primary" Size="Size.Small" Disabled="true" />
+                        </MudTooltip>
+                    </MudTd>
+                }
+                else 
+                {
+                    <MudTd>
+                        <MudTooltip Text="Vizualizar protocolos ..." Arrow="true" Placement="Placement.Bottom">
+                            <MudIconButton Icon="@(user.ShowProtocols? @Icons.Material.Filled.MenuBook : @Icons.Material.Outlined.Book)" Color="Color.Primary" Size="Size.Small" OnClick="@(() => ToggleShowProtocols(user))" />
+                        </MudTooltip>
+                    </MudTd>
+                }
 
                 <MudTd DataLabel="Status">
                     <MudTooltip Text="@(user.IsActive ? "Ativo" : "Inativo")" Arrow="true" Placement="Placement.Left">
@@ -131,8 +144,8 @@
                     </MudTooltip>
                 </MudTd>
                 <MudTd DataLabel="MASP">@user.Masp</MudTd>
-                <MudTd DataLabel="Secretaria">@user?.Sector?.Acronym</MudTd>
-                <MudTd DataLabel="Nome">@user.FullName</MudTd>
+                <MudTd DataLabel="Secretaria">@user?.Sector?.Acronym.ToUppercase()</MudTd>
+                <MudTd DataLabel="Nome">@user.FullName.ToUppercase()</MudTd>
                 <MudTd DataLabel="Login">@user.Login</MudTd>
                 <MudTd DataLabel="Email">@user.Email</MudTd>
             </RowTemplate>
@@ -147,8 +160,8 @@
                                 <MudCardHeader>
                                     <CardHeaderContent>
                                         <MudStack Row="true" AlignItems="AlignItems.Center">
-                                            <MudText Typo="Typo.body1">Protocolos cadastrados por:</MudText>
-                                            <MudText Typo="Typo.body1" Color="Color.Primary" Style="font-weight: bold;">@userDetail.FullName</MudText>
+                                            <MudText Typo="Typo.body1" Style="font-weight: bold;">Protocolos gerados por:</MudText>
+                                            <MudText Typo="Typo.body1" Color="Color.Primary" Style="font-weight: bold;">@userDetail.FullName.ToUppercase()</MudText>
                                         </MudStack>
                                     </CardHeaderContent>
                                 </MudCardHeader>
@@ -163,8 +176,8 @@
                                         <RowTemplate Context="protocol">
                                             <MudTd DataLabel="Status">@GetStatusChip(protocol.Status)</MudTd>
                                             <MudTd DataLabel="Número">@protocol.Number</MudTd>
-                                            <MudTd DataLabel="Assunto">@protocol.Subject</MudTd>
-                                            <MudTd DataLabel="Data de Criação">@protocol.CreatedAt.ToShortDateString()</MudTd>
+                                            <MudTd DataLabel="Assunto">@protocol.Subject.ToUppercase()</MudTd>
+                                            <MudTd DataLabel="Data de Criação">@protocol.CreatedAt.ToBrasiliaTimeFormat()</MudTd>
                                         </RowTemplate>
                                         <NoRecordsContent>
                                             <MudText Class="pa-4">Nenhum protocolo vinculado a este usuário.</MudText>

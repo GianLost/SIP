@@ -1,34 +1,37 @@
 ﻿@using SIP.UI.Models.Sectors
 @using MudBlazor
 
-@* Diálogo para edição de setor*@
 <MudDialog Style="width:450px">
 
+    @* Conteúdo do diálogo *@
     <DialogContent>
 
-        @* Formulário com os campos de edição *@
+        @* Formulário com os campos de edição, gerenciando a validação *@
         <MudForm @ref="form" @bind-IsValid="isValid" ErrorsChanged="OnErrorsChanged">
 
+            @* Campo para o nome da secretaria com validação e ícone *@
             <MudTextField @bind-Value="Sector.Name" Label="Nome da Secretaria" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Business" Required="true" RequiredError="O nome da secretaria é obrigatório!" Variant="Variant.Outlined" Margin="Margin.Normal" />
 
+            @* Campo para a sigla da secretaria com validação e ícone *@
             <MudTextField @bind-Value="Sector.Acronym" Label="Sigla" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.ShortText" Required="true" RequiredError="A sigla é obrigatória!" Variant="Variant.Outlined" Margin="Margin.Normal" />
 
+            @* Campo para o telefone com máscara, validação personalizada e ícone *@
             <MudTextField @bind-Value="Sector.Phone" Label="Telefone" Mask="@PhoneMask" Immediate="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Phone" Variant="Variant.Outlined" Margin="Margin.Normal" Placeholder="(XX) XXXXX-XXXX" HelperText="Formato: (DDD) 9XXXX-XXXX ou (DDD) XXXX-XXXX" Validation="@((string arg) => IsValidPhoneNumber(arg) ? null : "Telefone inválido. Use (DDD) 9XXXX-XXXX ou (DDD) XXXX-XXXX.")" Required="true" RequiredError="O telefone é obrigatório!" />
 
         </MudForm>
 
     </DialogContent>
 
+    @* @* Botões de ações *@
     <DialogActions>
-
-        @* Componente com os botões editar e cancelar *@
         <MudStack Row="true" Class="justify-end pa-4">
             <MudButton OnClick="Submit" Color="Color.Primary" Variant="Variant.Filled" Disabled="!isValid" Class="mr-3">
                 Salvar
             </MudButton>
-            <MudButton Color="Color.Secondary" Variant="Variant.Outlined" OnClick="Cancel">Cancelar</MudButton>
+            <MudButton Color="Color.Secondary" Variant="Variant.Outlined" OnClick="Cancel">
+                Cancelar
+            </MudButton>
         </MudStack>
-
     </DialogActions>
 
 </MudDialog>
@@ -36,19 +39,20 @@
 @code {
 
     /// <summary>
-    /// The MudBlazor dialog instance for controlling dialog actions.
+    /// A instância do diálogo do MudBlazor para controlar as ações do diálogo (fechar, cancelar).
+    /// É injetada automaticamente pelo framework.
     /// </summary>
     [CascadingParameter] 
     IMudDialogInstance MudDialog { get; set; } = default!;
 
     /// <summary>
-    /// The sector being edited in the dialog.
+    /// O objeto de setor que está sendo editado. Este parâmetro é passado pelo componente pai.
     /// </summary>
     [Parameter] 
     public Sector Sector { get; set; } = new();
 
     /// <summary>
-    /// Reference to the MudForm component.
+    /// Referência ao componente MudForm, usada para chamar o método de validação.
     /// </summary>
     private MudForm? form;
 
@@ -58,7 +62,8 @@
     private bool isValid = false;
 
     /// <summary>
-    /// MultiMask for phone number input, detects mobile and landline formats (DDD) 9XXXX-XXXX ou (DDD) XXXX-XXXX.
+    /// MultiMask para a entrada de telefone.
+    /// Detecta e formata automaticamente para telefone celular (9 dígitos) ou fixo (8 dígitos).
     /// </summary>
     MultiMask PhoneMask = new MultiMask("(00) 00000-0000",
         new MaskOption("Celular", "(00) 00000-0000", @"^\(\d{2}\) 9"),
@@ -66,13 +71,15 @@
     );
 
     /// <summary>
-    /// Called when form errors change to update the UI.
+    /// Chamado quando a validação do formulário muda.
+    /// Força o componente a renderizar novamente para atualizar o estado dos botões.
     /// </summary>
     private void OnErrorsChanged() => 
         StateHasChanged();
 
     /// <summary>
-    /// Validates the form and closes the dialog with the sector data if valid.
+    /// Acionado ao clicar no botão 'Salvar'.
+    /// Valida o formulário e, se for válido, fecha o diálogo com o objeto Sector modificado.
     /// </summary>
     private async Task Submit()
     {
@@ -83,16 +90,16 @@
     }
 
     /// <summary>
-    /// Cancels the dialog without saving changes.
+    /// Cancela a operação e fecha o diálogo sem salvar nenhuma alteração.
     /// </summary>
     private void Cancel() => 
         MudDialog.Cancel();
 
     /// <summary>
-    /// Validates the phone number format (accepts mobile and landline).
+    /// Valida o formato do número de telefone (aceita 10 ou 11 dígitos numéricos).
     /// </summary>
-    /// <param name="phone">Phone number string to validate.</param>
-    /// <returns>True if valid, otherwise false.</returns>
+    /// <param name="phone">String do telefone a ser validada.</param>
+    /// <returns>True se o número for válido; caso contrário, False.</returns>
     private bool IsValidPhoneNumber(string? phone)
     {
         if (string.IsNullOrWhiteSpace(phone)) return false;

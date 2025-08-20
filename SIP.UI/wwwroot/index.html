@@ -2,22 +2,35 @@
 <html lang="pt-br">
 
 <head>
+
+    <!-- Meta tags -->
     <meta charset="utf-8" />
-    <meta name="viewport" content="minimum-scale=1, initial-scale=1, width=device-width" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=0.5, maximum-scale=2.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="author" content="Gianluca Vialli">
+
     <title>SIP.UI</title>
+
     <base href="/" />
 
+    <!-- Link de importação do bootstrap local -->
     <link href="/css/bootstrap/bootstrap.min.css" rel="stylesheet" />
+    <!-- Link de importação do estilo de fonte -->
     <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
+    <!-- Link de importação do css utilizado pelo mudblazor -->
     <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
-
+    <!-- CSS do aplicativo -->
     <link rel="stylesheet" href="css/app.css" />
+    <!-- CSS da animação de carregamento -->
     <link rel="stylesheet" href="css/loading/loading.css" />
+    <!-- ícone visível na aba do navegador -->
     <link rel="icon" type="image/png" href="favicon.png" />
 
 </head>
 
 <body>
+
+    <!-- container com a animação de carregamento -->
     <div id="app">
         <div id="spin">
             <div class="loading-spinner"></div>
@@ -25,13 +38,17 @@
         </div>
     </div>
 
+    <!-- container com a animação de carregamento -->
     <div id="blazor-error-ui">
         An unhandled error has occurred.
         <a href="" class="reload">Reload</a>
         <a class="dismiss">🗙</a>
     </div>
+
+    <!-- Importações do Js base do mudblazor -->
     <script src="_framework/blazor.webassembly.js"></script>
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
+
 </body>
 
 </html>

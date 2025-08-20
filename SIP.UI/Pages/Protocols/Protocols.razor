@@ -3,6 +3,7 @@
 @using SIP.UI.Components.Dialogs.Protocols
 @using SIP.UI.Domain.DTOs.Protocols.Responses
 @using SIP.UI.Domain.Enums
+@using SIP.UI.Domain.Helpers.DataFormatting.Strings
 @using SIP.UI.Domain.Services.Protocols
 @using SIP.UI.Models.Protocols
 @using SIP.UI.Models.Users
@@ -89,6 +90,7 @@
 
             <HeaderContent>
 
+                <MudTh Class="mud-table-header-custom px-0 py-0" Style="width: 10px;"></MudTh>
                 <MudTh Class="mud-table-header-custom">
                     <MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<ProtocolListItemDto, object>(p => p.Status)">Status</MudTableSortLabel>
                 </MudTh>
@@ -114,37 +116,53 @@
 
             <RowTemplate Context="protocol">
 
+                @* Nova célula para a coluna de arquivados *@
+                <MudTd DataLabel="Arquivado" Class="px-0 py-0" Style="text-align: center;">
+                    @if (protocol.IsArchived)
+                    {
+                        <MudTooltip Text="Arquivado...">
+                            <MudIcon Icon="@Icons.Material.Filled.Archive" Style="color: #ABA9A9;" Size="Size.Small" />
+                        </MudTooltip>
+                    }
+                    else
+                    {
+                        <MudTooltip Text="Não arquivado...">
+                            <MudIcon Icon="@Icons.Material.Outlined.Archive" Style="color: #ABA9A9;" Size="Size.Small" />
+                        </MudTooltip>
+                    }
+                </MudTd>
+
                 <MudTd DataLabel="Status">@GetStatusChip(protocol.Status)</MudTd>
 
                 <MudTd DataLabel="Número">@protocol.Number</MudTd>
 
                 <MudTd Class="mud-table-cell-truncate" Style="max-width: 200px;" DataLabel="Criado Por">
-                    <MudTooltip Text="@protocol.CreatedByFullName">
-                        <span>@FormatName(protocol.CreatedByFullName)</span>
+                    <MudTooltip Text="@protocol.CreatedByFullName.ToUppercase()">
+                        <span>@FormatName(protocol.CreatedByFullName.ToUppercase())</span>
                     </MudTooltip>
                 </MudTd>
 
                 <MudTd Class="mud-table-cell-truncate" Style="max-width: 120px;" DataLabel="Setor Origem">
-                    <MudTooltip Text="@protocol.OriginSectorAcronym">
-                        <span>@protocol.OriginSectorAcronym</span>
+                    <MudTooltip Text="@protocol.OriginSectorAcronym.ToUppercase()">
+                        <span>@protocol.OriginSectorAcronym.ToUppercase()</span>
                     </MudTooltip>
                 </MudTd>
 
                 <MudTd Class="mud-table-cell-truncate" Style="max-width: 200px;" DataLabel="Destinado a">
-                    <MudTooltip Text="@protocol.DestinationUserFullName">
-                        <span>@FormatName(protocol.DestinationUserFullName)</span>
+                    <MudTooltip Text="@protocol.DestinationUserFullName.ToUppercase()">
+                        <span>@FormatName(protocol.DestinationUserFullName.ToUppercase())</span>
                     </MudTooltip>
                 </MudTd>
 
                 <MudTd Class="mud-table-cell-truncate" Style="max-width: 120px;" DataLabel="Setor Destino">
-                    <MudTooltip Text="@protocol.DestinationSectorAcronym">
-                        <span>@protocol.DestinationSectorAcronym</span>
+                    <MudTooltip Text="@protocol.DestinationSectorAcronym.ToUppercase()">
+                        <span>@protocol.DestinationSectorAcronym.ToUppercase()</span>
                     </MudTooltip>
                 </MudTd>
 
                 <MudTd Class="mud-table-cell-truncate" Style="max-width: 250px;" DataLabel="Assunto">
-                    <MudTooltip Text="@protocol.Subject">
-                        <span>@protocol.Subject</span>
+                    <MudTooltip Text="@protocol.Subject.ToUppercase()">
+                        <span>@protocol.Subject.ToUppercase()</span>
                     </MudTooltip>
                 </MudTd>
 
