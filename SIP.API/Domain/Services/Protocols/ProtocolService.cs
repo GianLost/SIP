@@ -185,6 +185,7 @@ public class ProtocolService(ApplicationContext contex, EntityCacheManager cache
             Subject = p.Subject,
             Description = p.Description,
             Status = p.Status,
+            CreatedAt = p.CreatedAt,
             IsArchived = p.IsArchived,
             CreatedByFullName = p.CreatedBy != null ? p.CreatedBy.FullName : null,
             OriginSectorAcronym = p.OriginSector != null ? p.OriginSector.Acronym : null,

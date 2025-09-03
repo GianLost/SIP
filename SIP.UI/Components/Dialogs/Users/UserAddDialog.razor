@@ -9,23 +9,30 @@
 
 <MudDialog Style="width:600px">
 
+    @* Conteúdo do diálogo *@
     <DialogContent>
 
-        @* Formulário com os campos de adição *@
+        @* Formulário de adição *@
         <MudForm @ref="form" @bind-IsValid="isValid" ErrorsChanged="OnErrorsChanged">
 
             <MudGrid Spacing="2">
 
+                @* Campo MASP *@
                 <MudItem xs="12" sm="6">
                     <MudTextField @bind-Value="User.Masp" Label="Masp" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.ConfirmationNumber" Required="true" RequiredError="O MASP é obrigatório!" Variant="Variant.Outlined" Margin="Margin.Normal" />
                 </MudItem>
+
+                @* Campo nome completo *@
                 <MudItem xs="12" sm="6">
                     <MudTextField @bind-Value="User.FullName" Label="Nome Completo" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.PeopleOutline" Required="true" RequiredError="O nome é obrigatório!" Variant="Variant.Outlined" Margin="Margin.Normal" />
                 </MudItem>
 
+                @* Campo login *@
                 <MudItem xs="12" sm="6">
                     <MudTextField @bind-Value="User.Login" Label="Login" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.People" Required="true" RequiredError="O login é obrigatório!" Variant="Variant.Outlined" Margin="Margin.Normal" />
                 </MudItem>
+
+                @* Campo email *@
                 <MudItem xs="12" sm="6">
                     <MudTextField @bind-Value="User.Email" Label="Email" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Email" Required="true" RequiredError="O email é obrigatório!" Variant="Variant.Outlined" Margin="Margin.Normal" />
                 </MudItem>
@@ -45,6 +52,7 @@
                                   Variant="Variant.Outlined" Margin="Margin.Normal" />
                 </MudItem>
 
+                @* Caixa de seleção para selecionar o setor do usuário *@
                 <MudItem xs="12" sm="6">
                     <MudSelect T="Sector" Label="Setor" @bind-Value="selectedSector" Required="true" Dense="true" RequiredError="Selecione um setor!" Variant="Variant.Outlined" Margin="Margin.Normal">
                         @if (_allSectors != null)
@@ -57,6 +65,7 @@
                     </MudSelect>
                 </MudItem>
 
+                @* Caixa de seleção para selecionar o nível de acesso do usuário *@
                 <MudItem xs="12" sm="6">
                     <MudSelect T="RoleEnum" Label="Função (Role)" @bind-Value="User.Role" Required="true" Dense="true" RequiredError="Selecione uma função!" Variant="Variant.Outlined" Margin="Margin.Normal">
                         @foreach (RoleEnum role in Enum.GetValues(typeof(RoleEnum)))
@@ -72,12 +81,15 @@
 
     </DialogContent>
 
+    @* @* Botões de ações *@
     <DialogActions>
         <MudStack Row="true" Class="justify-end pa-4">
             <MudButton OnClick="Submit" Color="Color.Primary" Variant="Variant.Filled" Disabled="!isValid" Class="mr-3">
                 Salvar
             </MudButton>
-            <MudButton Color="Color.Secondary" Variant="Variant.Outlined" OnClick="Cancel">Cancelar</MudButton>
+            <MudButton Color="Color.Secondary" Variant="Variant.Outlined" OnClick="Cancel">
+                Cancelar
+            </MudButton>
         </MudStack>
     </DialogActions>
 
@@ -85,45 +97,61 @@
 
 
 @code {
-    // Parâmetro em cascata para controlar a instância do diálogo (fechar, cancelar).
+
+    /// <summary>
+    /// A instância do diálogo do MudBlazor para controlar as ações do diálogo.
+    /// É injetada automaticamente pelo framework.
+    /// </summary>
     [CascadingParameter]
     private IMudDialogInstance MudDialog { get; set; } = default!;
 
-    // Parâmetro para receber o objeto do usuário (novo ou para edição).
+    /// <summary>
+    /// O objeto de usuário que será adicionado ou editado.
+    /// Este parâmetro é passado pelo componente pai.
+    /// </summary>
     [Parameter]
     public User User { get; set; } = new();
 
-    // Parâmetro para receber a lista completa de setores disponíveis.
+    /// <summary>
+    /// Lista completa de setores disponíveis, usada para popular o dropdown de seleção de setor.
+    /// É carregada pelo serviço de setores e passada pelo componente pai.
+    /// </summary>
     [Parameter]
     public ICollection<Sector>? _allSectors { get; set; }
 
-    // Referência ao componente MudForm para acionar a validação.
+    /// <summary>
+    /// Referência para o formulário do MudBlazor.
+    /// Permite disparar manualmente a validação de todos os campos.
+    /// </summary>
     private MudForm? form;
 
-    // Flag que indica se o formulário é válido. Habilita/desabilita o botão "Salvar".
+    /// <summary>
+    /// Flag que indica se o formulário é válido.
+    /// Controla a habilitação do botão "Salvar".
+    /// </summary>
     private bool isValid;
 
-    // Variável para armazenar o objeto Sector completo que foi selecionado no MudSelect.
+    /// <summary>
+    /// Armazena o setor selecionado pelo usuário no formulário.
+    /// </summary>
     private Sector? selectedSector;
 
+    /// <summary>
+    /// Valor de confirmação da senha, usado para validar se a senha digitada corresponde.
+    /// </summary>
     private string ConfirmPassword { get; set; } = string.Empty;
 
     /// <summary>
-    /// Método executado quando o componente é inicializado.
-    /// É usado aqui para pré-selecionar o setor correto no modo de edição.
+    /// Executado ao inicializar o componente.
+    /// Responsável por carregar os setores e preparar o formulário.
     /// </summary>
     protected override async Task OnInitializedAsync()
     {
-        // Garante que o serviço foi injetado antes de usá-lo
         if (_sectorServices is not null)
-        {
-            // Usa o nome da variável injetada CORRETAMENTE
             _allSectors = await _sectorServices.GetAllSectorsAsync() ?? new List<Sector>();
-        }
 
         if (_allSectors != null && !_allSectors.Any())
         {
-            // Usa a sintaxe CORRETA para o Snackbar
             Snackbar.Add(
                 "Não foi possível carregar a lista de setores. O cadastro de usuários pode não funcionar corretamente.",
                 severity: Severity.Warning
@@ -131,19 +159,18 @@
         }
 
         if (User.PasswordHash != null)
-        {
             User.PasswordHash = string.Empty;
-        }
+
         ConfirmPassword = string.Empty;
 
         StateHasChanged();
     }
 
     /// <summary>
-    /// Retorna o nome de exibição personalizado para cada UserRole.
+    /// Retorna o nome de exibição amigável para cada função (RoleEnum).
     /// </summary>
-    /// <param name="role">O valor do UserRole.</param>
-    /// <returns>A string de exibição correspondente.</returns>
+    /// <param name="role">O valor do enum RoleEnum.</param>
+    /// <returns>O nome legível da função correspondente.</returns>
     private string GetRoleDisplayName(RoleEnum role)
     {
         return role switch
@@ -155,7 +182,11 @@
         };
     }
 
-    // Método de validação de igualdade de senhas
+    /// <summary>
+    /// Valida se a senha e a confirmação de senha correspondem.
+    /// </summary>
+    /// <param name="confirmPasswordValue">Valor digitado no campo de confirmação.</param>
+    /// <returns>Mensagens de erro caso as senhas não coincidam.</returns>
     private IEnumerable<string> PasswordMatchValidation(string confirmPasswordValue)
     {
         if (string.IsNullOrEmpty(confirmPasswordValue))
@@ -165,40 +196,37 @@
         }
 
         if (confirmPasswordValue != User.PasswordHash)
-        {
             yield return "As senhas não correspondem!";
-        }
     }
 
     /// <summary>
-    /// Called when form errors change to update the UI.
+    /// Executado sempre que a lista de erros do formulário é alterada.
+    /// Atualiza a interface do usuário.
     /// </summary>
     private void OnErrorsChanged() => 
         StateHasChanged();
 
     /// <summary>
-    /// Valida o formulário e, se for válido, fecha o diálogo retornando os dados.
+    /// Executa a validação do formulário.
+    /// Se válido, atribui o setor selecionado ao usuário e
+    /// fecha o diálogo retornando o objeto User.
     /// </summary>
     private async Task Submit()
     {
-        // Força a validação de todos os campos do formulário.
         await form!.Validate();
 
-        // Se o formulário for válido e um setor tiver sido selecionado...
         if (isValid && selectedSector != null)
         {
-            // ...atribui o ID do setor selecionado ao objeto User.
             User.SectorId = selectedSector.Id;
-            // (Opcional) Você também pode atribuir o objeto inteiro se for útil.
+
             User.Sector = selectedSector;
 
-            // Fecha o diálogo com sucesso, retornando o objeto User modificado.
             MudDialog.Close(DialogResult.Ok(User));
         }
     }
 
     /// <summary>
-    /// Cancela a operação e fecha o diálogo sem salvar.
+    /// Cancela a operação e fecha o diálogo sem salvar alterações.
     /// </summary>
     private void Cancel() => 
         MudDialog.Cancel();

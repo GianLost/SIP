@@ -104,26 +104,27 @@
             </ToolBarContent>
 
             <HeaderContent>
-                <MudTh></MudTh>
-                <MudTh Style="font-weight: bold;">Status</MudTh>
+                <MudTh Style="width: 10px;"></MudTh>
+                <MudTh>Status</MudTh>
 
                 <MudTh Style="font-weight: bold;">Masp</MudTh>
 
                 <MudTh Style="font-weight: bold;">
-                    <MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<User, object?>(x => x.Sector?.Acronym)">Secretaria</MudTableSortLabel>
-                </MudTh>
-                <MudTh Style="font-weight: bold;">
                     <MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<User, object>(x => x.FullName)">Nome</MudTableSortLabel>
                 </MudTh>
+
                 <MudTh Style="font-weight: bold;">Login</MudTh>
-                <MudTh Style="font-weight: bold;">Email</MudTh>
+
+                <MudTh Style="font-weight: bold;">
+                    <MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<User, object?>(x => x.Sector?.Acronym)">Secretaria</MudTableSortLabel>
+                </MudTh>
             </HeaderContent>
 
             <RowTemplate Context="user">
 
                 @if(user.Protocols.Count < 1)
                 {
-                    <MudTd>
+                    <MudTd Style="text-align: center;">
                         <MudTooltip Text="Este usuário não possui protocolos cadastrados..." Arrow="true" Placement="Placement.Bottom">
                             <MudIconButton Icon="@Icons.Material.Outlined.Book" Color="Color.Primary" Size="Size.Small" Disabled="true" />
                         </MudTooltip>
@@ -131,23 +132,38 @@
                 }
                 else 
                 {
-                    <MudTd>
+                    <MudTd Style="text-align: center;">
                         <MudTooltip Text="Vizualizar protocolos ..." Arrow="true" Placement="Placement.Bottom">
                             <MudIconButton Icon="@(user.ShowProtocols? @Icons.Material.Filled.MenuBook : @Icons.Material.Outlined.Book)" Color="Color.Primary" Size="Size.Small" OnClick="@(() => ToggleShowProtocols(user))" />
                         </MudTooltip>
                     </MudTd>
                 }
 
-                <MudTd DataLabel="Status">
+                <MudTd Style="text-align: center;" DataLabel="Status">
                     <MudTooltip Text="@(user.IsActive ? "Ativo" : "Inativo")" Arrow="true" Placement="Placement.Left">
                         <MudIcon Icon="@Icons.Material.Filled.Circle" Color="@(user.IsActive? Color.Success: Color.Error)" Size="Size.Small" />
                     </MudTooltip>
                 </MudTd>
-                <MudTd DataLabel="MASP">@user.Masp</MudTd>
-                <MudTd DataLabel="Secretaria">@user?.Sector?.Acronym.ToUppercase()</MudTd>
-                <MudTd DataLabel="Nome">@user.FullName.ToUppercase()</MudTd>
-                <MudTd DataLabel="Login">@user.Login</MudTd>
-                <MudTd DataLabel="Email">@user.Email</MudTd>
+                <MudTd Class="mud-table-cell-truncate" DataLabel="MASP">
+                    <MudTooltip Text="@user.Masp.ToString()">
+                        <span>@user.Masp</span>
+                    </MudTooltip>
+                </MudTd>
+                <MudTd Class="mud-table-cell-truncate" DataLabel="Nome">
+                    <MudTooltip Text="@user.FullName.ToUppercase()">
+                        <span>@user.FullName.ToUppercase()</span>
+                    </MudTooltip>
+                </MudTd>
+                <MudTd Class="mud-table-cell-truncate" DataLabel="Login">
+                    <MudTooltip Text="@user.Login">
+                        <span>@user.Login</span>
+                    </MudTooltip>
+                </MudTd>
+                <MudTd Class="mud-table-cell-truncate" DataLabel="Secretaria">
+                    <MudTooltip Text="@user?.Sector?.Acronym.ToUppercase()">
+                        <span>@user?.Sector?.Acronym.ToUppercase()</span>
+                    </MudTooltip>
+                </MudTd>
             </RowTemplate>
 
             <ChildRowContent Context="userDetail">

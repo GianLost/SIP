@@ -137,13 +137,14 @@
   elemento, pois cada coluna pode ter uma largura diferente.
 */
 .mud-table-cell-truncate {
+    width: 50rem;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
 .truncate-cell {
-    max-width: 200px; /* largura máxima da célula */
+    max-width: 150px; /* largura máxima da célula */
     white-space: nowrap; /* não quebrar linha */
     overflow: hidden; /* esconder o que passar */
     text-overflow: ellipsis; /* mostrar "…" no final */

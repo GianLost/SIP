@@ -8,7 +8,7 @@ public static class DateTimeExtensions
         {
             // Tenta obter a ID IANA (mais compatível)
             TimeZoneInfo brasiliaTimeZone = TimeZoneInfo.FindSystemTimeZoneById("America/Sao_Paulo");
-            DateTime brasiliaTime = TimeZoneInfo.ConvertTimeFromUtc(dateTime.ToUniversalTime(), brasiliaTimeZone);
+            DateTime brasiliaTime = TimeZoneInfo.ConvertTimeFromUtc(dateTime, brasiliaTimeZone);
 
             return brasiliaTime.ToString("dd/MM/yyyy HH:mm");
         }

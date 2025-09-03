@@ -3,6 +3,7 @@
 @using SIP.UI.Components.Dialogs.Protocols
 @using SIP.UI.Domain.DTOs.Protocols.Responses
 @using SIP.UI.Domain.Enums
+@using SIP.UI.Domain.Helpers.DataFormatting.DateTimes
 @using SIP.UI.Domain.Helpers.DataFormatting.Strings
 @using SIP.UI.Domain.Services.Protocols
 @using SIP.UI.Models.Protocols
@@ -90,8 +91,8 @@
 
             <HeaderContent>
 
-                <MudTh Class="mud-table-header-custom px-0 py-0" Style="width: 10px;"></MudTh>
-                <MudTh Class="mud-table-header-custom">
+                <MudTh Style="width: 10px;"></MudTh>
+                <MudTh >
                     <MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<ProtocolListItemDto, object>(p => p.Status)">Status</MudTableSortLabel>
                 </MudTh>
                 <MudTh Class="mud-table-header-custom">
@@ -100,24 +101,17 @@
                 <MudTh Class="mud-table-header-custom">
                     <MudTableSortLabel SortLabel="CreatedBy" SortBy="new Func<ProtocolListItemDto, object>(p => p.CreatedByFullName!)">Criado Por</MudTableSortLabel>
                 </MudTh>
-                <MudTh Class="mud-table-header-custom">
-                    <MudTableSortLabel SortLabel="OriginSector" SortBy="new Func<ProtocolListItemDto, object>(p => p.OriginSectorAcronym!)">Setor Origem</MudTableSortLabel>
-                </MudTh>
-                <MudTh Class="mud-table-header-custom">
-                    <MudTableSortLabel SortLabel="DestinationTo" SortBy="new Func<ProtocolListItemDto, object>(p => p.DestinationUserFullName!)">Destinado a</MudTableSortLabel>
-                </MudTh>
-                <MudTh Class="mud-table-header-custom">
-                    <MudTableSortLabel SortLabel="DestinationSector" SortBy="new Func<ProtocolListItemDto, object>(p => p.DestinationSectorAcronym!)">Setor Destino</MudTableSortLabel>
-                </MudTh>
                 <MudTh Class="mud-table-header-custom">Assunto</MudTh>
-                <MudTh Class="mud-table-header-custom">Descrição</MudTh>
+                <MudTh Class="mud-table-header-custom">Data de Criacao</MudTh>
 
             </HeaderContent>
 
             <RowTemplate Context="protocol">
 
-                @* Nova célula para a coluna de arquivados *@
-                <MudTd DataLabel="Arquivado" Class="px-0 py-0" Style="text-align: center;">
+                @* Nova célula para a coluna de arquivados 
+                    (** TODO: Implementar a componentização para o render de icones dinâmicos **)
+                *@
+                <MudTd DataLabel="Arquivado">
                     @if (protocol.IsArchived)
                     {
                         <MudTooltip Text="Arquivado...">
@@ -134,7 +128,11 @@
 
                 <MudTd DataLabel="Status">@GetStatusChip(protocol.Status)</MudTd>
 
-                <MudTd DataLabel="Número">@protocol.Number</MudTd>
+                <MudTd DataLabel="Número">
+                    <MudTooltip Text="@protocol.Number">
+                        <span>@protocol.Number</span>
+                    </MudTooltip>
+                </MudTd>
 
                 <MudTd Class="mud-table-cell-truncate" Style="max-width: 200px;" DataLabel="Criado Por">
                     <MudTooltip Text="@protocol.CreatedByFullName.ToUppercase()">
@@ -142,35 +140,17 @@
                     </MudTooltip>
                 </MudTd>
 
-                <MudTd Class="mud-table-cell-truncate" Style="max-width: 120px;" DataLabel="Setor Origem">
-                    <MudTooltip Text="@protocol.OriginSectorAcronym.ToUppercase()">
-                        <span>@protocol.OriginSectorAcronym.ToUppercase()</span>
-                    </MudTooltip>
-                </MudTd>
-
-                <MudTd Class="mud-table-cell-truncate" Style="max-width: 200px;" DataLabel="Destinado a">
-                    <MudTooltip Text="@protocol.DestinationUserFullName.ToUppercase()">
-                        <span>@FormatName(protocol.DestinationUserFullName.ToUppercase())</span>
-                    </MudTooltip>
-                </MudTd>
-
-                <MudTd Class="mud-table-cell-truncate" Style="max-width: 120px;" DataLabel="Setor Destino">
-                    <MudTooltip Text="@protocol.DestinationSectorAcronym.ToUppercase()">
-                        <span>@protocol.DestinationSectorAcronym.ToUppercase()</span>
-                    </MudTooltip>
-                </MudTd>
-
-                <MudTd Class="mud-table-cell-truncate" Style="max-width: 250px;" DataLabel="Assunto">
+                <MudTd Class="mud-table-cell-truncate" DataLabel="Assunto">
                     <MudTooltip Text="@protocol.Subject.ToUppercase()">
                         <span>@protocol.Subject.ToUppercase()</span>
                     </MudTooltip>
                 </MudTd>
 
-                <MudTd DataLabel="Descrição">
-                    <MudTooltip Text="@TruncateText(protocol.Description!, 200)" Style="width: 15rem; padding: 0.5rem; white-space: normal; word-wrap: break-word; overflow-wrap: break-word; text-align: justify;">
-                        <div class="truncate-cell">
-                            @protocol.Description
-                        </div>
+                <MudTd Class="mud-table-cell-truncate" DataLabel="Data de Criacao">
+                    <MudTooltip Text="@protocol.CreatedAt.ToBrasiliaTimeFormat()">
+                        <span>
+                            @protocol.CreatedAt.ToBrasiliaTimeFormat()
+                        </span>
                     </MudTooltip>
 
                 </MudTd>
