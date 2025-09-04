@@ -9,33 +9,40 @@
 
 <MudDialog Style="width:600px">
 
+    @* Conteúdo do diálogo *@
     <DialogContent>
 
-        @* Formulário com os campos de edição básica *@
+        @* Formulário de edição *@
         <MudForm @ref="form" @bind-IsValid="isValid" ErrorsChanged="OnErrorsChanged">
 
             <MudGrid Spacing="2">
 
+                @* Campo MASP *@
                 <MudItem xs="12" sm="6">
                     <MudTextField @bind-Value="User.Masp" Label="Masp" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.ConfirmationNumber" Required="true" RequiredError="O MASP é obrigatório!" Variant="Variant.Outlined" Margin="Margin.Normal" />
                 </MudItem>
+
+                @* Campo Nome Completo *@
                 <MudItem xs="12" sm="6">
                     <MudTextField @bind-Value="User.FullName" Label="Nome Completo" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.PeopleOutline" Required="true" RequiredError="O nome é obrigatório!" Variant="Variant.Outlined" Margin="Margin.Normal" />
                 </MudItem>
 
+                @* Campo Login *@
                 <MudItem xs="12" sm="6">
                     <MudTextField @bind-Value="User.Login" Label="Login" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.People" Required="true" RequiredError="O login é obrigatório!" Variant="Variant.Outlined" Margin="Margin.Normal" />
                 </MudItem>
+
+                @* Campo Email *@
                 <MudItem xs="12" sm="6">
                     <MudTextField @bind-Value="User.Email" Label="Email" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Email" Required="true" RequiredError="O email é obrigatório!" Variant="Variant.Outlined" Margin="Margin.Normal" />
                 </MudItem>
-
 
                 @* Checkbox para ativar/inativar o usuário com label dinâmico *@
                 <MudItem xs="12" sm="6" Class="m-0">
                     <MudCheckBox Size="Size.Small" @bind-Value="User.IsActive" Color="@Color.Primary"> @(User.IsActive == true ? "Desativar" : "Ativar")</MudCheckBox>
                 </MudItem>
 
+                @* Caixa de seleção para definir o papel (Role) do usuário *@
                 <MudItem xs="12" sm="6" Class="m-0">
                     <MudSelect T="RoleEnum" Label="Função (Role)" @bind-Value="User.Role" Required="true" Dense="true" RequiredError="Selecione uma função!" Variant="Variant.Outlined" Margin="Margin.Normal">
                         @foreach (RoleEnum role in Enum.GetValues(typeof(RoleEnum)))
@@ -51,43 +58,57 @@
 
     </DialogContent>
 
+    @* Botões de ação *@
     <DialogActions>
         <MudStack Row="true" Class="justify-end pa-4">
             <MudButton OnClick="Submit" Color="Color.Primary" Variant="Variant.Filled" Disabled="!isValid" Class="mr-3">
                 Salvar
             </MudButton>
-            <MudButton Color="Color.Secondary" Variant="Variant.Outlined" OnClick="Cancel">Cancelar</MudButton>
+            <MudButton Color="Color.Secondary" Variant="Variant.Outlined" OnClick="Cancel">
+                Cancelar
+             </MudButton>
         </MudStack>
     </DialogActions>
 
 </MudDialog>
 
 @code {
-    // Parâmetro em cascata para controlar a instância do diálogo (fechar, cancelar).
+
+    /// <summary>
+    /// A instância do diálogo do MudBlazor para controlar o ciclo de vida do diálogo
+    /// (fechar, cancelar ou retornar dados). É injetada automaticamente pelo framework.
+    /// </summary>
     [CascadingParameter]
     private IMudDialogInstance MudDialog { get; set; } = default!;
 
-    // Parâmetro para receber o objeto do usuário (novo ou para edição).
+    /// <summary>
+    /// O objeto de usuário que será editado. Este parâmetro é fornecido pelo componente pai.
+    /// </summary>
     [Parameter]
     public User User { get; set; } = new();
 
-    // Referência ao componente MudForm para acionar a validação.
+    /// <summary>
+    /// Referência ao formulário do MudBlazor, usada para disparar a validação manualmente.
+    /// </summary>
     private MudForm? form;
 
-    // Flag que indica se o formulário é válido. Habilita/desabilita o botão "Salvar".
+    /// <summary>
+    /// Indica se o formulário é válido. Controla a habilitação do botão "Salvar".
+    /// </summary>
     private bool isValid;
 
     /// <summary>
-    /// Called when form errors change to update the UI.
+    /// Executado sempre que a lista de erros do formulário é alterada.
+    /// Atualiza a interface do usuário.
     /// </summary>
     private void OnErrorsChanged() => 
         StateHasChanged();
 
     /// <summary>
-    /// Retorna o nome de exibição personalizado para cada UserRole.
+    /// Retorna o nome de exibição amigável para cada função (RoleEnum).
     /// </summary>
-    /// <param name="role">O valor do UserRole.</param>
-    /// <returns>A string de exibição correspondente.</returns>
+    /// <param name="role">O valor do RoleEnum.</param>
+    /// <returns>O nome legível da função correspondente.</returns>
     private string GetRoleDisplayName(RoleEnum role)
     {
         return role switch
@@ -95,16 +116,17 @@
             RoleEnum.Common => "Leitor",
             RoleEnum.SectorManager => "Gestor",
             RoleEnum.Admin => "Administrador",
-            _ => role.ToString() // Caso haja um novo enum sem mapeamento, exibe o nome padrão
+            _ => role.ToString() // Caso surja um novo enum sem mapeamento, retorna o nome padrão
         };
     }
 
     /// <summary>
-    /// Valida o formulário e, se for válido, fecha o diálogo retornando os dados.
+    /// Executa a validação do formulário.
+    /// Se for válido, fecha o diálogo e retorna o objeto <see cref="User"/> atualizado.
     /// </summary>
     private async Task Submit()
     {
-        // Força a validação de todos os campos do formulário.
+        // Força a validação de todos os campos.
         await form!.Validate();
 
         // Se o formulário for válido e um setor tiver sido selecionado...
@@ -118,8 +140,9 @@
     }
 
     /// <summary>
-    /// Cancela a operação e fecha o diálogo sem salvar.
+    /// Cancela a operação e fecha o diálogo sem salvar alterações.
     /// </summary>
     private void Cancel() => 
         MudDialog.Cancel();
+
 }

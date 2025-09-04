@@ -4,16 +4,25 @@
 
 <MudDialog>
 
+    @* Conteúdo do diálogo *@
     <DialogContent>
 
+        @* Cabeçalho do diálogo *@
         <MudStack AlignItems="AlignItems.Center" Spacing="2">
+
+            @* Ícone de lixeira *@
             <MudIcon Icon="@Icons.Material.Filled.DeleteForever" Class="mb-2" Color="Color.Error" Size="Size.Large" />
+
             <MudText Typo="Typo.h5" Align="Align.Center" class="mb-2" Color="Color.Error">
                 Confirmar exclusão de usuário
             </MudText>
+
         </MudStack>
 
+        @* Informações do usuário que será excluído *@
         <MudPaper Class="pa-3 mt-3" Elevation="0" Style="background-color: rgba(255, 0, 0, 0.05); border-radius: 8px;">
+
+            @* Texto de aviso *@
             <MudText Class="mb-4">
                 Você tem certeza que deseja excluir permanentemente o usuário abaixo?
             </MudText>
@@ -26,12 +35,14 @@
 
         </MudPaper>
 
+        @* Texto de aviso *@
         <MudAlert Severity="Severity.Warning" Variant="Variant.Text" Dense="true" Class="mt-4" Icon="@Icons.Material.Filled.Warning">
             <b>Atenção:</b> Esta ação não pode ser desfeita.
         </MudAlert>
 
     </DialogContent>
 
+    @* Botões de ação *@
     <DialogActions>
         <MudButton Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete" OnClick="Submit">
             Excluir
@@ -46,25 +57,28 @@
 @code {
 
     /// <summary>
-    /// The MudBlazor dialog instance for controlling dialog actions.
+    /// A instância do diálogo do MudBlazor para controlar as ações (fechar, confirmar, cancelar).
+    /// É injetada automaticamente pelo framework.
     /// </summary>
     [CascadingParameter]
     IMudDialogInstance MudDialog { get; set; } = default!;
 
     /// <summary>
-    /// The user to be deleted in the dialog.
+    /// O usuário que será excluído, recebido como parâmetro do componente pai.
+    /// Contém as informações exibidas no diálogo de confirmação.
     /// </summary>
     [Parameter]
     public User? UserToDelete { get; set; }
 
     /// <summary>
-    /// Confirms the deletion and closes the dialog with a positive result.
+    /// Confirma a exclusão do usuário.
+    /// Fecha o diálogo retornando um resultado positivo (true).
     /// </summary>
     private void Submit() => 
         MudDialog.Close(DialogResult.Ok(true));
 
     /// <summary>
-    /// Cancels the deletion and closes the dialog without changes.
+    /// Cancela a exclusão e fecha o diálogo sem aplicar nenhuma alteração.
     /// </summary>
     private void Cancel() => 
         MudDialog.Cancel();
