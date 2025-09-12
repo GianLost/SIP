@@ -15,45 +15,6 @@ public class SectorService(HttpClient http)
     private readonly HttpClient _http = http;
 
     /// <summary>
-    /// Gets a paginated list of sectors from the API.
-    /// </summary>
-    /// <param name="pageNumber">The page number (starting from 1).</param>
-    /// <param name="pageSize">The number of records per page.</param>
-    /// <param name="sortLabel">The property name to sort by.</param>
-    /// <param name="sortDirection">The sort direction ("asc" or "desc").</param>
-    /// <param name="searchString">Optional search string to filter sectors.</param>
-    /// <returns>A list of sectors for the specified page, or null if not found.</returns>
-    public async Task<ICollection<Sector>?> GetSectorsAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection = null, string? searchString = null)
-    {
-        List<string> queryParams =
-        [
-            $"pageNumber={pageNumber}",
-            $"pageSize={pageSize}"
-        ];
-
-        if (!string.IsNullOrEmpty(sortLabel))
-            queryParams.Add($"sortLabel={Uri.EscapeDataString(sortLabel)}");
-
-        if (!string.IsNullOrEmpty(sortDirection))
-            queryParams.Add($"sortDirection={Uri.EscapeDataString(sortDirection)}");
-
-        if (!string.IsNullOrEmpty(searchString))
-            queryParams.Add($"searchString={Uri.EscapeDataString(searchString)}");
-
-        string url = $"{SectorsEndpoints._getAllSectors}{string.Join("&", queryParams)}";
-
-        try
-        {
-            ICollection<Sector>? sectors = await _http.GetFromJsonAsync<ICollection<Sector>>(url);
-            return sectors;
-        }
-        catch (HttpRequestException ex)
-        {
-            throw new Exception($"Falha ao carregar os setores. Detalhes: {ex.Message}");
-        }
-    }
-
-    /// <summary>
     /// Gets a sector by its unique identifier from the API.
     /// </summary>
     /// <param name="id">The unique identifier of the sector.</param>

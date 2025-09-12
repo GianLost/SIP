@@ -1,53 +1,14 @@
-﻿using System.Net.Http.Json;
-using SIP.UI.Models.Users;
-using SIP.UI.Domain.DTOs.Users;
+﻿using SIP.UI.Domain.DTOs.Users;
 using SIP.UI.Domain.DTOs.Users.Configurations;
 using SIP.UI.Domain.Helpers.Endpoints;
+using SIP.UI.Models.Users;
+using System.Net.Http.Json;
 
 namespace SIP.UI.Domain.Services.Users;
 
 public class UserService(HttpClient http)
 {
     private readonly HttpClient _http = http;
-
-    /// <summary>
-    /// Gets a paginated list of users from the API.
-    /// </summary>
-    /// <param name="pageNumber">The page number (starting from 1).</param>
-    /// <param name="pageSize">The number of records per page.</param>
-    /// <param name="sortLabel">The property name to sort by.</param>
-    /// <param name="sortDirection">The sort direction ("asc" or "desc").</param>
-    /// <param name="searchString">Optional search string to filter sectors.</param>
-    /// <returns>A list of users for the specified page, or null if not found.</returns>
-    public async Task<ICollection<User>?> GetUsersAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection = null, string? searchString = null)
-    {
-        List<string> queryParams =
-        [
-            $"pageNumber={pageNumber}",
-            $"pageSize={pageSize}"
-        ];
-
-        if (!string.IsNullOrEmpty(sortLabel))
-            queryParams.Add($"sortLabel={Uri.EscapeDataString(sortLabel)}");
-
-        if (!string.IsNullOrEmpty(sortDirection))
-            queryParams.Add($"sortDirection={Uri.EscapeDataString(sortDirection)}");
-
-        if (!string.IsNullOrEmpty(searchString))
-            queryParams.Add($"searchString={Uri.EscapeDataString(searchString)}");
-
-        string url = $"{UsersEndpoints._getAllUsers}{string.Join("&", queryParams)}";
-
-        try
-        {
-            ICollection<User>? users = await _http.GetFromJsonAsync<ICollection<User>>(url);
-            return users;
-        }
-        catch (HttpRequestException ex)
-        {
-            throw new Exception($"Falha ao carregar os usuários. Detalhes: {ex.Message}");
-        }
-    }
 
     /// <summary>
     /// Gets a user by its unique identifier from the API.

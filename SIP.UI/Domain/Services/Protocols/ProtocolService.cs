@@ -34,24 +34,6 @@ public class ProtocolService(HttpClient http)
         }
     }
 
-    public async Task<int> GetTotalProtocolsCountAsync(string? searchString = null)
-    {
-        string url = ProtocolsEndpoints._protocolsCounter;
-
-        if (!string.IsNullOrEmpty(searchString))
-            url += $"?searchString={Uri.EscapeDataString(searchString)}";
-
-        try
-        {
-            int count = await _http.GetFromJsonAsync<int>(url);
-            return count;
-        }
-        catch (HttpRequestException ex)
-        {
-            throw new Exception($"Falha ao obter o total de protocolos. Detalhes: {ex.Message}");
-        }
-    }
-
     public async Task CreateProtocolAsync(Protocol protocol)
     {
         // Mapeia o objeto Protocol para o DTO de criação

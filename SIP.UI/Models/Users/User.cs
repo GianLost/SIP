@@ -1,6 +1,6 @@
 ﻿using SIP.UI.Domain.Enums;
-using SIP.UI.Models.Protocols;
 using SIP.UI.Models.Sectors;
+using SIP.UI.Models.Protocols;
 
 namespace SIP.UI.Models.Users;
 
@@ -13,8 +13,6 @@ public class User
     public int? Masp { get; set; } = null;
     public string Email { get; set; } = string.Empty;
     public string PasswordHash { get; set; } = string.Empty;
-
-
 
     public RoleEnum Role { get; set; }
     public bool IsActive { get; set; }

@@ -1,6 +1,6 @@
-﻿@inherits LayoutComponentBase
-@using MudBlazor
+﻿@using MudBlazor
 
+@inherits LayoutComponentBase
 @inject IJSRuntime JS
 
 @* Importação dos componentes do MudBlazor *@
@@ -74,8 +74,10 @@
 </MudLayout>
 
 @code {
+
     // Altere para `false` para que o menu comece fechado.
     private bool _isDrawerOpened = false;
+
     private bool _isDarkMode = true;
     private MudThemeProvider? _mudThemeProvider;
 
