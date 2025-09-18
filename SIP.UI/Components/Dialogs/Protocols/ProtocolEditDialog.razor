@@ -241,7 +241,7 @@
         ICollection<Sector>? sectorsResult = await SectorService.GetAllSectorsAsync();
         Sectors = sectorsResult?.ToList() ?? new List<Sector>();
 
-        ICollection<User>? usersResult = await UserService.GetAllUsersAsync();
+        ICollection<User>? usersResult = await UserService.GetAllUsersToDropdownAsync();
         AllUsers = usersResult?.ToList() ?? new List<User>();
 
         // Preenche os campos de autocomplete com os dados do protocolo original

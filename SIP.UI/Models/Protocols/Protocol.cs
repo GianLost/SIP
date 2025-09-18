@@ -26,7 +26,6 @@ public class Protocol
     public Guid DestinationSectorId { get; set; }
     public Guid OriginSectorId { get; set; }
 
-
     //public ICollection<Attachment> Attachments { get; set; } = [];
 
     //public ICollection<Movement> Movements { get; set; } = [];

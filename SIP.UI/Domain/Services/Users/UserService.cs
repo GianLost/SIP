@@ -1,5 +1,5 @@
-﻿using SIP.UI.Domain.DTOs.Users;
-using SIP.UI.Domain.DTOs.Users.Configurations;
+﻿using SIP.UI.Domain.DTOs.Users.Configurations;
+using SIP.UI.Domain.DTOs.Users.Responses;
 using SIP.UI.Domain.Helpers.Endpoints;
 using SIP.UI.Models.Users;
 using System.Net.Http.Json;
@@ -9,14 +9,6 @@ namespace SIP.UI.Domain.Services.Users;
 public class UserService(HttpClient http)
 {
     private readonly HttpClient _http = http;
-
-    /// <summary>
-    /// Gets a user by its unique identifier from the API.
-    /// </summary>
-    /// <param name="id">The unique identifier of the user.</param>
-    /// <returns>The user entity if found; otherwise, null.</returns>
-    public async Task<User?> GetUsersAsync(Guid id)
-        => await _http.GetFromJsonAsync<User>($"{UsersEndpoints._getUsersById}{id}");
 
     /// <summary>
     /// Gets a paginated result of users from the API, including total count. Use in-memory caching and limit the number of records per page to avoid multiple requests for the same data.
@@ -39,41 +31,35 @@ public class UserService(HttpClient http)
     }
 
     /// <summary>
-    /// Gets the total count of user from the API, optionally filtered by a search string.
+    /// Gets a user by its unique identifier from the API.
     /// </summary>
-    /// <param name="searchString">Optional search string to filter users.</param>
-    /// <returns>The total number of users matching the filter.</returns>
-    public async Task<int> GetTotalUsersCountAsync(string? searchString = null)
+    /// <param name="id">The unique identifier of the user.</param>
+    /// <returns>The user entity if found; otherwise, null.</returns>
+    public async Task<User?> GetUsersByIdAsync(Guid id)
     {
-        string url = UsersEndpoints._usersCounter;
-
-        if (!string.IsNullOrEmpty(searchString))
-            url += $"?searchString={Uri.EscapeDataString(searchString)}";
-
         try
         {
-            int count = await _http.GetFromJsonAsync<int>(url);
-            return count;
+            return await _http.GetFromJsonAsync<User>($"{UsersEndpoints._getUsersById}{id}");
         }
-        catch (HttpRequestException ex)
+        catch
         {
-            throw new Exception($"Falha ao obter o total de usuários. Detalhes: {ex.Message}");
+            return null;
         }
     }
 
     /// <summary>
-    /// Busca TODOS os setores da API para usar em dropdowns e seletores.
+    /// Busca TODOS os usuários da API para usar em dropdowns e seletores.
     /// </summary>
-    /// <returns>Uma lista completa de todos os setores.</returns>
-    public async Task<ICollection<User>?> GetAllUsersAsync()
+    /// <returns>Uma lista completa de todos os usuários.</returns>
+    public async Task<ICollection<User>?> GetAllUsersToDropdownAsync()
     {
         try
         {
             string endpoint = UsersEndpoints._getAllUsers;
 
-            ICollection<User>? sectors = await _http.GetFromJsonAsync<ICollection<User>>(endpoint);
+            ICollection<User>? users = await _http.GetFromJsonAsync<ICollection<User>>(endpoint);
 
-            return sectors ?? [];
+            return users ?? [];
         }
         catch (HttpRequestException ex)
         {

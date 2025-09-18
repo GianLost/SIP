@@ -10,6 +10,7 @@ public class ProtocolListItemDto
     public string? Description { get; set; } = string.Empty;
     public ProtocolStatus Status { get; set; }
     public bool IsArchived { get; set; } = false;
+
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
 

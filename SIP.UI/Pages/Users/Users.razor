@@ -3,6 +3,7 @@
 @using SIP.UI.Components.Dialogs.Users
 @using SIP.UI.Domain.DTOs.Users
 @using SIP.UI.Domain.DTOs.Users.Configurations
+@using SIP.UI.Domain.DTOs.Users.Responses
 @using SIP.UI.Domain.Enums
 @using SIP.UI.Domain.Helpers.DataFormatting.DateTimes
 @using SIP.UI.Domain.Helpers.DataFormatting.Strings
@@ -18,6 +19,7 @@
 
 @inject UserService _userService
 @inject ProtocolService _protocolService
+
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 
@@ -32,7 +34,7 @@
 
     <MudPaper Class="pa-4 ma-2" Elevation="1">
 
-        <MudTable T="User" ServerData="LoadServerData" Dense="true" Hover="true" Bordered="false" @ref="table" RowsPerPage="pageSize" LoadingProgressColor="Color.Primary" SortLabel="sortLabel" Loading="@isLoading" Elevation="0" MultiSelection="true" @bind-SelectedItems="_selectedUsers">
+        <MudTable T="UserListItemDTO" ServerData="LoadServerData" Dense="true" Hover="true" Bordered="false" @ref="table" RowsPerPage="pageSize" LoadingProgressColor="Color.Primary" SortLabel="sortLabel" Loading="@isLoading" Elevation="0" MultiSelection="true" @bind-SelectedItems="_selectedUsers">
 
             <ToolBarContent>
 
@@ -107,23 +109,23 @@
                 <MudTh Style="width: 10px;"></MudTh>
 
                 <MudTh Style="font-weight: bold;">
-                    <MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<User, object>(x => x.IsActive)">Status</MudTableSortLabel>
+                    <MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<UserListItemDTO, object>(x => x.IsActive)">Status</MudTableSortLabel>
                 </MudTh>
 
                 <MudTh Style="font-weight: bold;">
-                    <MudTableSortLabel SortLabel="Masp" InitialDirection="SortDirection.Ascending" SortBy="new Func<User, object>(x => x.Masp!)">Masp</MudTableSortLabel>
+                    <MudTableSortLabel SortLabel="Masp" InitialDirection="SortDirection.Ascending" SortBy="new Func<UserListItemDTO, object>(x => x.Masp!)">Masp</MudTableSortLabel>
                 </MudTh>
 
                 <MudTh Style="font-weight: bold;">
-                    <MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<User, object>(x => x.FullName)">Nome</MudTableSortLabel>
+                    <MudTableSortLabel SortLabel="Name" InitialDirection="SortDirection.Ascending" SortBy="new Func<UserListItemDTO, object>(x => x.FullName!)">Nome</MudTableSortLabel>
                 </MudTh>
 
                 <MudTh Style="font-weight: bold;">
-                    <MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<User, object>(x => x.Login)">Login</MudTableSortLabel>
+                    <MudTableSortLabel SortLabel="Login" InitialDirection="SortDirection.Ascending" SortBy="new Func<UserListItemDTO, object>(x => x.Login!)">Login</MudTableSortLabel>
                 </MudTh>
 
                 <MudTh Style="font-weight: bold;">
-                    <MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<User, object?>(x => x.Sector?.Acronym)">Secretaria</MudTableSortLabel>
+                    <MudTableSortLabel SortLabel="Sector" InitialDirection="SortDirection.Ascending" SortBy="new Func<UserListItemDTO, object?>(x => x.SectorName)">Secretaria</MudTableSortLabel>
                 </MudTh>
             </HeaderContent>
 
@@ -152,11 +154,11 @@
                     </MudTooltip>
                 </MudTd>
                 <MudTd Class="mud-table-cell-truncate" DataLabel="Masp">
-                    <MudTooltip Text="@user.Masp.ToString()">
+                    <MudTooltip Text="@user.Masp!.ToString()">
                         <span>@user.Masp</span>
                     </MudTooltip>
                 </MudTd>
-                <MudTd Class="mud-table-cell-truncate" DataLabel="Nome">
+                <MudTd Class="mud-table-cell-truncate" DataLabel="Name">
                     <MudTooltip Text="@user.FullName.ToUppercase()">
                         <span>@user.FullName.ToUppercase()</span>
                     </MudTooltip>
@@ -167,8 +169,8 @@
                     </MudTooltip>
                 </MudTd>
                 <MudTd Class="mud-table-cell-truncate" DataLabel="Secretaria">
-                    <MudTooltip Text="@user?.Sector?.Acronym.ToUppercase()">
-                        <span>@user?.Sector?.Acronym.ToUppercase()</span>
+                    <MudTooltip Text="@user?.SectorName.ToUppercase()">
+                        <span>@user?.SectorName.ToUppercase()</span>
                     </MudTooltip>
                 </MudTd>
             </RowTemplate>
@@ -230,15 +232,13 @@
 </MudContainer>
 
 @code {
-    private MudTable<User>? table;
+    private MudTable<UserListItemDTO>? table;
     private bool isLoading = false;
     private int pageSize = 15;
-    private int totalItems = 0;
     private string searchString = string.Empty;
-    private string? lastSortLabel;
     private bool _isModalOpen = false;
 
-    private HashSet<User> _selectedUsers = new();
+    private HashSet<UserListItemDTO> _selectedUsers = new();
 
     private RenderFragment GetStatusChip(ProtocolStatus status)
     {
@@ -259,15 +259,13 @@
         _ => ("Desconhecido", Icons.Material.Filled.HelpOutline, Color.Default)
     };
 
-    private string GetButtonClass()
-    {
-        return $"mud-elevation-3 animated-fab-button-manual-icon {(_isModalOpen ? "force-expanded-button" : "")}";
-    }
+    private string GetButtonClass() =>
+        $"mud-elevation-3 animated-fab-button-manual-icon {(_isModalOpen ? "force-expanded-button" : "")}";
 
     protected override void OnInitialized() => 
         _selectedUsers.Clear();
 
-    private async Task<TableData<User>> LoadServerData(TableState state, CancellationToken cancellationToken)
+    private async Task<TableData<UserListItemDTO>> LoadServerData(TableState state, CancellationToken cancellationToken)
     {
         isLoading = true;
         StateHasChanged();
@@ -279,14 +277,7 @@
         string? sortLabel = state.SortLabel;
 
         if (string.IsNullOrWhiteSpace(sortLabel))
-        {
-            if (state.SortDirection != SortDirection.None)
-                sortLabel = lastSortLabel ?? "FullName";
-            else
-                sortLabel = "FullName";
-        }
-
-        lastSortLabel = sortLabel;
+            sortLabel = "Status";
 
         try
         {
@@ -297,9 +288,7 @@
                 GetSortDirectionString(state.SortDirection),
                 searchString);
 
-            totalItems = await _userService.GetTotalUsersCountAsync(searchString);
-
-            return new TableData<User>
+            return new TableData<UserListItemDTO>
                 {
                     Items = users.Items,
                     TotalItems = users.TotalCount
@@ -308,7 +297,7 @@
         catch (Exception ex)
         {
             Snackbar.Add($"Erro ao carregar dados: {ex.Message}", Severity.Error);
-            return new TableData<User> { Items = [], TotalItems = 0 };
+            return new TableData<UserListItemDTO> { Items = [], TotalItems = 0 };
         }
         finally
         {
@@ -329,7 +318,7 @@
     /// Toggles the visibility of related protocols for a user.
     /// </summary>
     /// <param name="user">The sector to toggle.</param>
-    private void ToggleShowProtocols(User user) => 
+    private void ToggleShowProtocols(UserListItemDTO user) => 
         user.ShowProtocols = !user.ShowProtocols;
 
     private async Task OnSearch(string value)
@@ -375,20 +364,20 @@
         }
     }
 
-    private async Task ShowEditBasicDialog(User userToEdit)
+    private async Task ShowEditBasicDialog(UserListItemDTO userToEdit)
     {
         DialogParameters<UserEditDialog> parameters = new();
 
         User userForDialog = new()
-            {
-                Id = userToEdit.Id,
-                FullName = userToEdit.FullName,
-                Login = userToEdit.Login,
-                Masp = userToEdit.Masp,
-                Email = userToEdit.Email,
-                Role = userToEdit.Role,
-                IsActive = userToEdit.IsActive,
-            };
+        {
+            Id = userToEdit.Id,
+            FullName = userToEdit.FullName!,
+            Login = userToEdit.Login!,
+            Masp = Convert.ToInt32(userToEdit.Masp),
+            Email = userToEdit.Email!,
+            Role = userToEdit.Role,
+            IsActive = userToEdit.IsActive,
+        };
 
         parameters.Add(x => x.User, userForDialog);
 
@@ -467,11 +456,11 @@
         }
     }
 
-    private async Task ShowChangePasswordDialog(User user)
+    private async Task ShowChangePasswordDialog(UserListItemDTO user)
     {
         DialogParameters<UserChangePasswordDialog> parameters = new();
 
-        parameters.Add(x => x.Users, new User { Id = user.Id, Login = user.Login });
+        parameters.Add(x => x.Users, new User { Id = user.Id, Login = user.Login! });
 
         IDialogReference dialog = await DialogService.ShowAsync<UserChangePasswordDialog>("", parameters);
         DialogResult? result = await dialog.Result;
@@ -483,7 +472,7 @@
             {
                 try
                 {
-                    await _userService.DefaultChangePasswordAsync(updatedUser.Id, updatedUser.PasswordHash);
+                    await _userService.DefaultChangePasswordAsync(updatedUser.Id, updatedUser.Password);
                     Snackbar.Add("Senha alterada com sucesso!", Severity.Success);
                     if (table is not null)
                         await table.ReloadServerData();
@@ -500,13 +489,13 @@
         }
     }
 
-    private void ShowChangeSectorDialog(User user)
+    private void ShowChangeSectorDialog(UserListItemDTO user)
     {
         if (user == null) return;
         Snackbar.Add($"Diálogo de mudança de setores para {user.FullName} ainda não implementado.", Severity.Info);
     }
 
-    private async Task ShowDeleteDialog(User user)
+    private async Task ShowDeleteDialog(UserListItemDTO user)
     {
         DialogParameters<UserDeleteDialog> parameters = new();
 

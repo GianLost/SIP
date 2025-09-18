@@ -39,17 +39,32 @@
 
                 @* Campos de Senha e Confirmação de Senha (presentes na adição) *@
                 <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="User.PasswordHash" Label="Senha" InputType="InputType.Password"
-                                  Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Password"
-                                  Required="true" RequiredError="A senha é obrigatória!"
-                                  Variant="Variant.Outlined" Margin="Margin.Normal" />
+                    <MudTextField T="string"
+                                  @bind-Value="User.Password"
+                                  Label="Nova Senha"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Normal"
+                                  InputType="@(showNewPassword ? InputType.Text : InputType.Password)"
+                                  Required="true"
+                                  RequiredError="A nova senha é obrigatória!"
+                                  For="@(() => User.Password)"
+                                  Adornment="Adornment.End"
+                                  AdornmentIcon="@(showNewPassword ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"
+                                  OnAdornmentClick="ToggleNewPasswordVisibility" />
                 </MudItem>
                 <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="ConfirmPassword" Label="Confirmar Senha" InputType="InputType.Password"
-                                  Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Password"
-                                  Required="true" RequiredError="A confirmação de senha é obrigatória!"
-                                  Validation="@(new Func<string, IEnumerable<string>>(PasswordMatchValidation))"
-                                  Variant="Variant.Outlined" Margin="Margin.Normal" />
+                    <MudTextField @bind-Value="ConfirmPassword"
+                                  Label="Confirmar Senha"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Normal"
+                                  InputType="@(showConfirmPassword? InputType.Text: InputType.Password)"
+                                  Required="true"
+                                  RequiredError="A confirmação de senha é obrigatória!"
+                                  For="@(() => ConfirmPassword)"
+                                  Validation="@(new Func<string, string>(ValidateConfirmPassword))"
+                                  Adornment="Adornment.End"
+                                  AdornmentIcon="@(showConfirmPassword? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"
+                                  OnAdornmentClick="ToggleConfirmPasswordVisibility" />
                 </MudItem>
 
                 @* Caixa de seleção para selecionar o setor do usuário *@
@@ -136,7 +151,19 @@
     private Sector? selectedSector;
 
     /// <summary>
-    /// Valor de confirmação da senha, usado para validar se a senha digitada corresponde.
+    /// Flag que controla a visibilidade do campo "Nova Senha".
+    /// Quando true, a senha é exibida em texto; quando false, é exibida como senha (oculta).
+    /// </summary>
+    private bool showNewPassword;
+
+    /// <summary>
+    /// Flag que controla a visibilidade do campo "Confirmar Senha".
+    /// Quando true, a confirmação é exibida em texto; quando false, é exibida como senha (oculta).
+    /// </summary>
+    private bool showConfirmPassword;
+
+    /// <summary>
+    /// Valor digitado no campo "Confirmar Senha".
     /// </summary>
     private string ConfirmPassword { get; set; } = string.Empty;
 
@@ -157,8 +184,8 @@
             );
         }
 
-        if (User.PasswordHash != null)
-            User.PasswordHash = string.Empty;
+        if (User.Password != null)
+            User.Password = string.Empty;
 
         ConfirmPassword = string.Empty;
 
@@ -182,20 +209,44 @@
     }
 
     /// <summary>
-    /// Valida se a senha e a confirmação de senha correspondem.
+    /// Alterna a visibilidade do campo "Nova Senha".
     /// </summary>
-    /// <param name="confirmPasswordValue">Valor digitado no campo de confirmação.</param>
-    /// <returns>Mensagens de erro caso as senhas não coincidam.</returns>
-    private IEnumerable<string> PasswordMatchValidation(string confirmPasswordValue)
-    {
-        if (string.IsNullOrEmpty(confirmPasswordValue))
-        {
-            yield return "A confirmação de senha é obrigatória!";
-            yield break;
-        }
+    private void ToggleNewPasswordVisibility() =>
+        showNewPassword = !showNewPassword;
 
-        if (confirmPasswordValue != User.PasswordHash)
-            yield return "As senhas não correspondem!";
+    /// <summary>
+    /// Alterna a visibilidade do campo "Confirmar Senha".
+    /// </summary>
+    private void ToggleConfirmPasswordVisibility() =>
+        showConfirmPassword = !showConfirmPassword;
+
+    /// <summary>
+    /// Valida o campo "Nova Senha".
+    /// </summary>
+    /// <param name="value">Valor digitado no campo de senha.</param>
+    /// <returns>Mensagem de erro se inválido, string vazia se válido.</returns>
+    private string ValidateNewPassword(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return "A nova senha é obrigatória.";
+
+        return string.Empty;
+    }
+
+    /// <summary>
+    /// Valida o campo "Confirmar Senha".
+    /// </summary>
+    /// <param name="value">Valor digitado no campo de confirmação.</param>
+    /// <returns>Mensagem de erro se inválido, string vazia se válido.</returns>
+    private string ValidateConfirmPassword(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return "A confirmação de senha é obrigatória.";
+
+        if (value != User.Password)
+            return "As senhas não conferem.";
+
+        return string.Empty;
     }
 
     /// <summary>

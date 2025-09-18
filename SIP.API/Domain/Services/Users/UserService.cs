@@ -5,7 +5,7 @@ using SIP.API.Domain.Entities.Users;
 using SIP.API.Domain.Interfaces.Users;
 using SIP.API.Infrastructure.Caching;
 using SIP.API.Infrastructure.Database;
-using System.Reflection;
+using System.Linq.Expressions;
 
 namespace SIP.API.Domain.Services.Users;
 
@@ -17,6 +17,7 @@ public class UserService(ApplicationContext context, EntityCacheManager cache) :
     private readonly ApplicationContext _context = context;
     private readonly EntityCacheManager _cache = cache;
     private const string EntityType = nameof(User);
+
     private const int MaxPageSize = 100;
 
     /// <inheritdoc/>
@@ -29,7 +30,7 @@ public class UserService(ApplicationContext context, EntityCacheManager cache) :
             Login = dto.Login,
             Masp = dto.Masp,
             Email = dto.Email,
-            PasswordHash = dto?.PasswordHash ?? throw new ArgumentNullException("password isn't empty."),
+            PasswordHash = dto?.Password ?? throw new ArgumentNullException(dto!.Password, "password isn't empty."),
             Role = dto.Role,
             SectorId = dto.SectorId
         };
@@ -54,7 +55,12 @@ public class UserService(ApplicationContext context, EntityCacheManager cache) :
             .ToListAsync();
 
     /// <inheritdoc/>
-    public async Task<UserPagedResultDTO> GetPagedAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection, string? searchString)
+    public async Task<UserPagedResultDTO> GetPagedAsync(
+    int pageNumber, 
+    int pageSize, 
+    string? sortLabel, 
+    string? sortDirection, 
+    string? searchString)
     {
         pageSize = Math.Min(pageSize, MaxPageSize); // Limite máximo
 
@@ -79,32 +85,62 @@ public class UserService(ApplicationContext context, EntityCacheManager cache) :
             _cache.Set($"UserCount_Search_{searchString ?? "NoSearch"}", totalCount.Value, EntityType);
         }
 
-        if (!string.IsNullOrWhiteSpace(sortLabel) && !string.IsNullOrWhiteSpace(sortDirection))
+        Expression<Func<User, int>> statusOrderExpr = s =>
+
+            s.IsActive == true ? 1 :
+            s.IsActive == false ? 0 : 99;
+
+        if (!string.IsNullOrWhiteSpace(sortLabel))
         {
-            PropertyInfo? property = typeof(User).GetProperty(sortLabel, 
-                BindingFlags.IgnoreCase | 
-                BindingFlags.Public | 
-                BindingFlags.Instance);
-            if (property != null)
+            bool asc = sortDirection?.Trim().Equals("asc", StringComparison.CurrentCultureIgnoreCase) ?? true;
+
+            query = sortLabel.ToLower() switch
             {
-                query = sortDirection.Trim().Equals("asc", StringComparison.CurrentCultureIgnoreCase)
-                    ? query.OrderBy(e => EF.Property<object>(e, property.Name))
-                    : query.OrderByDescending(e => EF.Property<object>(e, property.Name));
-            }
-            else
-            {
-                query = query.OrderBy(s => s.FullName);
-            }
+                "status" => asc
+                    ? query.OrderBy(statusOrderExpr)
+                    : query.OrderByDescending(statusOrderExpr),
+                "masp" => asc
+                    ? query.OrderBy(s => Convert.ToInt64(s.Masp))
+                    : query.OrderByDescending(s => Convert.ToInt64(s.Masp)),
+                "name" => asc
+                    ? query.OrderBy(s => s.FullName)
+                    : query.OrderByDescending(s => s.FullName),
+                "login" => asc
+                    ? query.OrderBy(s => s.Login)
+                    : query.OrderByDescending(s => s.Login),
+                "sector" => asc
+                    ? query.OrderBy(s => s.Sector!.Acronym)
+                    : query.OrderByDescending(s => s.Sector!.Acronym),
+                _ => asc
+                    ? query.OrderBy(statusOrderExpr)
+                    : query.OrderByDescending(statusOrderExpr),
+            };
         }
         else
         {
-            query = query.OrderBy(s => s.FullName);
+            query = query.OrderBy(statusOrderExpr);
         }
 
-        ICollection<User> items = await query
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
+        IQueryable<UserListItemDTO> pagedDataQuery = query
+        .Skip((pageNumber - 1) * pageSize)
+        .Take(pageSize)
+        .Select(u => new UserListItemDTO
+        {
+            Id = u.Id,
+            FullName = u.FullName,
+            Login = u.Login,
+            Masp = u.Masp.ToString(),
+            Email = u.Email,
+            Role = u.Role,
+            IsActive = u.IsActive,
+            CreatedAt = u.CreatedAt,
+            LastLoginAt = u.LastLoginAt,
+            UpdatedAt = u.UpdatedAt,
+            SectorName = u.Sector != null ? u.Sector.Acronym : null,
+            Protocols = u.Protocols
+        });
+
+        ICollection<UserListItemDTO> items = await pagedDataQuery.ToListAsync();
 
         return new UserPagedResultDTO
         {
@@ -130,10 +166,10 @@ public class UserService(ApplicationContext context, EntityCacheManager cache) :
         user.UpdatedAt = DateTime.UtcNow;
 
         _context.Users.Update(user);
+        await _context.SaveChangesAsync();
 
         ClearTotalUsersCountCache();
 
-        await _context.SaveChangesAsync();
         return user;
     }
 

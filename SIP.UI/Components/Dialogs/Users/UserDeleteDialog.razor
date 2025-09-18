@@ -1,4 +1,5 @@
 ﻿@using MudBlazor
+@using SIP.UI.Domain.DTOs.Users.Responses
 @using SIP.UI.Models.Sectors
 @using SIP.UI.Models.Users
 
@@ -30,7 +31,7 @@
             <MudStack Spacing="0">
                 <MudText Typo="Typo.body2">Nome: <b>@UserToDelete?.FullName</b></MudText>
                 <MudText Typo="Typo.body2">Login: <b>@UserToDelete?.Login</b></MudText>
-                <MudText Typo="Typo.body2" Class="mt-2">Setor: <b>@UserToDelete?.Sector!.Acronym - @UserToDelete?.Sector!.Name</b></MudText>
+                <MudText Typo="Typo.body2" Class="mt-2">Setor: <b>@UserToDelete?.SectorName</b></MudText>
             </MudStack>
 
         </MudPaper>
@@ -68,7 +69,7 @@
     /// Contém as informações exibidas no diálogo de confirmação.
     /// </summary>
     [Parameter]
-    public User? UserToDelete { get; set; }
+    public UserListItemDTO UserToDelete { get; set; } = new();
 
     /// <summary>
     /// Confirma a exclusão do usuário.

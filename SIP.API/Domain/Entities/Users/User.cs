@@ -36,10 +36,11 @@ public class User : BaseUser
     [JsonPropertyOrder(10)]
     public DateTime? UpdatedAt { get; set; } = null;
 
+    [Required]
     [JsonPropertyOrder(11)]
-    [ForeignKey(nameof(Sector))]
     public Guid SectorId { get; set; }
 
+    [ForeignKey(nameof(SectorId))]
     [JsonPropertyOrder(12)]
     public Sector? Sector { get; set; }
 

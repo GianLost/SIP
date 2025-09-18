@@ -15,6 +15,7 @@ public class ProtocolService(ApplicationContext contex, EntityCacheManager cache
 
     private readonly ApplicationContext _context = contex;
     private readonly EntityCacheManager _cache = cache;
+
     private const string EntityType = nameof(Protocol);
     private const int MaxPageSize = 100;
 

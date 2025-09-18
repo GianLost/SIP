@@ -1,12 +1,14 @@
-﻿namespace SIP.UI.Domain.DTOs.Users.Responses;
+﻿using SIP.UI.Domain.Enums;
 
-public class UserResponseDTO
+namespace SIP.UI.Domain.DTOs.Users;
+
+public class UserUpdateDTO
 {
-    public Guid Id { get; set; }
     public string FullName { get; set; } = string.Empty;
     public string Login { get; set; } = string.Empty;
     public string Masp { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
-    public string Role { get; set; } = string.Empty;
     public bool IsActive { get; set; }
+
+    public RoleEnum Role { get; set; }
 }

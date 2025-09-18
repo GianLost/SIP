@@ -11,7 +11,7 @@ namespace SIP.API.Domain.DTOs.Users;
 public class UserCreateDTO : BaseUser
 {
     [JsonPropertyOrder(5)]
-    public string? PasswordHash { get; set; }
+    public string? Password { get; set; }
 
     [JsonPropertyOrder(6)]
     public UserRole Role { get; set; }

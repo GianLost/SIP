@@ -1,18 +1,16 @@
 ﻿using SIP.UI.Domain.Enums;
-using SIP.UI.Models.Sectors;
 using SIP.UI.Models.Protocols;
 
-namespace SIP.UI.Models.Users;
+namespace SIP.UI.Domain.DTOs.Users.Responses;
 
-public class User
+public class UserListItemDTO
 {
     public Guid Id { get; set; } = Guid.NewGuid();
 
-    public string FullName { get; set; } = string.Empty;
-    public string Login { get; set; } = string.Empty;
-    public int? Masp { get; set; } = null;
-    public string Email { get; set; } = string.Empty;
-    public string Password { get; set; } = string.Empty;
+    public string? FullName { get; set; } = string.Empty;
+    public string? Login { get; set; } = string.Empty;
+    public string? Masp { get; set; } = string.Empty;
+    public string? Email { get; set; } = string.Empty;
 
     public RoleEnum Role { get; set; }
     public bool IsActive { get; set; }
@@ -21,8 +19,9 @@ public class User
     public DateTime? LastLoginAt { get; set; } = null;
     public DateTime? UpdatedAt { get; set; } = null;
 
-    public Guid SectorId { get; set; }
-    public Sector? Sector { get; set; }
+    public bool ShowProtocols { get; set; }
+
+    public string? SectorName { get; set; }
 
     public ICollection<Protocol> Protocols { get; set; } = [];
 }
