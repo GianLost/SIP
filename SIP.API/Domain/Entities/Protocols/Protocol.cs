@@ -9,6 +9,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace SIP.API.Domain.Entities.Protocols;
 
+/// <summary>
+/// Represents a protocol entity in the system.
+/// </summary>
 [Table("tbl_protocols")]
 [Index(nameof(Number), IsUnique = true, Name = "uc_Protocol_Number")]
 [Index(nameof(CreatedById), Name = "idx_Protocol_CreatedById")]

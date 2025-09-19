@@ -4,6 +4,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SIP.API.Domain.Models.Protocols;
 
+/// <summary>
+/// Provides base properties for protocol data transfer objects (DTOs).
+/// </summary>
 public class BaseProtocol
 {
     [Required]

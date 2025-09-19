@@ -5,9 +5,7 @@ namespace SIP.API.Domain.DTOs.Protocols.Responses;
 
 public class ProtocolResponseDTO : BaseProtocol
 {
-    [JsonPropertyOrder(6)]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-    [JsonPropertyOrder(7)]
     public DateTime? UpdatedAt { get; set; } = null;
 }

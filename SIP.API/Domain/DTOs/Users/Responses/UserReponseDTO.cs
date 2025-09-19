@@ -10,10 +10,8 @@ namespace SIP.API.Domain.DTOs.Users.Responses;
 /// </summary>
 public class UserReponseDTO : BaseUser
 {
-    [JsonPropertyOrder(8)]
     public DateTime CreatedAt { get; set; }
 
-    [JsonPropertyOrder(9)]
     public DateTime? UpdatedAt { get; set; }
 
     public UserRole Role { get; set; }

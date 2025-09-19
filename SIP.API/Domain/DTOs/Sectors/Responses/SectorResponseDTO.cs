@@ -1,5 +1,4 @@
 ﻿using SIP.API.Domain.Models.Sectors;
-using System.Text.Json.Serialization;
 
 namespace SIP.API.Domain.DTOs.Sectors.Responses;
 
@@ -9,9 +8,7 @@ namespace SIP.API.Domain.DTOs.Sectors.Responses;
 /// </summary>
 public class SectorResponseDTO : BaseSector
 {
-    [JsonPropertyOrder(4)]
     public DateTime CreatedAt { get; set; }
 
-    [JsonPropertyOrder(5)]
     public DateTime? UpdatedAt { get; set; }
 }

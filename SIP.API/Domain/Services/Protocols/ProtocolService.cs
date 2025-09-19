@@ -188,10 +188,10 @@ public class ProtocolService(ApplicationContext contex, EntityCacheManager cache
             Status = p.Status,
             CreatedAt = p.CreatedAt,
             IsArchived = p.IsArchived,
-            CreatedByFullName = p.CreatedBy != null ? p.CreatedBy.Name : null,
-            OriginSectorAcronym = p.OriginSector != null ? p.OriginSector.Acronym : null,
-            DestinationUserFullName = p.DestinationUser != null ? p.DestinationUser.Name : null,
-            DestinationSectorAcronym = p.DestinationSector != null ? p.DestinationSector.Acronym : null
+            CreatedByFullName = p.CreatedBy!.Name,
+            OriginSectorAcronym = p.OriginSector!.Acronym,
+            DestinationUserFullName = p.DestinationUser!.Name,
+            DestinationSectorAcronym = p.DestinationSector!.Acronym
         });
 
 

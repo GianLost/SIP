@@ -136,7 +136,7 @@ public class UserService(ApplicationContext context, EntityCacheManager cache) :
             CreatedAt = u.CreatedAt,
             LastLoginAt = u.LastLoginAt,
             UpdatedAt = u.UpdatedAt,
-            SectorName = u.Sector != null ? u.Sector.Acronym : null,
+            SectorName = u.Sector!.Acronym,
             Protocols = u.Protocols
         });
 

@@ -7,10 +7,10 @@ public class UserListItemDTO
 {
     public Guid Id { get; set; } = Guid.NewGuid();
 
-    public string? Name { get; set; } = string.Empty;
-    public string? Login { get; set; } = string.Empty;
-    public string? Masp { get; set; } = string.Empty;
-    public string? Email { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string Login { get; set; } = string.Empty;
+    public string Masp { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
 
     public UserRole Role { get; set; }
     public bool IsActive { get; set; }
@@ -19,9 +19,7 @@ public class UserListItemDTO
     public DateTime? LastLoginAt { get; set; } = null;
     public DateTime? UpdatedAt { get; set; } = null;
 
-    public bool ShowProtocols { get; set; }
-
-    public string? SectorName { get; set; }
+    public string SectorName { get; set; } = string.Empty;
 
     public ICollection<Protocol> Protocols { get; set; } = [];
 }
