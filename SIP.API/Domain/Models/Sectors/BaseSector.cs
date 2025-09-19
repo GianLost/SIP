@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SIP.API.Domain.Models.Sectors;
 
@@ -7,12 +8,18 @@ namespace SIP.API.Domain.Models.Sectors;
 /// </summary>
 public abstract class BaseSector
 {
-    [JsonPropertyOrder(1)]
+    [Required]
+    [StringLength(150)]
+    [Column(TypeName = "varchar(150)")]
     public string Name { get; set; } = string.Empty;
 
-    [JsonPropertyOrder(2)]
+    [Required]
+    [StringLength(20)]
+    [Column(TypeName = "varchar(20)")]
     public string Acronym { get; set; } = string.Empty;
 
-    [JsonPropertyOrder(3)]
+    [Required]
+    [StringLength(20)]
+    [Column(TypeName = "varchar(20)")]
     public string Phone { get; set; } = string.Empty;
 }

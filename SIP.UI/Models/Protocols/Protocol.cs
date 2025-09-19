@@ -5,7 +5,7 @@ public class Protocol
 {
     public Guid Id { get; set; } = Guid.NewGuid();
 
-    public string Number { get; set; } = string.Empty;
+    public int Number { get; set; }
 
     public string Subject { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;

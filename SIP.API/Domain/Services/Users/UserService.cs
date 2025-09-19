@@ -26,7 +26,7 @@ public class UserService(ApplicationContext context, EntityCacheManager cache) :
 
         User entity = new()
         {
-            FullName = dto.FullName,
+            Name = dto.Name,
             Login = dto.Login,
             Masp = dto.Masp,
             Email = dto.Email,
@@ -50,7 +50,7 @@ public class UserService(ApplicationContext context, EntityCacheManager cache) :
     /// <inheritdoc/>
     public async Task<ICollection<User>> GetAllAsync() =>
         await _context.Users
-            .OrderBy(s => s.FullName)
+            .OrderBy(s => s.Name)
             .AsNoTracking()
             .ToListAsync();
 
@@ -70,7 +70,7 @@ public class UserService(ApplicationContext context, EntityCacheManager cache) :
         {
             query = query.Where(s =>
                 s.Masp.ToString().Contains(searchString) ||
-                s.FullName.Contains(searchString) ||
+                s.Name.Contains(searchString) ||
                 s.Login.Contains(searchString) ||
                 s.Email.Contains(searchString) ||
                 (s.Sector != null && s.Sector.Acronym.Contains(searchString)));
@@ -103,8 +103,8 @@ public class UserService(ApplicationContext context, EntityCacheManager cache) :
                     ? query.OrderBy(s => Convert.ToInt64(s.Masp))
                     : query.OrderByDescending(s => Convert.ToInt64(s.Masp)),
                 "name" => asc
-                    ? query.OrderBy(s => s.FullName)
-                    : query.OrderByDescending(s => s.FullName),
+                    ? query.OrderBy(s => s.Name)
+                    : query.OrderByDescending(s => s.Name),
                 "login" => asc
                     ? query.OrderBy(s => s.Login)
                     : query.OrderByDescending(s => s.Login),
@@ -127,7 +127,7 @@ public class UserService(ApplicationContext context, EntityCacheManager cache) :
         .Select(u => new UserListItemDTO
         {
             Id = u.Id,
-            FullName = u.FullName,
+            Name = u.Name,
             Login = u.Login,
             Masp = u.Masp.ToString(),
             Email = u.Email,
@@ -157,7 +157,7 @@ public class UserService(ApplicationContext context, EntityCacheManager cache) :
         if (user == null)
             return null;
 
-        user.FullName = dto.FullName;
+        user.Name = dto.Name;
         user.Login = dto.Login;
         user.Masp = dto.Masp;
         user.Email = dto.Email;
@@ -203,7 +203,7 @@ public class UserService(ApplicationContext context, EntityCacheManager cache) :
         if (!string.IsNullOrWhiteSpace(searchString))
         {
             query = query.Where(s =>
-                s.FullName.Contains(searchString) ||
+                s.Name.Contains(searchString) ||
                 s.Login.Contains(searchString) ||
                 s.Email.Contains(searchString));
         }

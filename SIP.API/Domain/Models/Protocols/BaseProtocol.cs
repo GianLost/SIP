@@ -1,28 +1,29 @@
 ﻿using SIP.API.Domain.Enums;
 using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SIP.API.Domain.Models.Protocols;
 
 public class BaseProtocol
 {
-    [JsonPropertyOrder(1)]
-    public string Number { get; set; } = string.Empty;
+    [Required]
+    [Column(TypeName = "int")]
+    public int Number { get; set; }
 
     [Required]
-    [MaxLength(255)]
-    [JsonPropertyOrder(2)]
+    [StringLength(200)]
+    [Column(TypeName = "varchar(200)")]
     public string Subject { get; set; } = string.Empty;
 
     [Required]
-    [MaxLength(1000)]
-    [JsonPropertyOrder(3)]
+    [Column(TypeName = "mediumtext")]
     public string Description { get; set; } = string.Empty;
 
     [Required]
-    [JsonPropertyOrder(4)]
+    [Column(TypeName = "varchar(50)")]
     public ProtocolStatus Status { get; set; }
 
-    [JsonPropertyOrder(5)]
+    [Required]
+    [Column(TypeName = "tinyint(1)")]
     public bool IsArchived { get; set; } = false;
 }

@@ -41,7 +41,7 @@ public class UserController(IUser user, IUserConfiguration userConfiguration) : 
 
             UserReponseDTO response = new()
             {
-                FullName = entity.FullName,
+                Name = entity.Name,
                 Login = entity.Login,
                 Masp = entity.Masp,
                 Email = entity.Email,
@@ -147,7 +147,7 @@ public class UserController(IUser user, IUserConfiguration userConfiguration) : 
 
         UserReponseDTO response = new()
         {
-            FullName = updated.FullName,
+            Name = updated.Name,
             Login = updated.Login,
             Masp = updated.Masp,
             Email = updated.Email,

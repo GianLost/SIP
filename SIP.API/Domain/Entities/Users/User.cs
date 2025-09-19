@@ -1,10 +1,10 @@
-﻿using SIP.API.Domain.Entities.Protocols;
+﻿using Microsoft.EntityFrameworkCore;
+using SIP.API.Domain.Entities.Protocols;
 using SIP.API.Domain.Entities.Sectors;
 using SIP.API.Domain.Enums;
 using SIP.API.Domain.Models.Users;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Text.Json.Serialization;
 
 namespace SIP.API.Domain.Entities.Users;
 
@@ -12,38 +12,48 @@ namespace SIP.API.Domain.Entities.Users;
 /// Represents a user entity in the system.
 /// </summary>
 [Table("tbl_users")]
+[Index(nameof(Masp), IsUnique = true, Name = "uc_User_Masp")]
+[Index(nameof(Name), IsUnique = true, Name = "uc_User_Name")]
+[Index(nameof(Login), IsUnique = true, Name = "uc_User_Login")]
+[Index(nameof(Email), IsUnique = true, Name = "uc_User_Email")]
+[Index(nameof(SectorId), Name = "idx_User_SectorId")]
 public class User : BaseUser
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public Guid Id { get; set; } = Guid.NewGuid();
-
-    [JsonPropertyOrder(5)]
-    public string PasswordHash { get; set; } = string.Empty;
-
-    [JsonPropertyOrder(6)]
-    public UserRole Role { get; set; }
-
-    [JsonPropertyOrder(7)]
-    public bool IsActive { get; set; } = true;
-
-    [JsonPropertyOrder(8)]
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
-    [JsonPropertyOrder(9)]
-    public DateTime? LastLoginAt { get; set; } = null;
-
-    [JsonPropertyOrder(10)]
-    public DateTime? UpdatedAt { get; set; } = null;
+    [Column(TypeName = "char(36)")]
+    public Guid Id { get; set; }
 
     [Required]
-    [JsonPropertyOrder(11)]
+    [StringLength(255)]
+    [Column(TypeName = "varchar(255)")]
+    public string PasswordHash { get; set; } = string.Empty;
+
+    [Required]
+    [StringLength(50)]
+    [Column(TypeName = "varchar(50)")]
+    public UserRole Role { get; set; }
+
+    [Required]
+    [Column(TypeName = "tinyint(1)")]
+    public bool IsActive { get; set; } = true;
+
+    [Required]
+    [Column(TypeName = "datetime(6)")]
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    [Column(TypeName = "datetime(6)")]
+    public DateTime? LastLoginAt { get; set; }
+
+    [Column(TypeName = "datetime(6)")]
+    public DateTime? UpdatedAt { get; set; }
+
+    [Required]
+    [Column(TypeName = "char(36)")]
     public Guid SectorId { get; set; }
 
     [ForeignKey(nameof(SectorId))]
-    [JsonPropertyOrder(12)]
     public Sector? Sector { get; set; }
 
-    [JsonPropertyOrder(13)]
     public ICollection<Protocol> Protocols { get; set; } = [];
 }

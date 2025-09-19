@@ -27,9 +27,9 @@ public class ProtocolService(ApplicationContext contex, EntityCacheManager cache
 
         // Busca o último número gerado para o ano atual no banco
         return await _context.Protocols
-        .Where(p => p.Number.StartsWith(prefix))
-        .OrderByDescending(p => p.Number)
-        .Select(p => p.Number)
+        .Where(p => p.Number.ToString().StartsWith(prefix))
+        .OrderByDescending(p => p.Number.ToString())
+        .Select(p => p.Number.ToString())
         .FirstOrDefaultAsync();
     }
 
@@ -71,7 +71,7 @@ public class ProtocolService(ApplicationContext contex, EntityCacheManager cache
     {
         Protocol entity = new()
         {
-            Number = await GenerateProtocolNumberAsync(),
+            Number = Convert.ToInt32(await GenerateProtocolNumberAsync()),
             Subject = dto.Subject,
             Description = dto.Description,
             Status = dto.Status,
@@ -116,11 +116,11 @@ public class ProtocolService(ApplicationContext contex, EntityCacheManager cache
         if (!string.IsNullOrWhiteSpace(searchString))
         {
             query = query.Where(s =>
-                s.Number.Contains(searchString) ||
+                s.Number.ToString().Contains(searchString) ||
                 s.Subject.Contains(searchString) ||
-                (s.CreatedBy != null && s.CreatedBy.FullName.Contains(searchString)) ||
+                (s.CreatedBy != null && s.CreatedBy.Name.Contains(searchString)) ||
                 (s.OriginSector != null && s.OriginSector.Acronym.Contains(searchString)) ||
-                (s.DestinationUser != null && s.DestinationUser.FullName.Contains(searchString)) ||
+                (s.DestinationUser != null && s.DestinationUser.Name.Contains(searchString)) ||
                 (s.DestinationSector != null && s.DestinationSector.Acronym.Contains(searchString)));
         }
 
@@ -155,14 +155,14 @@ public class ProtocolService(ApplicationContext contex, EntityCacheManager cache
                     ? query.OrderBy(s => Convert.ToInt64(s.Number))
                     : query.OrderByDescending(s => Convert.ToInt64(s.Number)),
                 "createdby" => asc
-                    ? query.OrderBy(s => s.CreatedBy!.FullName)
-                    : query.OrderByDescending(s => s.CreatedBy!.FullName),
+                    ? query.OrderBy(s => s.CreatedBy!.Name)
+                    : query.OrderByDescending(s => s.CreatedBy!.Name),
                 "originsector" => asc
                     ? query.OrderBy(s => s.OriginSector!.Acronym)
                     : query.OrderByDescending(s => s.OriginSector!.Acronym),
                 "destinationto" => asc
-                    ? query.OrderBy(s => s.DestinationUser!.FullName)
-                    : query.OrderByDescending(s => s.DestinationUser!.FullName),
+                    ? query.OrderBy(s => s.DestinationUser!.Name)
+                    : query.OrderByDescending(s => s.DestinationUser!.Name),
                 "destinationsector" => asc
                     ? query.OrderBy(s => s.DestinationSector!.Acronym)
                     : query.OrderByDescending(s => s.DestinationSector!.Acronym),
@@ -182,15 +182,15 @@ public class ProtocolService(ApplicationContext contex, EntityCacheManager cache
         .Select(p => new ProtocolListItemDto
         {
             Id = p.Id,
-            Number = p.Number,
+            Number = p.Number.ToString(),
             Subject = p.Subject,
             Description = p.Description,
             Status = p.Status,
             CreatedAt = p.CreatedAt,
             IsArchived = p.IsArchived,
-            CreatedByFullName = p.CreatedBy != null ? p.CreatedBy.FullName : null,
+            CreatedByFullName = p.CreatedBy != null ? p.CreatedBy.Name : null,
             OriginSectorAcronym = p.OriginSector != null ? p.OriginSector.Acronym : null,
-            DestinationUserFullName = p.DestinationUser != null ? p.DestinationUser.FullName : null,
+            DestinationUserFullName = p.DestinationUser != null ? p.DestinationUser.Name : null,
             DestinationSectorAcronym = p.DestinationSector != null ? p.DestinationSector.Acronym : null
         });
 
@@ -257,7 +257,7 @@ public class ProtocolService(ApplicationContext contex, EntityCacheManager cache
         if (!string.IsNullOrWhiteSpace(searchString))
         {
             query = query.Where(s =>
-                s.Number.Contains(searchString) ||
+                s.Number.ToString().Contains(searchString) ||
                 s.Subject.Contains(searchString));
         }
 

@@ -61,7 +61,7 @@
                                      Margin="Margin.Normal"
                                      Clearable="true"
                                      Placeholder="Pesquisar usuário..."
-                                     ToStringFunc="@(u => u?.FullName)"
+                                     ToStringFunc="@(u => u?.Name)"
                                      Disabled="SelectedOriginSector is null"
                                      MaxItems="int.MaxValue" />
                 </MudItem>
@@ -94,7 +94,7 @@
                                      Margin="Margin.Normal"
                                      Clearable="true"
                                      Placeholder="Pesquisar usuário..."
-                                     ToStringFunc="@(u => u?.FullName)"
+                                     ToStringFunc="@(u => u?.Name)"
                                      Disabled="SelectedDestinationSector is null"
                                      MaxItems="int.MaxValue" />
                 </MudItem>
@@ -285,7 +285,7 @@
         if (string.IsNullOrEmpty(value))
             return Task.FromResult(usersFilteredBySector);
 
-        return Task.FromResult(usersFilteredBySector.Where(u => u.FullName.Contains(value, StringComparison.OrdinalIgnoreCase)));
+        return Task.FromResult(usersFilteredBySector.Where(u => u.Name.Contains(value, StringComparison.OrdinalIgnoreCase)));
     }
 
     /// <summary>
@@ -302,7 +302,7 @@
         if (string.IsNullOrEmpty(value))
             return Task.FromResult(usersFilteredBySector);
 
-        return Task.FromResult(usersFilteredBySector.Where(u => u.FullName.Contains(value, StringComparison.OrdinalIgnoreCase)));
+        return Task.FromResult(usersFilteredBySector.Where(u => u.Name.Contains(value, StringComparison.OrdinalIgnoreCase)));
     }
 
     /// <summary>

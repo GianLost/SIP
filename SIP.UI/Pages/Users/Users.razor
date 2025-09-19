@@ -117,7 +117,7 @@
                 </MudTh>
 
                 <MudTh Style="font-weight: bold;">
-                    <MudTableSortLabel SortLabel="Name" InitialDirection="SortDirection.Ascending" SortBy="new Func<UserListItemDTO, object>(x => x.FullName!)">Nome</MudTableSortLabel>
+                    <MudTableSortLabel SortLabel="Name" InitialDirection="SortDirection.Ascending" SortBy="new Func<UserListItemDTO, object>(x => x.Name!)">Nome</MudTableSortLabel>
                 </MudTh>
 
                 <MudTh Style="font-weight: bold;">
@@ -159,8 +159,8 @@
                     </MudTooltip>
                 </MudTd>
                 <MudTd Class="mud-table-cell-truncate" DataLabel="Name">
-                    <MudTooltip Text="@user.FullName.ToUppercase()">
-                        <span>@user.FullName.ToUppercase()</span>
+                    <MudTooltip Text="@user.Name.ToUppercase()">
+                        <span>@user.Name.ToUppercase()</span>
                     </MudTooltip>
                 </MudTd>
                 <MudTd Class="mud-table-cell-truncate" DataLabel="Login">
@@ -186,7 +186,7 @@
                                     <CardHeaderContent>
                                         <MudStack Row="true" AlignItems="AlignItems.Center">
                                             <MudText Typo="Typo.body1" Style="font-weight: bold;">Protocolos gerados por:</MudText>
-                                            <MudText Typo="Typo.body1" Color="Color.Primary" Style="font-weight: bold;">@userDetail.FullName.ToUppercase()</MudText>
+                                            <MudText Typo="Typo.body1" Color="Color.Primary" Style="font-weight: bold;">@userDetail.Name.ToUppercase()</MudText>
                                         </MudStack>
                                     </CardHeaderContent>
                                 </MudCardHeader>
@@ -371,7 +371,7 @@
         User userForDialog = new()
         {
             Id = userToEdit.Id,
-            FullName = userToEdit.FullName!,
+            Name = userToEdit.Name!,
             Login = userToEdit.Login!,
             Masp = Convert.ToInt32(userToEdit.Masp),
             Email = userToEdit.Email!,
@@ -421,7 +421,7 @@
         parameters.Add(x => x.User, new User
             {
                 Id = user.Id,
-                FullName = user.FullName,
+                Name = user.Name,
                 Login = user.Login,
                 Masp = user.Masp,
                 Email = user.Email,
@@ -492,7 +492,7 @@
     private void ShowChangeSectorDialog(UserListItemDTO user)
     {
         if (user == null) return;
-        Snackbar.Add($"Diálogo de mudança de setores para {user.FullName} ainda não implementado.", Severity.Info);
+        Snackbar.Add($"Diálogo de mudança de setores para {user.Name} ainda não implementado.", Severity.Info);
     }
 
     private async Task ShowDeleteDialog(UserListItemDTO user)

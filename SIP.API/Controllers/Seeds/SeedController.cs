@@ -51,7 +51,7 @@ public class SeedController(ApplicationContext context, IProtocol protocolServic
         {
             var user = new User
             {
-                FullName = u.FullName!,
+                Name = u.FullName!,
                 Login = u.Login!,
                 Masp = u.Masp,
                 Email = u.Email!,
@@ -81,9 +81,12 @@ public class SeedController(ApplicationContext context, IProtocol protocolServic
         var protocolEntities = new List<Protocol>();
         foreach (var p in seedData?.Protocols!)
         {
+            string number = _protocolService.FormatProtocolNumber(nextSequence);
+            int formatNuumber = Convert.ToInt32(number);
+
             protocolEntities.Add(new Protocol
             {
-                Number = _protocolService.FormatProtocolNumber(nextSequence),
+                Number = formatNuumber,
                 Subject = p.Subject,
                 Description = p.Description,
                 Status = Enum.Parse<ProtocolStatus>(p.Status!),
@@ -92,7 +95,7 @@ public class SeedController(ApplicationContext context, IProtocol protocolServic
                 UpdatedAt = p.UpdatedAt != null ? DateTime.Parse(p.UpdatedAt) : null,
                 CreatedById = userIds[random.Next(userIds.Count)],
                 OriginSectorId = sectorIds[random.Next(sectorIds.Count)],
-                DestinationUserId = userIds.Count > 0 ? userIds[random.Next(userIds.Count)] : null,
+                DestinationUserId = userIds.Count > 0 ? userIds[random.Next(userIds.Count)] : Guid.Empty,
                 DestinationSectorId = sectorIds[random.Next(sectorIds.Count)]
             });
             nextSequence++; // Incrementa o número para o próximo protocolo

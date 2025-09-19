@@ -113,13 +113,6 @@
             "updatedAt": null
         },
         {
-            "name": "Secretaria Municipal de Juventude",
-            "acronym": "SEJUV",
-            "phone": "(38) 3754-8914",
-            "createdAt": "2025-07-02T22:54:10.000000",
-            "updatedAt": null
-        },
-        {
             "name": "Secretaria Municipal de Mulher",
             "acronym": "SEMUL",
             "phone": "(38) 3754-8915",
@@ -131,13 +124,6 @@
             "acronym": "SETRAB",
             "phone": "(38) 3754-8916",
             "createdAt": "2025-07-02T22:54:30.000000",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Defesa Civil",
-            "acronym": "SEDEC",
-            "phone": "(38) 3754-8917",
-            "createdAt": "2025-07-02T22:54:40.000000",
             "updatedAt": null
         },
         {
@@ -201,13 +187,6 @@
             "acronym": "SERI",
             "phone": "(38) 3754-8926",
             "createdAt": "2025-07-02T22:56:10.000000",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Políticas Públicas",
-            "acronym": "SEPP",
-            "phone": "(38) 3754-8927",
-            "createdAt": "2025-07-02T22:56:20.000000",
             "updatedAt": null
         },
         {
@@ -452,18 +431,6 @@
       "email": "fernanda.lima@email.com",
       "passwordHash": "123456789",
       "createdAt": "2025-07-02T23:14:40.000000",
-      "lastLoginAt": null,
-      "updatedAt": null,
-      "role": "Common",
-      "isActive": true
-    },
-    {
-      "fullName": "Lucas Henrique Silva",
-      "login": "lucas.henrique",
-      "masp": 30006,
-      "email": "lucas.henrique@email.com",
-      "passwordHash": "123456789",
-      "createdAt": "2025-07-02T23:14:50.000000",
       "lastLoginAt": null,
       "updatedAt": null,
       "role": "Common",

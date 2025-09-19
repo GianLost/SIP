@@ -20,5 +20,5 @@ public class ProtocolUpdateDTO : BaseProtocol
 
     [Required]
     [JsonPropertyOrder(15)]
-    public Guid? DestinationUserId { get; set; }
+    public Guid DestinationUserId { get; set; }
 }

@@ -2,7 +2,7 @@
 using SIP.API.Domain.Models.Sectors;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Text.Json.Serialization;
+using Microsoft.EntityFrameworkCore;
 
 namespace SIP.API.Domain.Entities.Sectors;
 
@@ -10,18 +10,21 @@ namespace SIP.API.Domain.Entities.Sectors;
 /// Represents a sector entity in the system.
 /// </summary>
 [Table("tbl_sectors")]
+[Index(nameof(Name), IsUnique = true, Name = "uc_Sector_Name")]
+[Index(nameof(Acronym), IsUnique = true, Name = "uc_Sector_Acronym")]
+[Index(nameof(Phone), IsUnique = true, Name = "uc_Sector_Phone")]
 public class Sector : BaseSector
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid Id { get; set; }
 
-    [JsonPropertyOrder(4)]
+    [Required]
+    [Column(TypeName = "datetime(6)")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-    [JsonPropertyOrder(5)]
-    public DateTime? UpdatedAt { get; set; } = null;
+    [Column(TypeName = "datetime(6)")]
+    public DateTime? UpdatedAt { get; set; }
 
-    [JsonPropertyOrder(6)]
     public ICollection<User> Users { get; set; } = [];
 }

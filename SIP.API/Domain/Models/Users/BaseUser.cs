@@ -1,4 +1,6 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace SIP.API.Domain.Models.Users;
 
@@ -7,15 +9,22 @@ namespace SIP.API.Domain.Models.Users;
 /// </summary>
 public class BaseUser
 {
-    [JsonPropertyOrder(1)]
-    public string FullName { get; set; } = string.Empty;
+    [Required]
+    [StringLength(150)]
+    [Column(TypeName = "varchar(150)")]
+    public string Name { get; set; } = string.Empty;
 
-    [JsonPropertyOrder(2)]
+    [Required]
+    [StringLength(50)]
+    [Column(TypeName = "varchar(50)")]
     public string Login { get; set; } = string.Empty;
 
-    [JsonPropertyOrder(3)]
+    [Required]
+    [Column(TypeName = "int")]
     public int Masp { get; set; }
 
-    [JsonPropertyOrder(4)]
+    [Required]
+    [StringLength(200)]
+    [Column(TypeName = "varchar(200)")]
     public string Email { get; set; } = string.Empty;
 }
