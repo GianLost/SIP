@@ -152,8 +152,8 @@ public class ProtocolService(ApplicationContext contex, EntityCacheManager cache
                     ? query.OrderBy(statusOrderExpr)
                     : query.OrderByDescending(statusOrderExpr),
                 "number" => asc
-                    ? query.OrderBy(s => Convert.ToInt64(s.Number))
-                    : query.OrderByDescending(s => Convert.ToInt64(s.Number)),
+                    ? query.OrderBy(s => s.Number)
+                    : query.OrderByDescending(s => s.Number),
                 "createdby" => asc
                     ? query.OrderBy(s => s.CreatedBy!.Name)
                     : query.OrderByDescending(s => s.CreatedBy!.Name),
@@ -176,10 +176,10 @@ public class ProtocolService(ApplicationContext contex, EntityCacheManager cache
             query = query.OrderBy(statusOrderExpr);
         }
 
-        IQueryable<ProtocolListItemDto> pagedDataQuery = query
+        IQueryable<ProtocolListItemDTO> pagedDataQuery = query
         .Skip((pageNumber - 1) * pageSize)
         .Take(pageSize)
-        .Select(p => new ProtocolListItemDto
+        .Select(p => new ProtocolListItemDTO
         {
             Id = p.Id,
             Number = p.Number.ToString(),
@@ -195,7 +195,7 @@ public class ProtocolService(ApplicationContext contex, EntityCacheManager cache
         });
 
 
-        ICollection<ProtocolListItemDto> items = await pagedDataQuery.ToListAsync();
+        ICollection<ProtocolListItemDTO> items = await pagedDataQuery.ToListAsync();
 
         return new ProtocolPagedResultDTO
         {

@@ -13,7 +13,7 @@ public class UserListItemDTO
     public string? Email { get; set; } = string.Empty;
 
     public RoleEnum Role { get; set; }
-    public bool IsActive { get; set; } = true;
+    public bool Status { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? LastLoginAt { get; set; } = null;

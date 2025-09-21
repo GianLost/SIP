@@ -10,5 +10,9 @@ namespace SIP.API.Domain.DTOs.Users;
 public class UserUpdateDTO : BaseUser
 { 
     public UserRole Role { get; set; }
-    public bool IsActive { get; set; }
+
+    /// <summary>
+    /// Representação mais amigável para o front-end se o usuário está ativo ou inativo
+    /// </summary>
+    public bool Status { get; set; }
 }

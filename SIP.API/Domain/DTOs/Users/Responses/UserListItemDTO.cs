@@ -13,7 +13,11 @@ public class UserListItemDTO
     public string Email { get; set; } = string.Empty;
 
     public UserRole Role { get; set; }
-    public bool IsActive { get; set; }
+
+    /// <summary>
+    /// Representação mais amigável para o front-end se o usuário está ativo ou inativo
+    /// </summary>
+    public bool Status { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? LastLoginAt { get; set; } = null;
@@ -21,5 +25,5 @@ public class UserListItemDTO
 
     public string SectorName { get; set; } = string.Empty;
 
-    public ICollection<Protocol> Protocols { get; set; } = [];
+    public ICollection<Protocol>? Protocols { get; set; } = [];
 }

@@ -109,7 +109,7 @@
                 <MudTh Style="width: 10px;"></MudTh>
 
                 <MudTh Style="font-weight: bold;">
-                    <MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<UserListItemDTO, object>(x => x.IsActive)">Status</MudTableSortLabel>
+                    <MudTableSortLabel SortLabel="Status"  SortBy="new Func<UserListItemDTO, object>(x => x.Status)">Status</MudTableSortLabel>
                 </MudTh>
 
                 <MudTh Style="font-weight: bold;">
@@ -149,8 +149,8 @@
                 }
 
                 <MudTd Style="text-align: center;" DataLabel="Status">
-                    <MudTooltip Text="@(user.IsActive ? "Ativo" : "Inativo")" Arrow="true" Placement="Placement.Left">
-                        <MudIcon Icon="@Icons.Material.Filled.Circle" Color="@(user.IsActive? Color.Success: Color.Error)" Size="Size.Small" />
+                    <MudTooltip Text="@(user.Status ? "Ativo" : "Inativo")" Arrow="true" Placement="Placement.Left">
+                        <MudIcon Icon="@Icons.Material.Filled.Circle" Color="@(user.Status? Color.Success: Color.Error)" Size="Size.Small" />
                     </MudTooltip>
                 </MudTd>
                 <MudTd Class="mud-table-cell-truncate" DataLabel="Masp">
@@ -168,7 +168,7 @@
                         <span>@user.Login</span>
                     </MudTooltip>
                 </MudTd>
-                <MudTd Class="mud-table-cell-truncate" DataLabel="Secretaria">
+                <MudTd Class="mud-table-cell-truncate" DataLabel="Sector">
                     <MudTooltip Text="@user?.SectorName.ToUppercase()">
                         <span>@user?.SectorName.ToUppercase()</span>
                     </MudTooltip>
@@ -376,7 +376,7 @@
             Masp = Convert.ToInt32(userToEdit.Masp),
             Email = userToEdit.Email!,
             Role = userToEdit.Role,
-            IsActive = userToEdit.IsActive,
+            IsActive = userToEdit.Status,
         };
 
         parameters.Add(x => x.User, userForDialog);

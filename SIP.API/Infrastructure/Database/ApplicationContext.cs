@@ -32,48 +32,12 @@ public class ApplicationContext(DbContextOptions options) : DbContext(options)
         {
             entity.ToTable("tbl_users");
 
-            entity.Property(u => u.Masp)
-                .HasColumnType("int")
-                .IsRequired();
-
-            entity.Property(u => u.Name)
-                .HasColumnType("varchar(150)")
-                .IsRequired();
-
-            entity.Property(u => u.Login)
-                .HasColumnType("varchar(50)")
-                .IsRequired();
-
-            entity.Property(u => u.Email)
-                .HasColumnType("varchar(200)")
-                .IsRequired();
-
-            entity.Property(u => u.PasswordHash)
-                .HasColumnType("varchar(255)")
-                .IsRequired();
-
+            //Conversão do enum para string
             entity.Property(u => u.Role)
-                .HasColumnType("varchar(50)")
+                .HasConversion<string>()
                 .IsRequired();
 
-            entity.Property(u => u.IsActive)
-                .HasColumnType("tinyint(1)")
-                .IsRequired();
-
-            entity.Property(u => u.CreatedAt)
-                .HasColumnType("datetime(6)")
-                .IsRequired();
-
-            entity.Property(u => u.LastLoginAt)
-                .HasColumnType("datetime(6)");
-
-            entity.Property(u => u.UpdatedAt)
-                .HasColumnType("datetime(6)");
-
-            entity.Property(u => u.SectorId)
-                .HasColumnType("char(36)")
-                .IsRequired();
-
+            // índices únicos
             entity.HasIndex(u => u.Masp)
                 .IsUnique()
                 .HasDatabaseName("uc_User_Masp");
@@ -93,14 +57,32 @@ public class ApplicationContext(DbContextOptions options) : DbContext(options)
             entity.HasIndex(u => u.SectorId)
                 .HasDatabaseName("idx_User_SectorId");
 
+            // Relacionamento com protocolos
+            entity.HasMany(u => u.ProtocolsCreated)
+                .WithOne(p => p.CreatedBy)
+                .HasForeignKey(p => p.CreatedById)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasMany(u => u.ProtocolsReceived)
+                .WithOne(p => p.DestinationUser)
+                .HasForeignKey(p => p.DestinationUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Relacionamento com usuários (Para gestão)
+            entity.HasOne(u => u.CreatedBy)
+                .WithMany()
+                .HasForeignKey(u => u.CreatedById)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(u => u.UpdatedBy)
+                .WithMany()
+                .HasForeignKey(u => u.UpdatedById)
+                .OnDelete(DeleteBehavior.Restrict);
+
             entity.HasOne(u => u.Sector)
                 .WithMany(s => s.Users)
                 .HasForeignKey(u => u.SectorId)
                 .OnDelete(DeleteBehavior.Restrict);
-
-            entity.Property(u => u.Role)
-                .HasConversion<string>()
-                .IsRequired();
         });
 
         // Sector entity configuration
@@ -108,24 +90,21 @@ public class ApplicationContext(DbContextOptions options) : DbContext(options)
         {
             entity.ToTable("tbl_sectors");
 
-            entity.Property(e => e.Name)
-                .HasColumnType("varchar(150)")
-                .IsRequired();
+            // Relacionamento com usuários (para gestão)
+            entity.HasOne(s => s.CreatedBy)
+                .WithMany()
+                .HasForeignKey(s => s.CreatedById)
+                .OnDelete(DeleteBehavior.Restrict);
 
-            entity.Property(e => e.Acronym)
-                .HasColumnType("varchar(20)")
-                .IsRequired();
+            entity.HasOne(s => s.UpdatedBy)
+                .WithMany()
+                .HasForeignKey(s => s.UpdatedById)
+                .OnDelete(DeleteBehavior.Restrict);
 
-            entity.Property(e => e.Phone)
-                .HasColumnType("varchar(20)")
-                .IsRequired();
-
-            entity.Property(e => e.CreatedAt)
-                .HasColumnType("datetime(6)")
-                .IsRequired();
-
-            entity.Property(e => e.UpdatedAt)
-                .HasColumnType("datetime(6)");
+            entity.HasMany(e => e.Users)
+                .WithOne(u => u.Sector)
+                .HasForeignKey(u => u.SectorId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             // Índices únicos
             entity.HasIndex(e => e.Name)
@@ -139,70 +118,55 @@ public class ApplicationContext(DbContextOptions options) : DbContext(options)
             entity.HasIndex(e => e.Phone)
                 .IsUnique()
                 .HasDatabaseName("uc_Sector_Phone");
-
-            // Relacionamento com usuários
-            entity.HasMany(e => e.Users)
-                .WithOne(u => u.Sector)
-                .HasForeignKey(u => u.SectorId)
-                .OnDelete(DeleteBehavior.Restrict);
         });
 
         // Protocol entity configuration
         modelBuilder.Entity<Protocol>(entity =>
         {
-
             entity.ToTable("tbl_protocols");
 
-            entity.Property(p => p.Number)
-            .HasColumnType("int")
-            .IsRequired();
+            // Índices
+            entity.HasIndex(p => p.Number)
+                .IsUnique()
+                .HasDatabaseName("uc_Protocol_Number");
 
-            entity.Property(p => p.Subject)
-            .HasColumnType("varchar(200)")
-            .IsRequired();
+            entity.HasIndex(p => p.CreatedById)
+                .HasDatabaseName("idx_Protocol_CreatedById");
 
-            entity.Property(p => p.Description)
-            .HasColumnType("mediumtext")
-            .IsRequired();
+            entity.HasIndex(p => p.DestinationUserId)
+                .HasDatabaseName("idx_Protocol_DestinationUserId");
 
-            entity.Property(p => p.Status)
-           .HasConversion<string>()
-           .IsRequired();
+            entity.HasIndex(p => p.OriginSectorId)
+                .HasDatabaseName("idx_Protocol_OriginSectorId");
 
-            entity.Property(p => p.IsArchived)
-           .HasColumnType("tinyint(1)")
-           .IsRequired();
+            entity.HasIndex(p => p.DestinationSectorId)
+                .HasDatabaseName("idx_Protocol_DestinationSectorId");
 
-            entity.Property(p => p.CreatedAt)
-            .HasColumnType("datetime(6)")
-            .IsRequired();
-
-            entity.Property(p => p.UpdatedAt)
-            .HasColumnType("datetime(6)");
-
-            // Relacionamento com o usuário que criou o protocolo
+            // Relacionamentos com usuários
             entity.HasOne(p => p.CreatedBy)
-                  .WithMany(u => u.Protocols) // Assumindo que User tem uma ICollection<Protocol> Protocols
-                  .HasForeignKey(p => p.CreatedById)
-                  .OnDelete(DeleteBehavior.Restrict); // Impede a exclusão de um usuário se ele tiver protocolos
+                .WithMany(u => u.ProtocolsCreated)
+                .HasForeignKey(p => p.CreatedById)
+                .OnDelete(DeleteBehavior.Restrict);
 
-            // Relacionamento com o setor de origem
+            entity.HasOne(p => p.DestinationUser)
+                .WithMany(u => u.ProtocolsReceived)
+                .HasForeignKey(p => p.DestinationUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(p => p.UpdatedBy)
+                .WithMany()
+                .HasForeignKey(p => p.UpdatedById)
+                .OnDelete(DeleteBehavior.Restrict);
+
             entity.HasOne(p => p.OriginSector)
-                  .WithMany() // Sem navegação de volta (um setor não precisa de uma lista de "protocolos originados")
+                  .WithMany()
                   .HasForeignKey(p => p.OriginSectorId)
                   .OnDelete(DeleteBehavior.Restrict);
 
-            // Relacionamento com o setor de destino
             entity.HasOne(p => p.DestinationSector)
-                  .WithMany() // Sem navegação de volta
+                  .WithMany()
                   .HasForeignKey(p => p.DestinationSectorId)
                   .OnDelete(DeleteBehavior.Restrict);
-
-            // Relacionamento com o usuário de destino
-            entity.HasOne(p => p.DestinationUser)
-                  .WithMany() // Sem navegação de volta
-                  .HasForeignKey(p => p.DestinationUserId)
-                  .OnDelete(DeleteBehavior.Restrict); // Impede a exclusão do usuário de destino
         });
 
         // Attachment entity configuration

@@ -23,8 +23,16 @@ public class Sector : BaseSector
     [Column(TypeName = "datetime(6)")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+    [Column(TypeName = "char(36)")]
+    public Guid? CreatedById { get; set; }
+    public User? CreatedBy { get; set; }
+
     [Column(TypeName = "datetime(6)")]
     public DateTime? UpdatedAt { get; set; }
+
+    [Column(TypeName = "char(36)")]
+    public Guid? UpdatedById { get; set; }
+    public User? UpdatedBy { get; set; }
 
     public ICollection<User> Users { get; set; } = [];
 }

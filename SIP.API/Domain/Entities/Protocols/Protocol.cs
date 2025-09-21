@@ -29,35 +29,30 @@ public class Protocol : BaseProtocol
     [Column(TypeName = "datetime(6)")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+    [Column(TypeName = "char(36)")]
+    public Guid? CreatedById { get; set; }
+    public User? CreatedBy { get; set; }
+
     [Column(TypeName = "datetime(6)")]
     public DateTime? UpdatedAt { get; set; }
 
-    [Required]
     [Column(TypeName = "char(36)")]
-    public Guid CreatedById { get; set; }
-
-    [ForeignKey(nameof(CreatedById))]
-    public User? CreatedBy { get; set; }
+    public Guid? UpdatedById { get; set; }
+    public User? UpdatedBy { get; set; }
 
     [Required]
     [Column(TypeName = "char(36)")]
     public Guid DestinationUserId { get; set; }
-
-    [ForeignKey(nameof(DestinationUserId))]
     public User? DestinationUser { get; set; }
 
     [Required]
     [Column(TypeName = "char(36)")]
     public Guid OriginSectorId { get; set; }
-
-    [ForeignKey(nameof(OriginSectorId))]
     public Sector? OriginSector { get; set; }
 
     [Required]
     [Column(TypeName = "char(36)")]
     public Guid DestinationSectorId { get; set; }
-
-    [ForeignKey(nameof(DestinationSectorId))]
     public Sector? DestinationSector { get; set; }
 
     public ICollection<Attachment> Attachments { get; set; } = [];

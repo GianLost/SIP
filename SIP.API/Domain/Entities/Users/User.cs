@@ -42,18 +42,25 @@ public class User : BaseUser
     [Column(TypeName = "datetime(6)")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+    [Column(TypeName = "char(36)")]
+    public Guid? CreatedById { get; set; }
+    public User? CreatedBy { get; set; }
+
     [Column(TypeName = "datetime(6)")]
     public DateTime? LastLoginAt { get; set; }
 
     [Column(TypeName = "datetime(6)")]
     public DateTime? UpdatedAt { get; set; }
 
+    [Column(TypeName = "char(36)")]
+    public Guid? UpdatedById { get; set; }
+    public User? UpdatedBy { get; set; }
+
     [Required]
     [Column(TypeName = "char(36)")]
     public Guid SectorId { get; set; }
-
-    [ForeignKey(nameof(SectorId))]
     public Sector? Sector { get; set; }
 
-    public ICollection<Protocol> Protocols { get; set; } = [];
+    public ICollection<Protocol> ProtocolsCreated { get; set; } = [];
+    public ICollection<Protocol> ProtocolsReceived { get; set; } = [];
 }

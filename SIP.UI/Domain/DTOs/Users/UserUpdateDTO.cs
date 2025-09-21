@@ -8,7 +8,7 @@ public class UserUpdateDTO
     public string Login { get; set; } = string.Empty;
     public string Masp { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
-    public bool IsActive { get; set; }
+    public bool Status { get; set; }
 
     public RoleEnum Role { get; set; }
 }

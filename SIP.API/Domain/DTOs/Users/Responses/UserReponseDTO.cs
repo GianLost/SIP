@@ -1,5 +1,4 @@
-﻿using System.Text.Json.Serialization;
-using SIP.API.Domain.Enums;
+﻿using SIP.API.Domain.Enums;
 using SIP.API.Domain.Models.Users;
 
 namespace SIP.API.Domain.DTOs.Users.Responses;

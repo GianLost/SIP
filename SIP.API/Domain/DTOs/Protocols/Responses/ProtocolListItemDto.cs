@@ -2,7 +2,7 @@
 
 namespace SIP.API.Domain.DTOs.Protocols.Responses;
 
-public class ProtocolListItemDto
+public class ProtocolListItemDTO
 {
     public Guid Id { get; set; }
     public string Number { get; set; } = string.Empty;

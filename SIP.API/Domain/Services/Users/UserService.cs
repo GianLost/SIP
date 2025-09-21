@@ -44,8 +44,8 @@ public class UserService(ApplicationContext context, EntityCacheManager cache) :
     }
 
     /// <inheritdoc/>
-    public async Task<User?> GetByIdAsync(Guid id) => 
-        await _context.Users.Include(p => p.Protocols).FirstOrDefaultAsync(p => p.Id == id);
+    public async Task<User?> GetByIdAsync(Guid id) =>
+        await _context.Users.Include(p => p.ProtocolsCreated).FirstOrDefaultAsync(p => p.Id == id);
 
     /// <inheritdoc/>
     public async Task<ICollection<User>> GetAllAsync() =>
@@ -56,28 +56,41 @@ public class UserService(ApplicationContext context, EntityCacheManager cache) :
 
     /// <inheritdoc/>
     public async Task<UserPagedResultDTO> GetPagedAsync(
-    int pageNumber, 
-    int pageSize, 
-    string? sortLabel, 
-    string? sortDirection, 
+    int pageNumber,
+    int pageSize,
+    string? sortLabel,
+    string? sortDirection,
     string? searchString)
     {
         pageSize = Math.Min(pageSize, MaxPageSize); // Limite máximo
 
-        IQueryable<User> query = _context.Users.Include(s => s.Sector).Include(p => p.Protocols);
+        IQueryable<User> query = _context.Users.Include(s => s.Sector).Include(p => p.ProtocolsCreated);
 
         if (!string.IsNullOrWhiteSpace(searchString))
         {
-            query = query.Where(s =>
-                s.Masp.ToString().Contains(searchString) ||
-                s.Name.Contains(searchString) ||
-                s.Login.Contains(searchString) ||
-                s.Email.Contains(searchString) ||
-                (s.Sector != null && s.Sector.Acronym.Contains(searchString)));
+            if (int.TryParse(searchString, out var maspInt))
+            {
+                query = query.Where(s =>
+                    s.Masp == maspInt ||
+                    s.Name.Contains(searchString) ||
+                    s.Login.Contains(searchString) ||
+                    s.Email.Contains(searchString) ||
+                    (s.Sector != null && s.Sector.Acronym.Contains(searchString))
+                );
+            }
+            else
+            {
+                query = query.Where(s =>
+                    s.Name.Contains(searchString) ||
+                    s.Login.Contains(searchString) ||
+                    s.Email.Contains(searchString) ||
+                    (s.Sector != null && s.Sector.Acronym.Contains(searchString))
+                );
+            }
         }
 
-        // Get total count (this will use or re-cache based on the token)
-        int? totalCount = _cache.Get<int?>($"UserCount_Search_{searchString ?? "NoSearch"}");
+        // Get total count (this will use or re-cache based on the token)
+        int? totalCount = _cache.Get<int?>($"UserCount_Search_{searchString ?? "NoSearch"}");
 
         if (!totalCount.HasValue)
         {
@@ -85,10 +98,7 @@ public class UserService(ApplicationContext context, EntityCacheManager cache) :
             _cache.Set($"UserCount_Search_{searchString ?? "NoSearch"}", totalCount.Value, EntityType);
         }
 
-        Expression<Func<User, int>> statusOrderExpr = s =>
-
-            s.IsActive == true ? 1 :
-            s.IsActive == false ? 0 : 99;
+        Expression<Func<User, object>> statusOrderExpr = u => u.IsActive ? 0 : 1;
 
         if (!string.IsNullOrWhiteSpace(sortLabel))
         {
@@ -96,29 +106,34 @@ public class UserService(ApplicationContext context, EntityCacheManager cache) :
 
             query = sortLabel.ToLower() switch
             {
-                "status" => asc
-                    ? query.OrderBy(statusOrderExpr)
-                    : query.OrderByDescending(statusOrderExpr),
                 "masp" => asc
-                    ? query.OrderBy(s => Convert.ToInt64(s.Masp))
-                    : query.OrderByDescending(s => Convert.ToInt64(s.Masp)),
+                  ? query.OrderBy(u => u.Masp)
+                  : query.OrderByDescending(s => s.Masp),
+
+                "status" => asc
+                  ? query.OrderBy(statusOrderExpr)
+                  : query.OrderByDescending(statusOrderExpr),
+
                 "name" => asc
-                    ? query.OrderBy(s => s.Name)
-                    : query.OrderByDescending(s => s.Name),
+                  ? query.OrderBy(u => u.Name)
+                  : query.OrderByDescending(s => s.Name),
+
                 "login" => asc
-                    ? query.OrderBy(s => s.Login)
-                    : query.OrderByDescending(s => s.Login),
+                  ? query.OrderBy(u => u.Login)
+                  : query.OrderByDescending(s => s.Login),
+
                 "sector" => asc
-                    ? query.OrderBy(s => s.Sector!.Acronym)
-                    : query.OrderByDescending(s => s.Sector!.Acronym),
+                  ? query.OrderBy(u => u.Sector!.Acronym)
+                  : query.OrderByDescending(u => u.Sector!.Acronym),
+
                 _ => asc
-                    ? query.OrderBy(statusOrderExpr)
-                    : query.OrderByDescending(statusOrderExpr),
+                  ? query.OrderBy(u => u.Masp)
+                  : query.OrderByDescending(u => u.Masp),
             };
         }
         else
         {
-            query = query.OrderBy(statusOrderExpr);
+            query = query.OrderBy(s => s.Masp);
         }
 
         IQueryable<UserListItemDTO> pagedDataQuery = query
@@ -132,12 +147,12 @@ public class UserService(ApplicationContext context, EntityCacheManager cache) :
             Masp = u.Masp.ToString(),
             Email = u.Email,
             Role = u.Role,
-            IsActive = u.IsActive,
+            Status = u.IsActive,
             CreatedAt = u.CreatedAt,
             LastLoginAt = u.LastLoginAt,
             UpdatedAt = u.UpdatedAt,
             SectorName = u.Sector!.Acronym,
-            Protocols = u.Protocols
+            Protocols = u.ProtocolsCreated
         });
 
         ICollection<UserListItemDTO> items = await pagedDataQuery.ToListAsync();
@@ -147,6 +162,7 @@ public class UserService(ApplicationContext context, EntityCacheManager cache) :
             Items = items,
             TotalCount = totalCount.Value
         };
+
     }
 
     /// <inheritdoc/>
@@ -162,7 +178,7 @@ public class UserService(ApplicationContext context, EntityCacheManager cache) :
         user.Masp = dto.Masp;
         user.Email = dto.Email;
         user.Role = dto.Role;
-        user.IsActive = dto.IsActive;
+        user.IsActive = dto.Status;
         user.UpdatedAt = DateTime.UtcNow;
 
         _context.Users.Update(user);
@@ -221,6 +237,6 @@ public class UserService(ApplicationContext context, EntityCacheManager cache) :
     }
 
     /// <inheritdoc/>
-    public void ClearTotalUsersCountCache() => 
+    public void ClearTotalUsersCountCache() =>
         _cache.Invalidate(EntityType);
 }
