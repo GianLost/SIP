@@ -1,13 +1,14 @@
 ﻿@page "/sectors"
 
+@using MudBlazor
+@using MudBlazor.Utilities
 @using SIP.UI.Components.Dialogs.Sectors
 @using SIP.UI.Domain.DTOs.Sectors
+@using SIP.UI.Domain.DTOs.Sectors.Responses
 @using SIP.UI.Domain.Helpers.DataFormatting.Strings
 @using SIP.UI.Domain.Services.Sectors
 @using SIP.UI.Models.Sectors
 @using SIP.UI.Models.Users
-@using MudBlazor
-@using MudBlazor.Utilities
 
 @inject SectorService _sectorService
 @inject ISnackbar Snackbar
@@ -28,7 +29,7 @@
     <MudPaper Class="pa-4 ma-2" Elevation="1">
 
         @* Componente de tabela do MudBlazor *@
-        <MudTable T="Sector" ServerData="LoadServerData" Dense="true" Hover="true" Bordered="false" @ref="table" RowsPerPage="pageSize" LoadingProgressColor="Color.Primary" Loading="@isLoading" SortLabel="sortLabel" Elevation="0" MultiSelection="true" @bind-SelectedItems="_selectedSectors">
+        <MudTable T="SectorListItemDTO" ServerData="LoadServerData" Dense="true" Hover="true" Bordered="false" @ref="table" RowsPerPage="pageSize" LoadingProgressColor="Color.Primary" Loading="@isLoading" SortLabel="sortLabel" Elevation="0" MultiSelection="true" @bind-SelectedItems="_selectedSectors">
 
             @* Barra superior da tabela contendo o campo de filtragem e os botões de exportação *@
             <ToolBarContent>
@@ -91,10 +92,10 @@
 
                 <MudTh></MudTh>
                 <MudTh Style="font-weight: bold;">
-                    <MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<Sector, object>(x => x.Name)">Nome</MudTableSortLabel>
+                    <MudTableSortLabel SortLabel="name" InitialDirection="SortDirection.Ascending" SortBy="new Func<SectorListItemDTO, object>(x => x.Name)">Nome</MudTableSortLabel>
                 </MudTh>
                 <MudTh Style="font-weight: bold;">
-                    <MudTableSortLabel SortLabel="Acronym" SortBy="new Func<Sector, object>(x => x.Acronym)">Sigla</MudTableSortLabel>
+                    <MudTableSortLabel SortLabel="acronym" SortBy="new Func<SectorListItemDTO, object>(x => x.Acronym)">Sigla</MudTableSortLabel>
                 </MudTh>
                 <MudTh Style="font-weight: bold;">Telefone</MudTh>
 
@@ -213,9 +214,9 @@
     /// <summary>
     /// Reference to the MudTable component.
     /// </summary>
-    private MudTable<Sector>? table;
+    private MudTable<SectorListItemDTO>? table;
 
-    private HashSet<Sector> _selectedSectors = new();
+    private HashSet<SectorListItemDTO> _selectedSectors = new();
 
     /// <summary>
     /// Indicates if the table is loading data.
@@ -256,7 +257,7 @@
     /// <param name="state">The table state (page, sorting, etc).</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>TableData with sectors and total count.</returns>
-    private async Task<TableData<Sector>> LoadServerData(TableState state, CancellationToken cancellationToken)
+    private async Task<TableData<SectorListItemDTO>> LoadServerData(TableState state, CancellationToken cancellationToken)
     {
         isLoading = true;
         StateHasChanged();
@@ -287,7 +288,7 @@
 
             totalItems = await _sectorService.GetTotalSectorsCountAsync(searchString);
 
-            return new TableData<Sector>
+            return new TableData<SectorListItemDTO>
             {
                 Items = sectors.Items,
                 TotalItems = sectors.TotalCount
@@ -296,7 +297,7 @@
         catch (Exception ex)
         {
             Snackbar.Add($"Erro ao carregar dados: {ex.Message}", Severity.Error);
-            return new TableData<Sector> { Items = [], TotalItems = 0 };
+            return new TableData<SectorListItemDTO> { Items = [], TotalItems = 0 };
         }
         finally
         {
@@ -309,7 +310,7 @@
     /// Toggles the visibility of related users for a sector.
     /// </summary>
     /// <param name="sector">The sector to toggle.</param>
-    private void ToggleShowUsers(Sector sector) => 
+    private void ToggleShowUsers(SectorListItemDTO sector) =>
         sector.ShowUsers = !sector.ShowUsers;
 
     /// <summary>
@@ -414,7 +415,7 @@
     /// Shows the dialog to edit an existing sector.
     /// </summary>
     /// <param name="sector">Sector to edit.</param>
-    private async Task ShowEditDialog(Sector sector)
+    private async Task ShowEditDialog(SectorListItemDTO sector)
     {
         DialogParameters<SectorEditDialog> parameters = new();
 
@@ -461,7 +462,7 @@
     /// Shows the dialog to delete a sector.
     /// </summary>
     /// <param name="sector">Sector to delete.</param>
-    private async Task ShowDeleteDialog(Sector sector)
+    private async Task ShowDeleteDialog(SectorListItemDTO sector)
     {
         DialogParameters<SectorDeleteDialog> parameters = new();
 

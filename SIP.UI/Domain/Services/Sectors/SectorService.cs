@@ -1,4 +1,4 @@
-﻿using SIP.UI.Domain.DTOs.Sectors;
+﻿using SIP.UI.Domain.DTOs.Sectors.Responses;
 using SIP.UI.Domain.Helpers.Endpoints;
 using SIP.UI.Models.Sectors;
 using System.Net.Http.Json;

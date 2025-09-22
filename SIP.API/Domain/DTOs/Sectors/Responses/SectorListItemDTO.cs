@@ -1,9 +1,8 @@
-﻿using SIP.UI.Models.Users;
+﻿using SIP.API.Domain.Entities.Users;
 using System.ComponentModel.DataAnnotations;
 
-namespace SIP.UI.Models.Sectors;
-
-public class Sector
+namespace SIP.API.Domain.DTOs.Sectors.Responses;
+public class SectorListItemDTO
 {
     public Guid Id { get; set; }
 

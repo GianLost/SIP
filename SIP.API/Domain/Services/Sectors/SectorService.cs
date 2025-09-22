@@ -22,11 +22,14 @@ public class SectorService(ApplicationContext context, EntityCacheManager cache)
     /// <inheritdoc/>
     public async Task<Sector> CreateAsync(SectorCreateDTO dto)
     {
+
+        string digitsOnly = new([.. dto.Phone.Where(char.IsDigit)]);
+
         Sector sector = new()
         {
             Name = dto.Name,
             Acronym = dto.Acronym,
-            Phone = dto.Phone
+            Phone = digitsOnly
         };
 
         await _context.Sectors.AddAsync(sector);
@@ -51,12 +54,18 @@ public class SectorService(ApplicationContext context, EntityCacheManager cache)
             .ToListAsync();
     
     /// <inheritdoc/>
-    public async Task<SectorPagedResultDTO> GetPagedAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection, string? searchString)
+    public async Task<SectorPagedResultDTO> GetPagedAsync(
+    int pageNumber, 
+    int pageSize, 
+    string? sortLabel, 
+    string? sortDirection, 
+    string? searchString)
     {
         pageSize = Math.Min(pageSize, MaxPageSize);
 
         IQueryable<Sector> query = _context.Sectors
-            .Include(s => s.Users);
+            .Include(s => s.Users)
+            .AsNoTracking();
 
         if (!string.IsNullOrWhiteSpace(searchString))
         {
@@ -66,42 +75,56 @@ public class SectorService(ApplicationContext context, EntityCacheManager cache)
                 s.Phone.Contains(searchString));
         }
 
-        string cacheKey = $"SectorCount_Search_{searchString ?? "NoSearch"}";
-        int? totalCount = _cache.Get<int?>(cacheKey);
+        // Get total count (this will use or re-cache based on the token)
+        int? totalCount = _cache.Get<int?>($"SectorCount_Search_{searchString ?? "NoSearch"}");
 
         if (!totalCount.HasValue)
         {
             totalCount = await query.CountAsync();
-            _cache.Set(cacheKey, totalCount.Value, EntityType);
+            _cache.Set($"SectorCount_Search_{searchString ?? "NoSearch"}", totalCount.Value, EntityType);
         }
 
-        if (!string.IsNullOrWhiteSpace(sortLabel) && !string.IsNullOrWhiteSpace(sortDirection))
+        if (!string.IsNullOrWhiteSpace(sortLabel))
         {
-            PropertyInfo? property = typeof(Sector).GetProperty(sortLabel, 
-                BindingFlags.IgnoreCase | 
-                BindingFlags.Public | 
-                BindingFlags.Instance);
+            bool asc = sortDirection?.Trim().Equals("asc", StringComparison.CurrentCultureIgnoreCase) ?? true;
 
-            if (property != null)
+            query = sortLabel.ToLower() switch
             {
-                query = sortDirection.Trim().Equals("asc", StringComparison.CurrentCultureIgnoreCase)
-                    ? query.OrderBy(e => EF.Property<object>(e, property.Name))
-                    : query.OrderByDescending(e => EF.Property<object>(e, property.Name));
-            }
-            else
-            {
-                query = query.OrderBy(s => s.Name);
-            }
+                "name" => asc
+                  ? query.OrderBy(s => s.Name)
+                  : query.OrderByDescending(s => s.Name),
+
+                "acronym" => asc
+                  ? query.OrderBy(s => s.Acronym)
+                  : query.OrderByDescending(s => s.Acronym),
+
+                _ => asc
+                  ? query.OrderBy(s => s.Name)
+                  : query.OrderByDescending(s => s.Name),
+            };
         }
         else
         {
             query = query.OrderBy(s => s.Name);
         }
 
-        ICollection<Sector> items = await query
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
+        IQueryable<SectorListItemDTO> pagedDataQuery = query
+        .Skip((pageNumber - 1) * pageSize)
+        .Take(pageSize)
+        .Select(u => new SectorListItemDTO
+        {
+            Id = u.Id,
+            Name = u.Name,
+            Acronym = u.Acronym,
+            Phone = u.Phone,
+            CreatedAt = u.CreatedAt,
+            CreatedById = u.CreatedById,
+            UpdatedAt = u.UpdatedAt,
+            UpdatedById = u.UpdatedById,
+            Users = u.Users
+        });
+
+        ICollection<SectorListItemDTO> items = await pagedDataQuery.ToListAsync();
 
         return new SectorPagedResultDTO
         {

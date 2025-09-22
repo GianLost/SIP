@@ -1,356 +1,356 @@
 ﻿{
-    "sectors": [
-        {
-            "name": "Secretaria Municipal de Meio Ambiente",
-            "acronym": "SEMEIA",
-            "phone": "(38) 3754-8960",
-            "createdAt": "2025-07-02T22:50:18.408453",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Planejamento",
-            "acronym": "SEPLAN",
-            "phone": "(38) 3754-8984",
-            "createdAt": "2025-07-02T22:42:32.332587",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Cultura, Esportes e Turismo",
-            "acronym": "SECETUR",
-            "phone": "(38) 3754-8817",
-            "createdAt": "2025-07-02T22:51:10.659983",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Saúde",
-            "acronym": "SESAU",
-            "phone": "(38) 3754-8901",
-            "createdAt": "2025-07-02T22:52:00.000000",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Educação",
-            "acronym": "SEDUC",
-            "phone": "(38) 3754-8902",
-            "createdAt": "2025-07-02T22:52:10.000000",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Assistência Social",
-            "acronym": "SEMAS",
-            "phone": "(38) 3754-8903",
-            "createdAt": "2025-07-02T22:52:20.000000",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Obras",
-            "acronym": "SEMOB",
-            "phone": "(38) 3754-8904",
-            "createdAt": "2025-07-02T22:52:30.000000",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Finanças",
-            "acronym": "SEFIN",
-            "phone": "(38) 3754-8905",
-            "createdAt": "2025-07-02T22:52:40.000000",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Administração",
-            "acronym": "SEMAD",
-            "phone": "(38) 3754-8906",
-            "createdAt": "2025-07-02T22:52:50.000000",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Agricultura",
-            "acronym": "SEMAG",
-            "phone": "(38) 3754-8907",
-            "createdAt": "2025-07-02T22:53:00.000000",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Transporte",
-            "acronym": "SETRAN",
-            "phone": "(38) 3754-8908",
-            "createdAt": "2025-07-02T22:53:10.000000",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Esportes",
-            "acronym": "SEMESP",
-            "phone": "(38) 3754-8909",
-            "createdAt": "2025-07-02T22:53:20.000000",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Turismo",
-            "acronym": "SETUR",
-            "phone": "(38) 3754-8910",
-            "createdAt": "2025-07-02T22:53:30.000000",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Tecnologia",
-            "acronym": "SETI",
-            "phone": "(38) 3754-8911",
-            "createdAt": "2025-07-02T22:53:40.000000",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Habitação",
-            "acronym": "SEHAB",
-            "phone": "(38) 3754-8912",
-            "createdAt": "2025-07-02T22:53:50.000000",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Desenvolvimento",
-            "acronym": "SEDE",
-            "phone": "(38) 3754-8913",
-            "createdAt": "2025-07-02T22:54:00.000000",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Mulher",
-            "acronym": "SEMUL",
-            "phone": "(38) 3754-8915",
-            "createdAt": "2025-07-02T22:54:20.000000",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Trabalho",
-            "acronym": "SETRAB",
-            "phone": "(38) 3754-8916",
-            "createdAt": "2025-07-02T22:54:30.000000",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Comunicação",
-            "acronym": "SECOM",
-            "phone": "(38) 3754-8918",
-            "createdAt": "2025-07-02T22:54:50.000000",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Direitos Humanos",
-            "acronym": "SEDH",
-            "phone": "(38) 3754-8919",
-            "createdAt": "2025-07-02T22:55:00.000000",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Mobilidade",
-            "acronym": "SEMOBI",
-            "phone": "(38) 3754-8920",
-            "createdAt": "2025-07-02T22:55:10.000000",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Energia",
-            "acronym": "SENERG",
-            "phone": "(38) 3754-8921",
-            "createdAt": "2025-07-02T22:55:20.000000",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Pesca",
-            "acronym": "SEPES",
-            "phone": "(38) 3754-8922",
-            "createdAt": "2025-07-02T22:55:30.000000",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Indústria",
-            "acronym": "SEIND",
-            "phone": "(38) 3754-8923",
-            "createdAt": "2025-07-02T22:55:40.000000",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Comércio",
-            "acronym": "SECOMER",
-            "phone": "(38) 3754-8924",
-            "createdAt": "2025-07-02T22:55:50.000000",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Ciência",
-            "acronym": "SECIE",
-            "phone": "(38) 3754-8925",
-            "createdAt": "2025-07-02T22:56:00.000000",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Relações Internacionais",
-            "acronym": "SERI",
-            "phone": "(38) 3754-8926",
-            "createdAt": "2025-07-02T22:56:10.000000",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Segurança",
-            "acronym": "SES",
-            "phone": "(38) 3754-8928",
-            "createdAt": "2025-07-02T22:56:30.000000",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Cultura",
-            "acronym": "SECULT",
-            "phone": "(38) 3754-8929",
-            "createdAt": "2025-07-02T22:56:40.000000",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Esporte e Lazer",
-            "acronym": "SEMEL",
-            "phone": "(38) 3754-8930",
-            "createdAt": "2025-07-02T22:56:50.000000",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Inclusão Social",
-            "acronym": "SEIS",
-            "phone": "(38) 3754-8931",
-            "createdAt": "2025-07-02T22:57:00.000000",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Juventude",
-            "acronym": "SEJUV",
-            "phone": "(38) 3754-8932",
-            "createdAt": "2025-07-02T22:57:10.000000",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Meio Rural",
-            "acronym": "SEMRUR",
-            "phone": "(38) 3754-8933",
-            "createdAt": "2025-07-02T22:57:20.000000",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Urbanismo",
-            "acronym": "SEURB",
-            "phone": "(38) 3754-8934",
-            "createdAt": "2025-07-02T22:57:30.000000",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Patrimônio",
-            "acronym": "SEPAT",
-            "phone": "(38) 3754-8935",
-            "createdAt": "2025-07-02T22:57:40.000000",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Recursos Hídricos",
-            "acronym": "SERH",
-            "phone": "(38) 3754-8936",
-            "createdAt": "2025-07-02T22:57:50.000000",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Defesa do Consumidor",
-            "acronym": "SEDECON",
-            "phone": "(38) 3754-8937",
-            "createdAt": "2025-07-02T22:58:00.000000",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Proteção Animal",
-            "acronym": "SEPA",
-            "phone": "(38) 3754-8938",
-            "createdAt": "2025-07-02T22:58:10.000000",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Tecnologia da Informação",
-            "acronym": "SETINF",
-            "phone": "(38) 3754-8939",
-            "createdAt": "2025-07-02T22:58:20.000000",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Inovação",
-            "acronym": "SEINOV",
-            "phone": "(38) 3754-8940",
-            "createdAt": "2025-07-02T22:58:30.000000",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Relações Comunitárias",
-            "acronym": "SERCOM",
-            "phone": "(38) 3754-8941",
-            "createdAt": "2025-07-02T22:58:40.000000",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Políticas para Mulheres",
-            "acronym": "SEPMUL",
-            "phone": "(38) 3754-8942",
-            "createdAt": "2025-07-02T22:58:50.000000",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Igualdade Racial",
-            "acronym": "SEIR",
-            "phone": "(38) 3754-8943",
-            "createdAt": "2025-07-02T22:59:00.000000",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Direitos da Pessoa com Deficiência",
-            "acronym": "SEDPD",
-            "phone": "(38) 3754-8944",
-            "createdAt": "2025-07-02T22:59:10.000000",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Segurança Alimentar",
-            "acronym": "SEALIM",
-            "phone": "(38) 3754-8945",
-            "createdAt": "2025-07-02T22:59:20.000000",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Defesa Agropecuária",
-            "acronym": "SEAGRO",
-            "phone": "(38) 3754-8946",
-            "createdAt": "2025-07-02T22:59:30.000000",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Desenvolvimento Econômico",
-            "acronym": "SEDEC",
-            "phone": "(38) 3754-8947",
-            "createdAt": "2025-07-02T22:59:40.000000",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Desenvolvimento Urbano",
-            "acronym": "SEDU",
-            "phone": "(38) 3754-8948",
-            "createdAt": "2025-07-02T22:59:50.000000",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Desenvolvimento Rural",
-            "acronym": "SEDRU",
-            "phone": "(38) 3754-8949",
-            "createdAt": "2025-07-02T23:00:00.000000",
-            "updatedAt": null
-        },
-        {
-            "name": "Secretaria Municipal de Políticas Públicas",
-            "acronym": "SEPP",
-            "phone": "(38) 3754-8950",
-            "createdAt": "2025-07-02T23:00:10.000000",
-            "updatedAt": null
-        }
-    ],
+  "sectors": [
+    {
+      "name": "Secretaria Municipal de Meio Ambiente",
+      "acronym": "SEMEIA",
+      "phone": "3837548960",
+      "createdAt": "2025-07-02T22:50:18.408453",
+      "updatedAt": null
+    },
+    {
+      "name": "Secretaria Municipal de Planejamento",
+      "acronym": "SEPLAN",
+      "phone": "3837548984",
+      "createdAt": "2025-07-02T22:42:32.332587",
+      "updatedAt": null
+    },
+    {
+      "name": "Secretaria Municipal de Cultura, Esportes e Turismo",
+      "acronym": "SECETUR",
+      "phone": "3837548817",
+      "createdAt": "2025-07-02T22:51:10.659983",
+      "updatedAt": null
+    },
+    {
+      "name": "Secretaria Municipal de Saúde",
+      "acronym": "SESAU",
+      "phone": "3837548901",
+      "createdAt": "2025-07-02T22:52:00.000000",
+      "updatedAt": null
+    },
+    {
+      "name": "Secretaria Municipal de Educação",
+      "acronym": "SEDUC",
+      "phone": "3837548902",
+      "createdAt": "2025-07-02T22:52:10.000000",
+      "updatedAt": null
+    },
+    {
+      "name": "Secretaria Municipal de Assistência Social",
+      "acronym": "SEMAS",
+      "phone": "3837548903",
+      "createdAt": "2025-07-02T22:52:20.000000",
+      "updatedAt": null
+    },
+    {
+      "name": "Secretaria Municipal de Obras",
+      "acronym": "SEMOB",
+      "phone": "3837548904",
+      "createdAt": "2025-07-02T22:52:30.000000",
+      "updatedAt": null
+    },
+    {
+      "name": "Secretaria Municipal de Finanças",
+      "acronym": "SEFIN",
+      "phone": "3837548905",
+      "createdAt": "2025-07-02T22:52:40.000000",
+      "updatedAt": null
+    },
+    {
+      "name": "Secretaria Municipal de Administração",
+      "acronym": "SEMAD",
+      "phone": "3837548906",
+      "createdAt": "2025-07-02T22:52:50.000000",
+      "updatedAt": null
+    },
+    {
+      "name": "Secretaria Municipal de Agricultura",
+      "acronym": "SEMAG",
+      "phone": "3837548907",
+      "createdAt": "2025-07-02T22:53:00.000000",
+      "updatedAt": null
+    },
+    {
+      "name": "Secretaria Municipal de Transporte",
+      "acronym": "SETRAN",
+      "phone": "3837548908",
+      "createdAt": "2025-07-02T22:53:10.000000",
+      "updatedAt": null
+    },
+    {
+      "name": "Secretaria Municipal de Esportes",
+      "acronym": "SEMESP",
+      "phone": "3837548909",
+      "createdAt": "2025-07-02T22:53:20.000000",
+      "updatedAt": null
+    },
+    {
+      "name": "Secretaria Municipal de Turismo",
+      "acronym": "SETUR",
+      "phone": "3837548910",
+      "createdAt": "2025-07-02T22:53:30.000000",
+      "updatedAt": null
+    },
+    {
+      "name": "Secretaria Municipal de Tecnologia",
+      "acronym": "SETI",
+      "phone": "3837548911",
+      "createdAt": "2025-07-02T22:53:40.000000",
+      "updatedAt": null
+    },
+    {
+      "name": "Secretaria Municipal de Habitação",
+      "acronym": "SEHAB",
+      "phone": "3837548912",
+      "createdAt": "2025-07-02T22:53:50.000000",
+      "updatedAt": null
+    },
+    {
+      "name": "Secretaria Municipal de Desenvolvimento",
+      "acronym": "SEDE",
+      "phone": "3837548913",
+      "createdAt": "2025-07-02T22:54:00.000000",
+      "updatedAt": null
+    },
+    {
+      "name": "Secretaria Municipal de Mulher",
+      "acronym": "SEMUL",
+      "phone": "3837548915",
+      "createdAt": "2025-07-02T22:54:20.000000",
+      "updatedAt": null
+    },
+    {
+      "name": "Secretaria Municipal de Trabalho",
+      "acronym": "SETRAB",
+      "phone": "3837548916",
+      "createdAt": "2025-07-02T22:54:30.000000",
+      "updatedAt": null
+    },
+    {
+      "name": "Secretaria Municipal de Comunicação",
+      "acronym": "SECOM",
+      "phone": "3837548918",
+      "createdAt": "2025-07-02T22:54:50.000000",
+      "updatedAt": null
+    },
+    {
+      "name": "Secretaria Municipal de Direitos Humanos",
+      "acronym": "SEDH",
+      "phone": "3837548919",
+      "createdAt": "2025-07-02T22:55:00.000000",
+      "updatedAt": null
+    },
+    {
+      "name": "Secretaria Municipal de Mobilidade",
+      "acronym": "SEMOBI",
+      "phone": "3837548920",
+      "createdAt": "2025-07-02T22:55:10.000000",
+      "updatedAt": null
+    },
+    {
+      "name": "Secretaria Municipal de Energia",
+      "acronym": "SENERG",
+      "phone": "3837548921",
+      "createdAt": "2025-07-02T22:55:20.000000",
+      "updatedAt": null
+    },
+    {
+      "name": "Secretaria Municipal de Pesca",
+      "acronym": "SEPES",
+      "phone": "3837548922",
+      "createdAt": "2025-07-02T22:55:30.000000",
+      "updatedAt": null
+    },
+    {
+      "name": "Secretaria Municipal de Indústria",
+      "acronym": "SEIND",
+      "phone": "3837548923",
+      "createdAt": "2025-07-02T22:55:40.000000",
+      "updatedAt": null
+    },
+    {
+      "name": "Secretaria Municipal de Comércio",
+      "acronym": "SECOMER",
+      "phone": "3837548924",
+      "createdAt": "2025-07-02T22:55:50.000000",
+      "updatedAt": null
+    },
+    {
+      "name": "Secretaria Municipal de Ciência",
+      "acronym": "SECIE",
+      "phone": "3837548925",
+      "createdAt": "2025-07-02T22:56:00.000000",
+      "updatedAt": null
+    },
+    {
+      "name": "Secretaria Municipal de Relações Internacionais",
+      "acronym": "SERI",
+      "phone": "3837548926",
+      "createdAt": "2025-07-02T22:56:10.000000",
+      "updatedAt": null
+    },
+    {
+      "name": "Secretaria Municipal de Segurança",
+      "acronym": "SES",
+      "phone": "3837548928",
+      "createdAt": "2025-07-02T22:56:30.000000",
+      "updatedAt": null
+    },
+    {
+      "name": "Secretaria Municipal de Cultura",
+      "acronym": "SECULT",
+      "phone": "3837548929",
+      "createdAt": "2025-07-02T22:56:40.000000",
+      "updatedAt": null
+    },
+    {
+      "name": "Secretaria Municipal de Esporte e Lazer",
+      "acronym": "SEMEL",
+      "phone": "3837548930",
+      "createdAt": "2025-07-02T22:56:50.000000",
+      "updatedAt": null
+    },
+    {
+      "name": "Secretaria Municipal de Inclusão Social",
+      "acronym": "SEIS",
+      "phone": "3837548931",
+      "createdAt": "2025-07-02T22:57:00.000000",
+      "updatedAt": null
+    },
+    {
+      "name": "Secretaria Municipal de Juventude",
+      "acronym": "SEJUV",
+      "phone": "3837548932",
+      "createdAt": "2025-07-02T22:57:10.000000",
+      "updatedAt": null
+    },
+    {
+      "name": "Secretaria Municipal de Meio Rural",
+      "acronym": "SEMRUR",
+      "phone": "3837548933",
+      "createdAt": "2025-07-02T22:57:20.000000",
+      "updatedAt": null
+    },
+    {
+      "name": "Secretaria Municipal de Urbanismo",
+      "acronym": "SEURB",
+      "phone": "3837548934",
+      "createdAt": "2025-07-02T22:57:30.000000",
+      "updatedAt": null
+    },
+    {
+      "name": "Secretaria Municipal de Patrimônio",
+      "acronym": "SEPAT",
+      "phone": "3837548935",
+      "createdAt": "2025-07-02T22:57:40.000000",
+      "updatedAt": null
+    },
+    {
+      "name": "Secretaria Municipal de Recursos Hídricos",
+      "acronym": "SERH",
+      "phone": "3837548936",
+      "createdAt": "2025-07-02T22:57:50.000000",
+      "updatedAt": null
+    },
+    {
+      "name": "Secretaria Municipal de Defesa do Consumidor",
+      "acronym": "SEDECON",
+      "phone": "3837548937",
+      "createdAt": "2025-07-02T22:58:00.000000",
+      "updatedAt": null
+    },
+    {
+      "name": "Secretaria Municipal de Proteção Animal",
+      "acronym": "SEPA",
+      "phone": "3837548938",
+      "createdAt": "2025-07-02T22:58:10.000000",
+      "updatedAt": null
+    },
+    {
+      "name": "Secretaria Municipal de Tecnologia da Informação",
+      "acronym": "SETINF",
+      "phone": "3837548939",
+      "createdAt": "2025-07-02T22:58:20.000000",
+      "updatedAt": null
+    },
+    {
+      "name": "Secretaria Municipal de Inovação",
+      "acronym": "SEINOV",
+      "phone": "3837548940",
+      "createdAt": "2025-07-02T22:58:30.000000",
+      "updatedAt": null
+    },
+    {
+      "name": "Secretaria Municipal de Relações Comunitárias",
+      "acronym": "SERCOM",
+      "phone": "3837548941",
+      "createdAt": "2025-07-02T22:58:40.000000",
+      "updatedAt": null
+    },
+    {
+      "name": "Secretaria Municipal de Políticas para Mulheres",
+      "acronym": "SEPMUL",
+      "phone": "3837548942",
+      "createdAt": "2025-07-02T22:58:50.000000",
+      "updatedAt": null
+    },
+    {
+      "name": "Secretaria Municipal de Igualdade Racial",
+      "acronym": "SEIR",
+      "phone": "3837548943",
+      "createdAt": "2025-07-02T22:59:00.000000",
+      "updatedAt": null
+    },
+    {
+      "name": "Secretaria Municipal de Direitos da Pessoa com Deficiência",
+      "acronym": "SEDPD",
+      "phone": "3837548944",
+      "createdAt": "2025-07-02T22:59:10.000000",
+      "updatedAt": null
+    },
+    {
+      "name": "Secretaria Municipal de Segurança Alimentar",
+      "acronym": "SEALIM",
+      "phone": "3837548945",
+      "createdAt": "2025-07-02T22:59:20.000000",
+      "updatedAt": null
+    },
+    {
+      "name": "Secretaria Municipal de Defesa Agropecuária",
+      "acronym": "SEAGRO",
+      "phone": "3837548946",
+      "createdAt": "2025-07-02T22:59:30.000000",
+      "updatedAt": null
+    },
+    {
+      "name": "Secretaria Municipal de Desenvolvimento Econômico",
+      "acronym": "SEDEC",
+      "phone": "3837548947",
+      "createdAt": "2025-07-02T22:59:40.000000",
+      "updatedAt": null
+    },
+    {
+      "name": "Secretaria Municipal de Desenvolvimento Urbano",
+      "acronym": "SEDU",
+      "phone": "3837548948",
+      "createdAt": "2025-07-02T22:59:50.000000",
+      "updatedAt": null
+    },
+    {
+      "name": "Secretaria Municipal de Desenvolvimento Rural",
+      "acronym": "SEDRU",
+      "phone": "3837548949",
+      "createdAt": "2025-07-02T23:00:00.000000",
+      "updatedAt": null
+    },
+    {
+      "name": "Secretaria Municipal de Políticas Públicas",
+      "acronym": "SEPP",
+      "phone": "3837548950",
+      "createdAt": "2025-07-02T23:00:10.000000",
+      "updatedAt": null
+    }
+  ],
   "users": [
     {
       "fullName": "Jean de Almeida Jesuíno",

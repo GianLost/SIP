@@ -64,7 +64,10 @@ public class UserService(ApplicationContext context, EntityCacheManager cache) :
     {
         pageSize = Math.Min(pageSize, MaxPageSize); // Limite máximo
 
-        IQueryable<User> query = _context.Users.Include(s => s.Sector).Include(p => p.ProtocolsCreated);
+        IQueryable<User> query = _context.Users
+            .Include(s => s.Sector)
+            .Include(p => p.ProtocolsCreated)
+            .AsNoTracking();
 
         if (!string.IsNullOrWhiteSpace(searchString))
         {

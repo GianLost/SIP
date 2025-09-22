@@ -95,7 +95,12 @@ public class SectorController(ISector sector) : ControllerBase
     /// <param name="searchString">Optional search string to filter sectors.</param>
     /// <returns>A paged result DTO containing the sectors and total count.</returns>
     [HttpGet("show_paged")]
-    public async Task<IActionResult> GetPagedAsync([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 15, [FromQuery] string? sortLabel = null, [FromQuery] string? sortDirection = null, [FromQuery] string? searchString = null)
+    public async Task<IActionResult> GetPagedAsync(
+    [FromQuery] int pageNumber = 1, 
+    [FromQuery] int pageSize = 15, 
+    [FromQuery] string? sortLabel = null, 
+    [FromQuery] string? sortDirection = null, 
+    [FromQuery] string? searchString = null)
     {
         SectorPagedResultDTO result = await _sectorService.GetPagedAsync(pageNumber, pageSize, sortLabel, sortDirection, searchString);
         return Ok(result);

@@ -1,4 +1,5 @@
 ﻿@using MudBlazor
+@using SIP.UI.Domain.DTOs.Sectors.Responses
 @using SIP.UI.Models.Sectors
 
 <MudDialog>
@@ -66,7 +67,7 @@
     /// O objeto de setor a ser excluído. Este parâmetro é passado pelo componente pai.
     /// </summary>
     [Parameter] 
-    public Sector? SectorToDelete { get; set; }
+    public SectorListItemDTO? SectorToDelete { get; set; }
 
     /// <summary>
     /// Confirma a exclusão e fecha o diálogo com um resultado positivo.
