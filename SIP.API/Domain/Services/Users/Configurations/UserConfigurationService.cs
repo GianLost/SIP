@@ -17,7 +17,7 @@ public class UserConfigurationService(ApplicationContext context, IUser userServ
         if (dto == null || string.IsNullOrWhiteSpace(dto.Password))
             return null;
 
-        User? user = await _userService.GetByIdAsync(dto.UserId);
+        User? user = await _userService.GetByIdAsync(dto.Id);
 
         if (user == null)
             return null;

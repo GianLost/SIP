@@ -134,31 +134,6 @@ public class SectorService(ApplicationContext context, EntityCacheManager cache)
     }
 
     /// <inheritdoc/>
-    public async Task<int> GetTotalSectorsCountAsync(string? searchString)
-    {
-        IQueryable<Sector> query = _context.Sectors;
-
-        if (!string.IsNullOrWhiteSpace(searchString))
-        {
-            query = query.Where(s =>
-                s.Name.Contains(searchString) ||
-                s.Acronym.Contains(searchString) ||
-                s.Phone.Contains(searchString));
-        }
-
-        string cacheKey = $"SectorCount_Search_{searchString ?? "NoSearch"}";
-        int? totalCount = _cache.Get<int?>(cacheKey);
-
-        if (!totalCount.HasValue)
-        {
-            totalCount = await query.CountAsync();
-            _cache.Set(cacheKey, totalCount.Value, EntityType);
-        }
-
-        return totalCount.Value;
-    }
-
-    /// <inheritdoc/>
     public async Task<Sector?> UpdateAsync(Guid id, SectorUpdateDTO dto)
     {
         Sector? sector = await GetByIdAsync(id);
@@ -196,6 +171,31 @@ public class SectorService(ApplicationContext context, EntityCacheManager cache)
         ClearTotalSectorsCountCache();
 
         return true;
+    }
+
+    /// <inheritdoc/>
+    public async Task<int> GetTotalSectorsCountAsync(string? searchString)
+    {
+        IQueryable<Sector> query = _context.Sectors;
+
+        if (!string.IsNullOrWhiteSpace(searchString))
+        {
+            query = query.Where(s =>
+                s.Name.Contains(searchString) ||
+                s.Acronym.Contains(searchString) ||
+                s.Phone.Contains(searchString));
+        }
+
+        string cacheKey = $"SectorCount_Search_{searchString ?? "NoSearch"}";
+        int? totalCount = _cache.Get<int?>(cacheKey);
+
+        if (!totalCount.HasValue)
+        {
+            totalCount = await query.CountAsync();
+            _cache.Set(cacheKey, totalCount.Value, EntityType);
+        }
+
+        return totalCount.Value;
     }
 
     /// <inheritdoc/>

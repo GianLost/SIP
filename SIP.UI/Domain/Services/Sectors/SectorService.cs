@@ -1,4 +1,5 @@
-﻿using SIP.UI.Domain.DTOs.Sectors.Responses;
+﻿using SIP.UI.Domain.DTOs.Sectors;
+using SIP.UI.Domain.DTOs.Sectors.Responses;
 using SIP.UI.Domain.Helpers.Endpoints;
 using SIP.UI.Models.Sectors;
 using System.Net.Http.Json;
@@ -90,7 +91,7 @@ public class SectorService(HttpClient http)
     /// Creates a new sector via the API.
     /// </summary>
     /// <param name="setor">The sector entity to create.</param>
-    public async Task CreateSectorAsync(Sector setor)
+    public async Task CreateSectorAsync(SectorCreateDTO setor)
     {
         HttpResponseMessage response = await _http.PostAsJsonAsync(SectorsEndpoints._createSector, setor);
         response.EnsureSuccessStatusCode();
@@ -101,7 +102,7 @@ public class SectorService(HttpClient http)
     /// Updates an existing sector via the API.
     /// </summary>
     /// <param name="setor">The sector entity to update.</param>
-    public async Task UpdateSectorAsync(Sector setor)
+    public async Task UpdateSectorAsync(SectorUpdateDTO setor)
     {
         HttpResponseMessage response = await _http.PutAsJsonAsync($"{SectorsEndpoints._updateSector}{setor.Id}", setor);
         response.EnsureSuccessStatusCode();

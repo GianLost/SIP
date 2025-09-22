@@ -1,11 +1,7 @@
-﻿using SIP.API.Domain.Interfaces.Sectors;
+﻿using SIP.UI.Domain.DTOs.Interfaces;
 
-namespace SIP.API.Domain.DTOs.Sectors;
+namespace SIP.UI.Domain.DTOs.Sectors;
 
-/// <summary>
-/// Represents the data transfer object (DTO) used to update an existing sector.
-/// Inherits base sector properties.
-/// </summary>
 public class SectorUpdateDTO : ISectorDTO
 {
     public Guid Id { get; set; } // por exemplo, só no update

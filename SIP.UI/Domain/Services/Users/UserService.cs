@@ -1,4 +1,5 @@
-﻿using SIP.UI.Domain.DTOs.Users.Configurations;
+﻿using SIP.UI.Domain.DTOs.Users;
+using SIP.UI.Domain.DTOs.Users.Configurations;
 using SIP.UI.Domain.DTOs.Users.Responses;
 using SIP.UI.Domain.Helpers.Endpoints;
 using SIP.UI.Models.Users;
@@ -72,7 +73,7 @@ public class UserService(HttpClient http)
     /// Creates a new User via the API.
     /// </summary>
     /// <param name="user">The user entity to create.</param>
-    public async Task CreateUserAsync(User user)
+    public async Task CreateUserAsync(UserCreateDTO user)
     {
         HttpResponseMessage response = await _http.PostAsJsonAsync(UsersEndpoints._createUser, user);
         response.EnsureSuccessStatusCode();
@@ -84,7 +85,7 @@ public class UserService(HttpClient http)
     /// Updates an existing user via the API.
     /// </summary>
     /// <param name="user">The user entity to update.</param>
-    public async Task UpdateUserAsync(User user)
+    public async Task UpdateUserAsync(UserUpdateDTO user)
     {
         HttpResponseMessage response = await _http.PatchAsJsonAsync($"{UsersEndpoints._defaultUpdateUser}{user.Id}", user);
         response.EnsureSuccessStatusCode();
@@ -143,7 +144,7 @@ public class UserService(HttpClient http)
         {
             UserDefaultChangePasswordDTO changePasswordDto = new()
             {
-                UserId = userId,
+                Id = userId,
                 Password = newPassword
             };
 

@@ -1,5 +1,4 @@
 ﻿using SIP.UI.Models.Users;
-using System.ComponentModel.DataAnnotations;
 
 namespace SIP.UI.Domain.DTOs.Sectors.Responses;
 
@@ -7,22 +6,12 @@ public class SectorListItemDTO
 {
     public Guid Id { get; set; }
 
-    [Required]
-    [StringLength(150)]
     public string Name { get; set; } = string.Empty;
-
-    [Required]
-    [StringLength(20)]
-
     public string Acronym { get; set; } = string.Empty;
-
-    [Required]
-    [StringLength(20)]
     public string Phone { get; set; } = string.Empty;
 
     public bool ShowUsers { get; set; }
 
-    [Required]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public Guid? CreatedById { get; set; }

@@ -370,29 +370,25 @@
     /// </summary>
     private async Task ShowAddDialog()
     {
-
         _isModalOpen = true;
 
-        DialogParameters<SectorEditDialog> parameters = new();
+        DialogParameters<SectorDialog> parameters = new();
+        parameters.Add(x => x.Sector, new SectorCreateDTO());
 
-        parameters.Add(x => x.Sector, new Sector { Id = Guid.Empty });
-
-        IDialogReference dialog = await DialogService.ShowAsync<SectorEditDialog>("", parameters);
-
-        DialogResult? result = await dialog.Result;  
+        IDialogReference dialog = await DialogService.ShowAsync<SectorDialog>("", parameters);
+        DialogResult? result = await dialog.Result;
 
         _isModalOpen = false;
 
         if (result is not null && !result.Canceled)
         {
-            Sector? savedSector = result.Data as Sector;
+            var createdSector = result.Data as SectorCreateDTO;
 
-            if (savedSector != null)
+            if (createdSector != null)
             {
                 try
                 {
-                    await _sectorService.CreateSectorAsync(savedSector);
-
+                    await _sectorService.CreateSectorAsync(createdSector);
                     Snackbar.Add("Secretaria criada com sucesso!", Severity.Success);
 
                     if (table is not null)
@@ -408,7 +404,6 @@
         {
             Snackbar.Add("Inserção de setor cancelada.", Severity.Info);
         }
-
     }
 
     /// <summary>
@@ -417,9 +412,9 @@
     /// <param name="sector">Sector to edit.</param>
     private async Task ShowEditDialog(SectorListItemDTO sector)
     {
-        DialogParameters<SectorEditDialog> parameters = new();
+        DialogParameters<SectorDialog> parameters = new();
 
-        parameters.Add(x => x.Sector, new Sector
+        parameters.Add(x => x.Sector, new SectorUpdateDTO
         {
             Id = sector.Id,
             Name = sector.Name,
@@ -427,20 +422,18 @@
             Phone = sector.Phone
         });
 
-        IDialogReference dialog = await DialogService.ShowAsync<SectorEditDialog>("", parameters);
-
+        IDialogReference dialog = await DialogService.ShowAsync<SectorDialog>("", parameters);
         DialogResult? result = await dialog.Result;
 
         if (result is not null && !result.Canceled)
         {
-            Sector? updatedSector = result.Data as Sector;
+            var updatedSector = result.Data as SectorUpdateDTO;
 
             if (updatedSector != null)
             {
                 try
                 {
                     await _sectorService.UpdateSectorAsync(updatedSector);
-
                     Snackbar.Add("Secretaria atualizada com sucesso!", Severity.Success);
 
                     if (table is not null)

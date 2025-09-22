@@ -1,4 +1,6 @@
 ﻿@using MudBlazor
+@using SIP.UI.Domain.DTOs.Interfaces
+@using SIP.UI.Domain.DTOs.Sectors
 @using SIP.UI.Models.Sectors
 
 <MudDialog Style="width:450px">
@@ -48,8 +50,8 @@
     /// <summary>
     /// O objeto de setor que está sendo editado. Este parâmetro é passado pelo componente pai.
     /// </summary>
-    [Parameter] 
-    public Sector Sector { get; set; } = new();
+    [Parameter]
+    public ISectorDTO Sector { get; set; } = default!;
 
     /// <summary>
     /// Referência ao componente MudForm, usada para chamar o método de validação.

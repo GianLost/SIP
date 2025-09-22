@@ -136,10 +136,6 @@ public class UserController(IUser user, IUserConfiguration userConfiguration) : 
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateAsync(Guid id, [FromBody] UserUpdateDTO userDTO)
     {
-
-        if (!ModelState.IsValid)
-            return ValidationProblem(ModelState);
-
         User? updated = await _userService.UpdateAsync(id, userDTO);
 
         if (updated == null)

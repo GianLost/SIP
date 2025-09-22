@@ -1,12 +1,15 @@
-﻿using System.Text.Json.Serialization;
+﻿using SIP.UI.Domain.Helpers.RegExpressions;
+using System.ComponentModel.DataAnnotations;
 
 namespace SIP.UI.Domain.DTOs.Users.Configurations;
 
 public class UserDefaultChangePasswordDTO
 {
-    [JsonPropertyName("userId")]
-    public Guid UserId { get; set; }
+    public Guid Id { get; set; }
+    public string Login { get; set; } = string.Empty;
 
-    [JsonPropertyName("password")]
+    [Required(ErrorMessage = "A senha é obrigatória.")]
+    [StringLength(255, MinimumLength = 8, ErrorMessage = "A senha deve ter entre 8 e 255 caracteres.")]
+    [RegularExpression(ConstExpressions.StrongPasswordRegex, ErrorMessage = "A senha deve conter pelo menos uma letra maiúscula, uma minúscula, um número e um caractere especial.")]
     public string Password { get; set; } = string.Empty;
 }

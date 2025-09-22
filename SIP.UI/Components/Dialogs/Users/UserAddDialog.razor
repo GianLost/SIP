@@ -1,4 +1,5 @@
 ﻿@using MudBlazor
+@using SIP.UI.Domain.DTOs.Users
 @using SIP.UI.Domain.Services.Sectors
 @using SIP.UI.Domain.Enums
 @using SIP.UI.Models.Sectors
@@ -124,7 +125,7 @@
     /// Este parâmetro é passado pelo componente pai.
     /// </summary>
     [Parameter]
-    public User User { get; set; } = new();
+    public UserCreateDTO User { get; set; } = new();
 
     /// <summary>
     /// Lista completa de setores disponíveis, usada para popular o dropdown de seleção de setor.

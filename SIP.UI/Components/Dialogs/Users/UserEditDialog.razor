@@ -1,4 +1,5 @@
 ﻿@using MudBlazor
+@using SIP.UI.Domain.DTOs.Users
 @using SIP.UI.Domain.Services.Sectors
 @using SIP.UI.Domain.Enums
 @using SIP.UI.Models.Sectors
@@ -39,7 +40,7 @@
 
                 @* Checkbox para ativar/inativar o usuário com label dinâmico *@
                 <MudItem xs="12" sm="6" Class="m-0">
-                    <MudCheckBox Size="Size.Small" @bind-Value="User.IsActive" Color="@Color.Primary"> @(User.IsActive == true ? "Desativar" : "Ativar")</MudCheckBox>
+                    <MudCheckBox Size="Size.Small" @bind-Value="User.Status" Color="@Color.Primary"> @(User.Status == true ? "Desativar" : "Ativar")</MudCheckBox>
                 </MudItem>
 
                 @* Caixa de seleção para definir o papel (Role) do usuário *@
@@ -85,7 +86,7 @@
     /// O objeto de usuário que será editado. Este parâmetro é fornecido pelo componente pai.
     /// </summary>
     [Parameter]
-    public User User { get; set; } = new();
+    public UserUpdateDTO User { get; set; } = new();
 
     /// <summary>
     /// Referência ao formulário do MudBlazor, usada para disparar a validação manualmente.

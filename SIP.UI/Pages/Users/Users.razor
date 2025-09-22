@@ -333,7 +333,7 @@
         _isModalOpen = true;
 
         DialogParameters<UserAddDialog> parameters = new();
-        parameters.Add(x => x.User, new User { Id = Guid.Empty });
+        parameters.Add(x => x.User, new UserCreateDTO());
         IDialogReference dialog = await DialogService.ShowAsync<UserAddDialog>("", parameters);
         DialogResult? result = await dialog.Result;
 
@@ -341,7 +341,7 @@
 
         if (result is not null && !result.Canceled)
         {
-            User? savedUser = result.Data as User;
+            UserCreateDTO? savedUser = result.Data as UserCreateDTO;
 
             if (savedUser != null)
             {
@@ -368,25 +368,23 @@
     {
         DialogParameters<UserEditDialog> parameters = new();
 
-        User userForDialog = new()
+        parameters.Add(x => x.User, new UserUpdateDTO
         {
             Id = userToEdit.Id,
             Name = userToEdit.Name!,
             Login = userToEdit.Login!,
-            Masp = Convert.ToInt32(userToEdit.Masp),
+            Masp = userToEdit.Masp,
             Email = userToEdit.Email!,
             Role = userToEdit.Role,
-            IsActive = userToEdit.Status,
-        };
-
-        parameters.Add(x => x.User, userForDialog);
+            Status = userToEdit.Status
+        });
 
         IDialogReference dialog = await DialogService.ShowAsync<UserEditDialog>("", parameters);
         DialogResult? result = await dialog.Result;
 
         if (result is not null && !result.Canceled)
         {
-            User? updatedUser = result.Data as User;
+            UserUpdateDTO? updatedUser = result.Data as UserUpdateDTO;
 
             if (updatedUser != null)
             {
@@ -415,52 +413,11 @@
         }
     }
 
-    private async Task ShowEditDialog(User user)
-    {
-        DialogParameters<UserEditDialog> parameters = new();
-        parameters.Add(x => x.User, new User
-            {
-                Id = user.Id,
-                Name = user.Name,
-                Login = user.Login,
-                Masp = user.Masp,
-                Email = user.Email,
-                Role = user.Role,
-                IsActive = user.IsActive
-            });
-
-        IDialogReference dialog = await DialogService.ShowAsync<UserEditDialog>("", parameters);
-        DialogResult? result = await dialog.Result;
-
-        if (result is not null && !result.Canceled)
-        {
-            User? updatedUser = result.Data as User;
-            if (updatedUser != null)
-            {
-                try
-                {
-                    await _userService.UpdateUserAsync(updatedUser);
-                    Snackbar.Add("Usuário atualizado com sucesso!", Severity.Success);
-                    if (table is not null)
-                        await table.ReloadServerData();
-                }
-                catch (Exception ex)
-                {
-                    Snackbar.Add($"Erro ao atualizar usuário: {ex.Message}", Severity.Error);
-                }
-            }
-        }
-        else
-        {
-            Snackbar.Add("Edição de usuário cancelada.", Severity.Info);
-        }
-    }
-
     private async Task ShowChangePasswordDialog(UserListItemDTO user)
     {
         DialogParameters<UserChangePasswordDialog> parameters = new();
 
-        parameters.Add(x => x.Users, new User { Id = user.Id, Login = user.Login! });
+        parameters.Add(x => x.Users, new UserDefaultChangePasswordDTO { Id = user.Id, Login = user.Login! });
 
         IDialogReference dialog = await DialogService.ShowAsync<UserChangePasswordDialog>("", parameters);
         DialogResult? result = await dialog.Result;

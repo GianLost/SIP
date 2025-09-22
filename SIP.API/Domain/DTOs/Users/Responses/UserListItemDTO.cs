@@ -19,9 +19,9 @@ public class UserListItemDTO
     /// </summary>
     public bool Status { get; set; }
 
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime? LastLoginAt { get; set; } = null;
-    public DateTime? UpdatedAt { get; set; } = null;
+    public DateTime CreatedAt { get; set; }
+    public DateTime? LastLoginAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
 
     public string SectorName { get; set; } = string.Empty;
 
