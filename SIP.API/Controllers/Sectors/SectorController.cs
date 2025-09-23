@@ -65,12 +65,31 @@ public class SectorController(ISector sector) : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetSectorByIdAsync(Guid id)
     {
-        Sector? sector = await _sectorService.GetByIdAsync(id);
+        try
+        {
+            Sector? sector =
+                await _sectorService.GetByIdAsync(id);
 
-        if (sector == null)
-            return NotFound();
+            if (sector == null)
+                return NotFound();
 
-        return Ok(sector);
+            SectorResponseDTO response = new()
+            {
+                Name = sector!.Name,
+                Acronym = sector.Acronym,
+                Phone = sector.Phone,
+                CreatedAt = sector.CreatedAt
+            };
+
+            if (response == null)
+                return NotFound();
+
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            return NotFound(new ErrorResponse(ex.Message));
+        }
     }
 
     /// <summary>
@@ -81,8 +100,46 @@ public class SectorController(ISector sector) : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<Sector>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllAsync()
     {
-        ICollection<Sector> sectors = await _sectorService.GetAllSectorsAsync();
-        return Ok(sectors);
+        try
+        {
+            var sectors =
+                await _sectorService.GetAllSectorsAsync();
+
+            if (sectors == null || sectors.Count == 0)
+            {
+                return Ok(new SectorPagedResultDTO
+                {
+                    Items = [],
+                    TotalCount = 0
+                });
+            }
+
+            SectorPagedResultDTO result = new()
+            {
+                Items = [.. sectors.Select(s => new SectorListItemDTO
+                {
+                    Id = s.Id,
+                    Name = s.Name,
+                    Acronym = s.Acronym,
+                    Phone = s.Phone,
+                    CreatedAt = s.CreatedAt,
+                    CreatedById = s.CreatedById,
+                    CreatedBy = s.CreatedBy,
+                    UpdatedAt = s.UpdatedAt,
+                    UpdatedById = s.UpdatedById,
+                    UpdatedBy = s.UpdatedBy,
+                    Users = s.Users
+                })],
+                TotalCount = sectors.Count
+            };
+
+            return Ok(result);
+        }
+        catch (Exception)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new ErrorResponse("Ocorreu um erro interno ao buscar os setores."));
+        }
     }
 
     /// <summary>

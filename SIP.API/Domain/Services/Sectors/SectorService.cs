@@ -50,6 +50,7 @@ public class SectorService(ApplicationContext context, EntityCacheManager cache)
     public async Task<ICollection<Sector>> GetAllSectorsAsync() => 
         await _context.Sectors
             .OrderBy(s => s.Name)
+            .Include(s => s.Users)
             .AsNoTracking()
             .ToListAsync();
     
