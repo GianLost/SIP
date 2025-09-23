@@ -4,7 +4,7 @@ public readonly struct ConstExpressions
 {
     public const string NameRegex = @"^[A-Za-zÀ-ú\s]+$";
 
-    public const string LoginRegex = @"^[a-zA-Z0-9_.-]+$";
+    public const string AbridgementRegex = @"^[a-zA-Z0-9_.-]+$";
 
     public const string StrongPasswordRegex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^a-zA-Z\\d]).{8,255}$";
 

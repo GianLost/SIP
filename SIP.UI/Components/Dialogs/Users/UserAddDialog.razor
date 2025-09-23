@@ -49,6 +49,7 @@
                                   Required="true"
                                   RequiredError="A nova senha é obrigatória!"
                                   For="@(() => User.Password)"
+                                  OnBlur="() => form!.Validate()"
                                   Adornment="Adornment.End"
                                   AdornmentIcon="@(showNewPassword ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"
                                   OnAdornmentClick="ToggleNewPasswordVisibility" />
@@ -63,6 +64,7 @@
                                   RequiredError="A confirmação de senha é obrigatória!"
                                   For="@(() => ConfirmPassword)"
                                   Validation="@(new Func<string, string>(ValidateConfirmPassword))"
+                                  OnBlur="() => form!.Validate()"
                                   Adornment="Adornment.End"
                                   AdornmentIcon="@(showConfirmPassword? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"
                                   OnAdornmentClick="ToggleConfirmPasswordVisibility" />
@@ -70,15 +72,21 @@
 
                 @* Caixa de seleção para selecionar o setor do usuário *@
                 <MudItem xs="12" sm="6">
-                    <MudSelect T="Sector" Label="Setor" @bind-Value="selectedSector" Required="true" Dense="true" RequiredError="Selecione um setor!" Variant="Variant.Outlined" Margin="Margin.Normal">
-                        @if (_allSectors != null)
-                        {
-                            @foreach (var sector in _allSectors)
-                            {
-                                <MudSelectItem Value="sector">@sector.Acronym - @sector.Name</MudSelectItem>
-                            }
-                        }
-                    </MudSelect>
+                    <MudAutocomplete 
+                            T="Sector" 
+                            Label="Setor"
+                            @bind-Value="selectedSector" 
+                            SearchFunc="SearchSectors"
+                            For="() => selectedSector"
+                            Required="true" 
+                            Dense="true" 
+                            RequiredError="Selecione um setor!" 
+                            Variant="Variant.Outlined" 
+                            Margin="Margin.Normal"
+                            ToStringFunc="@(s => s == null ? null : $"{s.Name} ({s.Acronym})")"
+                            Clearable="true"
+                            Placeholder="Selecione o setor..."
+                            MaxItems="int.MaxValue" />
                 </MudItem>
 
                 @* Caixa de seleção para selecionar o nível de acesso do usuário *@
@@ -248,6 +256,19 @@
             return "As senhas não conferem.";
 
         return string.Empty;
+    }
+
+
+    /// <summary>
+    /// Função de pesquisa para o autocomplete de setores.
+    /// Filtra a lista de setores com base no valor de pesquisa do usuário.
+    /// </summary>
+    private Task<IEnumerable<Sector>> SearchSectors(string value, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrEmpty(value))
+            return Task.FromResult<IEnumerable<Sector>>(_allSectors!);
+
+        return Task.FromResult(_allSectors!.Where(s => s.Name.Contains(value, StringComparison.OrdinalIgnoreCase) || s.Acronym.Contains(value, StringComparison.OrdinalIgnoreCase)));
     }
 
     /// <summary>

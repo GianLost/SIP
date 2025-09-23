@@ -18,7 +18,7 @@ public class UserCreateDTO
 
     [Required(ErrorMessage = "O login é obrigatório.")]
     [StringLength(50, MinimumLength = 3, ErrorMessage = "O login deve ter entre 3 e 50 caracteres.")]
-    [RegularExpression(ConstExpressions.LoginRegex, ErrorMessage = "O login deve conter apenas letras, números e os caracteres . _ -")]
+    [RegularExpression(ConstExpressions.AbridgementRegex, ErrorMessage = "O login deve conter apenas letras, números e os caracteres . _ -")]
     public string Login { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "O e-mail é obrigatório.")]

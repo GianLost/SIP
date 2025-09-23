@@ -12,7 +12,7 @@ public interface ISectorDTO
 
     [Required(ErrorMessage = "A sigla do setor é obrigatória.")]
     [StringLength(20, MinimumLength = 2, ErrorMessage = "A sigla deve ter entre 2 e 20 caracteres.")]
-    [RegularExpression(ConstExpressions.LoginRegex, ErrorMessage = "A sigla deve conter apenas letras, números e os caracteres . _ -")]
+    [RegularExpression(ConstExpressions.AbridgementRegex, ErrorMessage = "A sigla deve conter apenas letras, números e os caracteres . _ -")]
     public string Acronym { get; set; }
 
     [Required(ErrorMessage = "O telefone é obrigatório.")]
