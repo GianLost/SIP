@@ -8,7 +8,7 @@ public readonly struct ConstExpressions
 
     public const string StrongPasswordRegex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^a-zA-Z\\d]).{8,255}$";
 
-    public const string PhoneNumberRegex = @"^\+?[1-9]\d{1,14}$";
+    public const string PhoneNumberRegex = @"^[0-9()\s-]+$";
 
     public const string PhoneNumberResponseRegex = @"^\(\d{2}\)\s(?:9\d{4}-\d{4}|\d{4}-\d{4})$";
 

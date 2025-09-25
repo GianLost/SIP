@@ -5,7 +5,6 @@ using SIP.API.Domain.Entities.Sectors;
 using SIP.API.Domain.Interfaces.Sectors;
 using SIP.API.Infrastructure.Caching;
 using SIP.API.Infrastructure.Database;
-using System.Reflection;
 
 namespace SIP.API.Domain.Services.Sectors;
 
@@ -100,13 +99,13 @@ public class SectorService(ApplicationContext context, EntityCacheManager cache)
                   : query.OrderByDescending(s => s.Acronym),
 
                 _ => asc
-                  ? query.OrderBy(s => s.Name)
-                  : query.OrderByDescending(s => s.Name),
+                  ? query.OrderBy(s => s.CreatedAt)
+                  : query.OrderByDescending(s => s.CreatedAt),
             };
         }
         else
         {
-            query = query.OrderBy(s => s.Name);
+            query = query.OrderBy(s => s.CreatedAt);
         }
 
         IQueryable<SectorListItemDTO> pagedDataQuery = query
@@ -125,7 +124,8 @@ public class SectorService(ApplicationContext context, EntityCacheManager cache)
             Users = u.Users
         });
 
-        ICollection<SectorListItemDTO> items = await pagedDataQuery.ToListAsync();
+        ICollection<SectorListItemDTO> items = 
+            await pagedDataQuery.ToListAsync();
 
         return new SectorPagedResultDTO
         {
@@ -137,7 +137,8 @@ public class SectorService(ApplicationContext context, EntityCacheManager cache)
     /// <inheritdoc/>
     public async Task<Sector?> UpdateAsync(Guid id, SectorUpdateDTO dto)
     {
-        Sector? sector = await GetByIdAsync(id);
+        Sector? sector = 
+            await GetByIdAsync(id);
 
         if (sector == null)
             return null;
@@ -158,7 +159,8 @@ public class SectorService(ApplicationContext context, EntityCacheManager cache)
     /// <inheritdoc/>
     public async Task<bool> DeleteAsync(Guid id)
     {
-        Sector? sector = await GetByIdAsync(id);
+        Sector? sector = 
+            await GetByIdAsync(id);
 
         if (sector == null)
             return false;

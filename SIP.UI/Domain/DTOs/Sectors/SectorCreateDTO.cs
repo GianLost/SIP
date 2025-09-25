@@ -1,10 +1,8 @@
-﻿using SIP.UI.Domain.DTOs.Interfaces;
+﻿namespace SIP.UI.Domain.DTOs.Sectors;
 
-namespace SIP.UI.Domain.DTOs.Sectors;
-
-public class SectorCreateDTO : ISectorDTO
+public class SectorCreateDTO : BaseSectorDTO
 {
-    public string Name { get; set; } = string.Empty;
-    public string Acronym { get; set; } = string.Empty;
-    public string Phone { get; set; } = string.Empty;
+    public override string Name { get; set; } = string.Empty;
+    public override string Acronym { get; set; } = string.Empty;
+    public override string Phone { get; set; } = string.Empty;
 }

@@ -33,7 +33,8 @@ public class SectorController(ISector sector) : ControllerBase
 
         try
         {
-            Sector entity = await _sectorService.CreateAsync(sectorDTO);
+            Sector entity = await 
+                _sectorService.CreateAsync(sectorDTO);
 
             SectorResponseDTO response = new()
             {
@@ -78,11 +79,9 @@ public class SectorController(ISector sector) : ControllerBase
                 Name = sector!.Name,
                 Acronym = sector.Acronym,
                 Phone = sector.Phone,
-                CreatedAt = sector.CreatedAt
+                CreatedAt = sector.CreatedAt,
+                UpdatedAt = sector.UpdatedAt ?? null
             };
-
-            if (response == null)
-                return NotFound();
 
             return Ok(response);
         }
@@ -102,7 +101,7 @@ public class SectorController(ISector sector) : ControllerBase
     {
         try
         {
-            var sectors =
+            ICollection<Sector> sectors =
                 await _sectorService.GetAllSectorsAsync();
 
             if (sectors == null || sectors.Count == 0)
@@ -159,7 +158,15 @@ public class SectorController(ISector sector) : ControllerBase
     [FromQuery] string? sortDirection = null, 
     [FromQuery] string? searchString = null)
     {
-        SectorPagedResultDTO result = await _sectorService.GetPagedAsync(pageNumber, pageSize, sortLabel, sortDirection, searchString);
+        SectorPagedResultDTO result = 
+            await _sectorService
+            .GetPagedAsync(
+                pageNumber, 
+                pageSize, 
+                sortLabel, 
+                sortDirection, 
+                searchString);
+
         return Ok(result);
     }
 
@@ -173,7 +180,9 @@ public class SectorController(ISector sector) : ControllerBase
     [HttpGet("count")]
     public async Task<ActionResult<int>> GetTotalCountAsync([FromQuery] string? searchString = null)
     {
-        int total = await _sectorService.GetTotalSectorsCountAsync(searchString);
+        int total = 
+            await _sectorService.GetTotalSectorsCountAsync(searchString);
+
         return Ok(total);
     }
 
@@ -189,9 +198,13 @@ public class SectorController(ISector sector) : ControllerBase
     [HttpPut("update_sector/{id}")]
     [ProducesResponseType(typeof(Sector), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> UpdateAsync(Guid id, [FromBody] SectorUpdateDTO sectorDTO)
+    public async Task<IActionResult> UpdateAsync(
+    Guid id, 
+    [FromBody] SectorUpdateDTO sectorDTO)
     {
-        Sector? updated = await _sectorService.UpdateAsync(id, sectorDTO);
+        Sector? updated = 
+            await _sectorService
+            .UpdateAsync(id, sectorDTO);
 
         if (updated == null)
             return NotFound();
