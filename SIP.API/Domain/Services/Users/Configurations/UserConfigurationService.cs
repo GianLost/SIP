@@ -25,6 +25,8 @@ public class UserConfigurationService(ApplicationContext context, IUser userServ
         user.PasswordHash = dto.Password;
         user.UpdatedAt = DateTime.UtcNow;
 
+        _context.Users.Update(user);
+
         await _context.SaveChangesAsync();
 
         return user;

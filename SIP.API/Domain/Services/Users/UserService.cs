@@ -2,6 +2,7 @@
 using SIP.API.Domain.DTOs.Users;
 using SIP.API.Domain.DTOs.Users.Responses;
 using SIP.API.Domain.Entities.Users;
+using SIP.API.Domain.Helpers.KeysHelper;
 using SIP.API.Domain.Interfaces.Users;
 using SIP.API.Infrastructure.Caching;
 using SIP.API.Infrastructure.Database;
@@ -30,7 +31,7 @@ public class UserService(ApplicationContext context, EntityCacheManager cache) :
             Login = dto.Login,
             Masp = dto.Masp,
             Email = dto.Email,
-            PasswordHash = dto?.Password ?? throw new ArgumentNullException(dto!.Password, "password isn't empty."),
+            PasswordHash = dto.Password ?? throw new ArgumentNullException(dto!.Password, "password isn't empty."),
             Role = dto.Role,
             SectorId = dto.SectorId
         };
@@ -44,13 +45,21 @@ public class UserService(ApplicationContext context, EntityCacheManager cache) :
     }
 
     /// <inheritdoc/>
-    public async Task<User?> GetByIdAsync(Guid id) =>
-        await _context.Users.Include(p => p.ProtocolsCreated).FirstOrDefaultAsync(p => p.Id == id);
+    public async Task<User?> GetByIdAsync(Guid id)
+    {
+        return await _context.Users
+            .OrderBy(u => u.CreatedAt)
+            .Include(p => p.ProtocolsCreated)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Id == id);
+    }
 
     /// <inheritdoc/>
     public async Task<ICollection<User>> GetAllAsync() =>
         await _context.Users
-            .OrderBy(s => s.Name)
+            .OrderBy(u => u.CreatedAt)
+            .Include(s => s.Sector)
+            .Include(p => p.ProtocolsCreated)
             .AsNoTracking()
             .ToListAsync();
 
@@ -130,13 +139,13 @@ public class UserService(ApplicationContext context, EntityCacheManager cache) :
                   : query.OrderByDescending(u => u.Sector!.Acronym),
 
                 _ => asc
-                  ? query.OrderBy(u => u.Masp)
-                  : query.OrderByDescending(u => u.Masp),
+                  ? query.OrderBy(u => u.CreatedAt)
+                  : query.OrderByDescending(u => u.CreatedAt),
             };
         }
         else
         {
-            query = query.OrderBy(s => s.Masp);
+            query = query.OrderBy(s => s.CreatedAt);
         }
 
         IQueryable<UserListItemDTO> pagedDataQuery = query
@@ -227,7 +236,7 @@ public class UserService(ApplicationContext context, EntityCacheManager cache) :
                 s.Email.Contains(searchString));
         }
 
-        string cacheKey = $"UserCount_Search_{searchString ?? "NoSearch"}";
+        string cacheKey = $"{CacheKeys.UsersTotalCount}{searchString ?? "NoSearch"}";
         int? totalCount = _cache.Get<int?>(cacheKey);
 
         if (!totalCount.HasValue)

@@ -25,6 +25,25 @@ public class User : BaseUser
     public Guid Id { get; set; }
 
     [Required]
+    [Column(TypeName = "int")]
+    public override int Masp { get; set; }
+
+    [Required]
+    [StringLength(150)]
+    [Column(TypeName = "varchar(150)")]
+    public override string Name { get; set; } = string.Empty;
+
+    [Required]
+    [StringLength(50)]
+    [Column(TypeName = "varchar(50)")]
+    public override string Login { get; set; } = string.Empty;
+
+    [Required]
+    [StringLength(200)]
+    [Column(TypeName = "varchar(200)")]
+    public override string Email { get; set; } = string.Empty;
+
+    [Required]
     [StringLength(255)]
     [Column(TypeName = "varchar(255)")]
     public string PasswordHash { get; set; } = string.Empty;

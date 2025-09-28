@@ -1,6 +1,8 @@
-﻿namespace SIP.UI.Domain.DTOs.Sectors;
+﻿using SIP.UI.Models.Sectors;
 
-public class SectorUpdateDTO : BaseSectorDTO
+namespace SIP.UI.Domain.DTOs.Sectors;
+
+public class SectorUpdateDTO : BaseSector
 {
     public Guid Id { get; set; }
     public override string Name { get; set; } = string.Empty;

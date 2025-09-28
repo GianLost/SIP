@@ -6,6 +6,7 @@ using SIP.API.Domain.Models.Protocols;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
+using SIP.API.Domain.Enums;
 
 namespace SIP.API.Domain.Entities.Protocols;
 
@@ -24,6 +25,27 @@ public class Protocol : BaseProtocol
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     [Column(TypeName = "char(36)")]
     public Guid Id { get; set; }
+
+    [Required]
+    [Column(TypeName = "int")]
+    public override int Number { get; set; }
+
+    [Required]
+    [StringLength(200)]
+    [Column(TypeName = "varchar(200)")]
+    public override string Subject { get; set; } = string.Empty;
+
+    [Required]
+    [Column(TypeName = "mediumtext")]
+    public override string Description { get; set; } = string.Empty;
+
+    [Required]
+    [Column(TypeName = "varchar(50)")]
+    public override ProtocolStatus Status { get; set; }
+
+    [Required]
+    [Column(TypeName = "tinyint(1)")]
+    public override bool IsArchived { get; set; } = false;
 
     [Required]
     [Column(TypeName = "datetime(6)")]

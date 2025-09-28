@@ -2,6 +2,8 @@
 using SIP.API.Domain.DTOs.Sectors;
 using SIP.API.Domain.DTOs.Sectors.Responses;
 using SIP.API.Domain.Entities.Sectors;
+using SIP.API.Domain.Helpers.KeysHelper;
+using SIP.API.Domain.Helpers.PhoneHelper;
 using SIP.API.Domain.Interfaces.Sectors;
 using SIP.API.Infrastructure.Caching;
 using SIP.API.Infrastructure.Database;
@@ -22,13 +24,11 @@ public class SectorService(ApplicationContext context, EntityCacheManager cache)
     public async Task<Sector> CreateAsync(SectorCreateDTO dto)
     {
 
-        string digitsOnly = new([.. dto.Phone.Where(char.IsDigit)]);
-
         Sector sector = new()
         {
             Name = dto.Name,
             Acronym = dto.Acronym,
-            Phone = digitsOnly
+            Phone = PhoneHelper.ExtractDigits(dto.Phone) // Uso do helper para extrair apenas os dígitos, garantindo a consistência do formato no padrão E.164
         };
 
         await _context.Sectors.AddAsync(sector);
@@ -40,9 +40,11 @@ public class SectorService(ApplicationContext context, EntityCacheManager cache)
     }
 
     /// <inheritdoc/>
-    public async Task<Sector?> GetByIdAsync(Guid id) => 
+    public async Task<Sector?> GetByIdAsync(Guid id) =>
         await _context.Sectors
+            .OrderBy(s => s.CreatedAt)
             .Include(s => s.Users)
+            .AsNoTracking()
             .FirstOrDefaultAsync(s => s.Id == id);
 
     /// <inheritdoc/>
@@ -105,7 +107,7 @@ public class SectorService(ApplicationContext context, EntityCacheManager cache)
         }
         else
         {
-            query = query.OrderBy(s => s.CreatedAt);
+            query = query.OrderByDescending(s => s.CreatedAt);
         }
 
         IQueryable<SectorListItemDTO> pagedDataQuery = query
@@ -145,7 +147,7 @@ public class SectorService(ApplicationContext context, EntityCacheManager cache)
 
         sector.Name = dto.Name;
         sector.Acronym = dto.Acronym;
-        sector.Phone = dto.Phone;
+        sector.Phone = PhoneHelper.ExtractDigits(dto.Phone); // Uso do helper para extrair apenas os dígitos, garantindo a consistência do formato no padrão E.164
         sector.UpdatedAt = DateTime.UtcNow;
 
         _context.Sectors.Update(sector);
@@ -189,7 +191,7 @@ public class SectorService(ApplicationContext context, EntityCacheManager cache)
                 s.Phone.Contains(searchString));
         }
 
-        string cacheKey = $"SectorCount_Search_{searchString ?? "NoSearch"}";
+        string cacheKey = $"{CacheKeys.SectorsTotalCount}{searchString ?? "NoSearch"}";
         int? totalCount = _cache.Get<int?>(cacheKey);
 
         if (!totalCount.HasValue)

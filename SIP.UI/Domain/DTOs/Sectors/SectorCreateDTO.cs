@@ -1,6 +1,8 @@
-﻿namespace SIP.UI.Domain.DTOs.Sectors;
+﻿using SIP.UI.Models.Sectors;
 
-public class SectorCreateDTO : BaseSectorDTO
+namespace SIP.UI.Domain.DTOs.Sectors;
+
+public class SectorCreateDTO : BaseSector
 {
     public override string Name { get; set; } = string.Empty;
     public override string Acronym { get; set; } = string.Empty;

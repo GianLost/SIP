@@ -1,4 +1,4 @@
-﻿namespace SIP.API.Domain.Helpers.RegExpression;
+﻿namespace SIP.API.Domain.Helpers.RegExpressionHelper;
 
 public readonly struct ConstExpressions
 {
@@ -11,5 +11,4 @@ public readonly struct ConstExpressions
     public const string PhoneNumberRegex = @"^[0-9()\s-]+$";
 
     public const string PhoneNumberResponseRegex = @"^\(\d{2}\)\s(?:9\d{4}-\d{4}|\d{4}-\d{4})$";
-
 }

@@ -1,29 +1,29 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using SIP.API.Domain.Helpers.RegExpressionHelper;
+using System.ComponentModel.DataAnnotations;
 
 namespace SIP.API.Domain.Models.Users;
 
 /// <summary>
 /// Provides base properties for user data transfer objects (DTOs).
 /// </summary>
-public class BaseUser
+public abstract class BaseUser
 {
-    [Required]
-    [StringLength(150)]
-    [Column(TypeName = "varchar(150)")]
-    public string Name { get; set; } = string.Empty;
+    [Required(ErrorMessage = "O MASP é obrigatório.")]
+    [Range(1, int.MaxValue, ErrorMessage = "O MASP deve ser um número positivo.")]
+    public virtual int Masp { get; set; }
 
-    [Required]
-    [StringLength(50)]
-    [Column(TypeName = "varchar(50)")]
-    public string Login { get; set; } = string.Empty;
+    [Required(ErrorMessage = "O nome é obrigatório.")]
+    [StringLength(150, MinimumLength = 3, ErrorMessage = "O nome deve ter entre 3 e 150 caracteres.")]
+    [RegularExpression(ConstExpressions.NameRegex, ErrorMessage = "O nome deve conter apenas letras e espaços.")]
+    public virtual string Name { get; set; } = string.Empty;
 
-    [Required]
-    [Column(TypeName = "int")]
-    public int Masp { get; set; }
+    [Required(ErrorMessage = "O login é obrigatório.")]
+    [StringLength(50, MinimumLength = 3, ErrorMessage = "O login deve ter entre 3 e 50 caracteres.")]
+    [RegularExpression(ConstExpressions.AbridgementRegex, ErrorMessage = "O login deve conter apenas letras, números e os caracteres . _ -")]
+    public virtual string Login { get; set; } = string.Empty;
 
-    [Required]
-    [StringLength(200)]
-    [Column(TypeName = "varchar(200)")]
-    public string Email { get; set; } = string.Empty;
+    [Required(ErrorMessage = "O e-mail é obrigatório.")]
+    [StringLength(200, ErrorMessage = "O e-mail deve ter no máximo 200 caracteres.")]
+    [EmailAddress(ErrorMessage = "O e-mail informado não é válido.")]
+    public virtual string Email { get; set; } = string.Empty;
 }

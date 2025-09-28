@@ -1,10 +1,17 @@
-﻿using SIP.API.Domain.Models.Protocols;
+﻿using SIP.API.Domain.Enums;
+using SIP.API.Domain.Models.Protocols;
 using System.ComponentModel.DataAnnotations;
 
 namespace SIP.API.Domain.DTOs.Protocols;
 
 public class ProtocolCreateDTO : BaseProtocol
 {
+    public override int Number { get; set; }
+    public override string Subject { get; set; } = string.Empty;
+    public override string Description { get; set; } = string.Empty;
+    public override ProtocolStatus Status { get; set; }
+    public override bool IsArchived { get; set; } = false;
+
     [Required]
     public Guid CreatedById { get; set; }
 

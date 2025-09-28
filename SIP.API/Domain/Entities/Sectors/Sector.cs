@@ -20,6 +20,21 @@ public class Sector : BaseSector
     public Guid Id { get; set; }
 
     [Required]
+    [StringLength(150)]
+    [Column(TypeName = "varchar(150)")]
+    public override string Name { get; set; } = string.Empty;
+
+    [Required]
+    [StringLength(20)]
+    [Column(TypeName = "varchar(20)")]
+    public override string Acronym { get; set; } = string.Empty;
+
+    [Required]
+    [StringLength(20)]
+    [Column(TypeName = "varchar(20)")]
+    public override string Phone { get; set; } = string.Empty;
+
+    [Required]
     [Column(TypeName = "datetime(6)")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

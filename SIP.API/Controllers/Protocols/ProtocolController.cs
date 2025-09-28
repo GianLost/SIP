@@ -21,20 +21,24 @@ public class ProtocolController(IProtocol protocol) : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> RegisterAsync([FromBody] ProtocolCreateDTO protocolDTO)
     {
-        if (!ModelState.IsValid)
-            return ValidationProblem(ModelState);
-
         try
         {
-            Protocol entity = await _protocolService.CreateAsync(protocolDTO);
+            Protocol entity = 
+                await _protocolService.CreateAsync(protocolDTO);
 
             ProtocolResponseDTO response = new()
             {
+                Id = entity.Id,
                 Number = entity.Number,
-                Description = entity.Description,
                 Subject = entity.Subject,
+                Description = entity.Description,
+                Status = entity.Status,
                 IsArchived = entity.IsArchived,
-                CreatedAt = entity.CreatedAt
+                CreatedByName = entity.CreatedBy?.Name ?? string.Empty,
+                DestinationUserName = entity.DestinationUser?.Name ?? string.Empty,
+                CreatedAt = entity.CreatedAt,
+                OriginSectorAcronym = entity.OriginSector?.Acronym ?? string.Empty,
+                DestinationSectorAcronym = entity.DestinationSector?.Acronym ?? string.Empty
             };
 
             return CreatedAtRoute(nameof(GeProtocolByIdAsync), new { id = entity.Id }, response);
@@ -54,9 +58,12 @@ public class ProtocolController(IProtocol protocol) : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GeProtocolByIdAsync(Guid id)
     {
-        Protocol? protocol = await _protocolService.GetByIdAsync(id);
+        Protocol? protocol = 
+            await _protocolService.GetByIdAsync(id);
+
         if (protocol == null)
             return NotFound();
+
         return Ok(protocol);
     }
 
@@ -68,7 +75,9 @@ public class ProtocolController(IProtocol protocol) : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<Protocol>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllAsync()
     {
-        ICollection<Protocol> sectors = await _protocolService.GetAllAsync();
+        ICollection<Protocol> sectors = 
+            await _protocolService.GetAllAsync();
+
         return Ok(sectors);
     }
 
@@ -89,7 +98,15 @@ public class ProtocolController(IProtocol protocol) : ControllerBase
     [FromQuery] string? sortDirection = null, 
     [FromQuery] string? searchString = null)
     {
-        ProtocolPagedResultDTO result = await _protocolService.GetPagedAsync(pageNumber, pageSize, sortLabel, sortDirection, searchString);
+        ProtocolPagedResultDTO result = 
+            await _protocolService.GetPagedAsync(
+                pageNumber, 
+                pageSize, 
+                sortLabel, 
+                sortDirection, 
+                searchString
+            );
+
         return Ok(result);
     }
 
@@ -103,7 +120,9 @@ public class ProtocolController(IProtocol protocol) : ControllerBase
     [HttpGet("count")]
     public async Task<ActionResult<int>> GetTotalCountAsync([FromQuery] string? searchString = null)
     {
-        int total = await _protocolService.GetTotalProtocolsCountAsync(searchString);
+        int total = 
+            await _protocolService.GetTotalProtocolsCountAsync(searchString);
+
         return Ok(total);
     }
 
@@ -121,23 +140,27 @@ public class ProtocolController(IProtocol protocol) : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateAsync(Guid id, [FromBody] ProtocolUpdateDTO protocolDTO)
     {
+        Protocol? entity = 
+            await _protocolService.UpdateAsync(id, protocolDTO);
 
-        if (!ModelState.IsValid)
-            return ValidationProblem(ModelState);
-
-        Protocol? updated = await _protocolService.UpdateAsync(id, protocolDTO);
-
-        if (updated == null)
+        if (entity == null)
             return NotFound();
 
         ProtocolResponseDTO response = new()
         {
-            Number = updated.Number,
-            Description = updated.Description,
-            Subject = updated.Subject,
-            IsArchived = updated.IsArchived,
-            CreatedAt = updated.CreatedAt,
-            UpdatedAt = updated.UpdatedAt
+            Id = entity.Id,
+            Number = entity.Number,
+            Subject = entity.Subject,
+            Description = entity.Description,
+            Status = entity.Status,
+            IsArchived = entity.IsArchived,
+            CreatedByName = entity.CreatedBy?.Name ?? string.Empty,
+            DestinationUserName = entity.DestinationUser?.Name ?? string.Empty,
+            CreatedAt = entity.CreatedAt,
+            OriginSectorAcronym = entity.OriginSector?.Acronym ?? string.Empty,
+            DestinationSectorAcronym = entity.DestinationSector?.Acronym ?? string.Empty,
+            UpdatedAt = entity.UpdatedAt,
+            UpdatedByName = entity.UpdatedBy?.Name ?? string.Empty
         };
 
         return Ok(response);
@@ -160,7 +183,8 @@ public class ProtocolController(IProtocol protocol) : ControllerBase
     {
         try
         {
-            bool deleted = await _protocolService.DeleteAsync(id);
+            bool deleted = 
+                await _protocolService.DeleteAsync(id);
 
             if (!deleted)
                 return NotFound();

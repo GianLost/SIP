@@ -28,9 +28,6 @@ public class SectorController(ISector sector) : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> RegisterAsync([FromBody] SectorCreateDTO sectorDTO)
     {
-        if (!ModelState.IsValid)
-            return ValidationProblem(ModelState);
-
         try
         {
             Sector entity = await 
@@ -38,6 +35,7 @@ public class SectorController(ISector sector) : ControllerBase
 
             SectorResponseDTO response = new()
             {
+                Id = entity.Id,
                 Name = entity.Name,
                 Acronym = entity.Acronym,
                 Phone = entity.Phone,
@@ -76,11 +74,12 @@ public class SectorController(ISector sector) : ControllerBase
 
             SectorResponseDTO response = new()
             {
-                Name = sector!.Name,
+                Id = sector.Id,
+                Name = sector.Name,
                 Acronym = sector.Acronym,
                 Phone = sector.Phone,
                 CreatedAt = sector.CreatedAt,
-                UpdatedAt = sector.UpdatedAt ?? null
+                UpdatedAt = sector.UpdatedAt
             };
 
             return Ok(response);
@@ -99,47 +98,62 @@ public class SectorController(ISector sector) : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<Sector>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllAsync()
     {
-        try
-        {
-            ICollection<Sector> sectors =
-                await _sectorService.GetAllSectorsAsync();
-
-            if (sectors == null || sectors.Count == 0)
-            {
-                return Ok(new SectorPagedResultDTO
-                {
-                    Items = [],
-                    TotalCount = 0
-                });
-            }
-
-            SectorPagedResultDTO result = new()
-            {
-                Items = [.. sectors.Select(s => new SectorListItemDTO
-                {
-                    Id = s.Id,
-                    Name = s.Name,
-                    Acronym = s.Acronym,
-                    Phone = s.Phone,
-                    CreatedAt = s.CreatedAt,
-                    CreatedById = s.CreatedById,
-                    CreatedBy = s.CreatedBy,
-                    UpdatedAt = s.UpdatedAt,
-                    UpdatedById = s.UpdatedById,
-                    UpdatedBy = s.UpdatedBy,
-                    Users = s.Users
-                })],
-                TotalCount = sectors.Count
-            };
-
-            return Ok(result);
-        }
-        catch (Exception)
-        {
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                new ErrorResponse("Ocorreu um erro interno ao buscar os setores."));
-        }
+        ICollection<Sector> sectors = await _sectorService.GetAllSectorsAsync();
+        return Ok(sectors);
     }
+
+    /*
+     Refatored GetAllAsync to future use.
+     */
+    ///// <summary>
+    ///// Retrieves all sectors records.
+    ///// </summary>
+    ///// Returns an <see cref="IActionResult"/> containing a list of sectors, wrapped in an HTTP 200 OK response.
+    //[HttpGet("show")]
+    //[ProducesResponseType(typeof(IEnumerable<Sector>), StatusCodes.Status200OK)]
+    //public async Task<IActionResult> GetAllAsync()
+    //{
+    //    try
+    //    {
+    //        ICollection<Sector> sectors =
+    //            await _sectorService.GetAllSectorsAsync();
+
+    //        if (sectors == null || sectors.Count == 0)
+    //        {
+    //            return Ok(new SectorPagedResultDTO
+    //            {
+    //                Items = [],
+    //                TotalCount = 0
+    //            });
+    //        }
+
+    //        SectorPagedResultDTO result = new()
+    //        {
+    //            Items = [.. sectors.Select(s => new SectorListItemDTO
+    //            {
+    //                Id = s.Id,
+    //                Name = s.Name,
+    //                Acronym = s.Acronym,
+    //                Phone = s.Phone,
+    //                CreatedAt = s.CreatedAt,
+    //                CreatedById = s.CreatedById,
+    //                CreatedBy = s.CreatedBy,
+    //                UpdatedAt = s.UpdatedAt,
+    //                UpdatedById = s.UpdatedById,
+    //                UpdatedBy = s.UpdatedBy,
+    //                Users = s.Users
+    //            })],
+    //            TotalCount = sectors.Count
+    //        };
+
+    //        return Ok(result);
+    //    }
+    //    catch (Exception)
+    //    {
+    //        return StatusCode(StatusCodes.Status500InternalServerError,
+    //            new ErrorResponse("Ocorreu um erro interno ao buscar os setores."));
+    //    }
+    //}
 
     /// <summary>
     /// Gets a paginated result of sectors from the API, including total count. Use in-memory caching and limit the number of records per page to avoid multiple requests for the same data.
@@ -196,26 +210,25 @@ public class SectorController(ISector sector) : ControllerBase
     /// or <see cref="NotFoundResult"/> if the sector does not exist.
     /// </returns>
     [HttpPut("update_sector/{id}")]
-    [ProducesResponseType(typeof(Sector), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(SectorResponseDTO), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateAsync(
-    Guid id, 
+    Guid id,
     [FromBody] SectorUpdateDTO sectorDTO)
     {
-        Sector? updated = 
-            await _sectorService
-            .UpdateAsync(id, sectorDTO);
+        Sector? updated = await _sectorService.UpdateAsync(id, sectorDTO);
 
         if (updated == null)
             return NotFound();
 
         SectorResponseDTO response = new()
         {
+            Id = updated.Id,
             Name = updated.Name,
             Acronym = updated.Acronym,
             Phone = updated.Phone,
             CreatedAt = updated.CreatedAt,
-            UpdatedAt = updated?.UpdatedAt ?? null
+            UpdatedAt = updated?.UpdatedAt
         };
 
         return Ok(response);
@@ -238,7 +251,8 @@ public class SectorController(ISector sector) : ControllerBase
     {
         try
         {
-            bool deleted = await _sectorService.DeleteAsync(id);
+            bool deleted = 
+                await _sectorService.DeleteAsync(id);
 
             if (!deleted)
                 return NotFound();

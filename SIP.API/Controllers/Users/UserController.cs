@@ -32,20 +32,22 @@ public class UserController(IUser user, IUserConfiguration userConfiguration) : 
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> RegisterAsync([FromBody] UserCreateDTO userDTO)
     {
-        if (!ModelState.IsValid)
-            return ValidationProblem(ModelState);
-
         try
         {
-            User entity = await _userService.CreateAsync(userDTO);
+            User entity = 
+                await _userService.CreateAsync(userDTO);
 
-            UserReponseDTO response = new()
+            UserResponseDTO response = new()
             {
+                Id = entity.Id,
+                Masp = entity.Masp,
                 Name = entity.Name,
                 Login = entity.Login,
-                Masp = entity.Masp,
                 Email = entity.Email,
-                CreatedAt = entity.CreatedAt
+                Status = entity.IsActive == true ? "Active" : "Inactive",
+                Role = entity.Role,
+                CreatedAt = entity.CreatedAt,
+                SectorId = entity.SectorId
             };
 
             return CreatedAtRoute(nameof(GetUserByIdAsync), new { id = entity.Id }, response);
@@ -69,16 +71,42 @@ public class UserController(IUser user, IUserConfiguration userConfiguration) : 
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetUserByIdAsync(Guid id)
     {
-        User? user = await _userService.GetByIdAsync(id);
-        if (user == null)
-            return NotFound();
-        return Ok(user);
+        try
+        {
+            User? user =
+            await _userService.GetByIdAsync(id);
+
+            if (user == null)
+                return NotFound();
+
+            UserResponseDTO response = new()
+            {
+                Id = user.Id,
+                Name = user.Name,
+                Login = user.Login,
+                Masp = user.Masp,
+                Email = user.Email,
+                Role = user.Role,
+                Status = user.IsActive == true ? "Active" : "Inactive",
+                CreatedAt = user.CreatedAt,
+                UpdatedAt = user.UpdatedAt,
+                SectorId = user.SectorId,
+                ProtocolsCreated = user.ProtocolsCreated,
+                ProtocolsReceived = user.ProtocolsReceived
+            };
+
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            return NotFound(new ErrorResponse(ex.Message));
+        }
     }
 
     /// <summary>
-    /// Retrieves all users records.
+    /// Retrieves all sectors records.
     /// </summary>
-    /// Returns an <see cref="IActionResult"/> containing a list of users, wrapped in an HTTP 200 OK response.
+    /// Returns an <see cref="IActionResult"/> containing a list of sectors, wrapped in an HTTP 200 OK response.
     [HttpGet("show")]
     [ProducesResponseType(typeof(IEnumerable<User>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllAsync()
@@ -86,6 +114,60 @@ public class UserController(IUser user, IUserConfiguration userConfiguration) : 
         ICollection<User> sectors = await _userService.GetAllAsync();
         return Ok(sectors);
     }
+
+    /*
+     Refatored GetAllAsync to future use.
+     */
+    ///// <summary>
+    ///// Retrieves all users records.
+    ///// </summary>
+    ///// Returns an <see cref="IActionResult"/> containing a list of users, wrapped in an HTTP 200 OK response.
+    //[HttpGet("show")]
+    //[ProducesResponseType(typeof(IEnumerable<User>), StatusCodes.Status200OK)]
+    //public async Task<IActionResult> GetAllAsync()
+    //{
+    //    try
+    //    {
+    //        ICollection<User> users =
+    //            await _userService.GetAllAsync();
+
+    //        if (users == null || users.Count == 0)
+    //        {
+    //            return Ok(new UserPagedResultDTO
+    //            {
+    //                Items = [],
+    //                TotalCount = 0
+    //            });
+    //        }
+
+    //        UserPagedResultDTO result = new()
+    //        {
+    //            Items = [.. users.Select(u => new UserListItemDTO
+    //            {
+    //                Id = u.Id,
+    //                Name = u.Name,
+    //                Login = u.Login,
+    //                Masp = u.Masp.ToString(),
+    //                Email = u.Email,
+    //                Role = u.Role,
+    //                Status = u.IsActive,
+    //                CreatedAt = u.CreatedAt,
+    //                LastLoginAt = u.LastLoginAt,
+    //                UpdatedAt = u.UpdatedAt,
+    //                SectorName = u.Sector!.Acronym,
+    //                Protocols = u.ProtocolsCreated
+    //            })],
+    //            TotalCount = users.Count
+    //        };
+
+    //        return Ok(result);
+    //    }
+    //    catch (Exception)
+    //    {
+    //        return StatusCode(StatusCodes.Status500InternalServerError,
+    //            new ErrorResponse("Ocorreu um erro interno ao buscar os usuários."));
+    //    }
+    //}
 
     /// <summary>
     /// Gets a paginated result of users from the API, including total count. Use in-memory caching and limit the number of records per page to avoid multiple requests for the same data.
@@ -104,7 +186,15 @@ public class UserController(IUser user, IUserConfiguration userConfiguration) : 
     [FromQuery] string? sortDirection = null, 
     [FromQuery] string? searchString = null)
     {
-        UserPagedResultDTO result = await _userService.GetPagedAsync(pageNumber, pageSize, sortLabel, sortDirection, searchString);
+        UserPagedResultDTO result = 
+            await _userService.GetPagedAsync(
+                pageNumber, 
+                pageSize, 
+                sortLabel, 
+                sortDirection, 
+                searchString
+            );
+
         return Ok(result);
     }
 
@@ -118,7 +208,9 @@ public class UserController(IUser user, IUserConfiguration userConfiguration) : 
     [HttpGet("count")]
     public async Task<ActionResult<int>> GetTotalCountAsync([FromQuery] string? searchString = null)
     {
-        int total = await _userService.GetTotalUsersCountAsync(searchString);
+        int total = 
+            await _userService.GetTotalUsersCountAsync(searchString);
+
         return Ok(total);
     }
 
@@ -136,20 +228,24 @@ public class UserController(IUser user, IUserConfiguration userConfiguration) : 
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateAsync(Guid id, [FromBody] UserUpdateDTO userDTO)
     {
-        User? updated = await _userService.UpdateAsync(id, userDTO);
+        User? updated = 
+            await _userService.UpdateAsync(id, userDTO);
 
         if (updated == null)
             return NotFound();
 
-        UserReponseDTO response = new()
+        UserResponseDTO response = new()
         {
+            Id = updated.Id,
+            Masp = updated.Masp,
             Name = updated.Name,
             Login = updated.Login,
-            Masp = updated.Masp,
             Email = updated.Email,
+            Status = updated.IsActive == true ? "Active" : "Inactive",
             Role = updated.Role,
             CreatedAt = updated.CreatedAt,
-            UpdatedAt = updated.UpdatedAt
+            UpdatedAt = updated.UpdatedAt,
+            SectorId = updated.SectorId
         };
 
         return Ok(response);
@@ -176,7 +272,8 @@ public class UserController(IUser user, IUserConfiguration userConfiguration) : 
     {
         try
         {
-            User? updatedUser = await _userConfigurationService.DefaultChangePasswordAsync(dto);
+            User? updatedUser = 
+                await _userConfigurationService.DefaultChangePasswordAsync(dto);
 
             if (updatedUser == null)
                 return NotFound("User not found.");
@@ -208,7 +305,8 @@ public class UserController(IUser user, IUserConfiguration userConfiguration) : 
     {
         try
         {
-            bool deleted = await _userService.DeleteAsync(id);
+            bool deleted = 
+                await _userService.DeleteAsync(id);
 
             if (!deleted)
                 return NotFound();

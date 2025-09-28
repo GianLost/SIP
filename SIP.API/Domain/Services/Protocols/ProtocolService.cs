@@ -3,6 +3,7 @@ using SIP.API.Domain.DTOs.Protocols;
 using SIP.API.Domain.DTOs.Protocols.Responses;
 using SIP.API.Domain.Entities.Protocols;
 using SIP.API.Domain.Enums;
+using SIP.API.Domain.Helpers.KeysHelper;
 using SIP.API.Domain.Interfaces.Protocols;
 using SIP.API.Infrastructure.Caching;
 using SIP.API.Infrastructure.Database;
@@ -61,8 +62,8 @@ public class ProtocolService(ApplicationContext contex, EntityCacheManager cache
     // MANTENHA ESTE MÉTODO PARA USO EM OUTROS LUGARES, COMO NA CRIAÇÃO DE UM ÚNICO PROTOCOLO
     public async Task<string> GenerateProtocolNumberAsync()
     {
-        var lastNumber = await GetLastProtocolNumberAsync();
-        var nextSequence = GetNextSequence(lastNumber);
+        string? lastNumber = await GetLastProtocolNumberAsync();
+        int nextSequence = GetNextSequence(lastNumber);
         return FormatProtocolNumber(nextSequence);
     }
 
@@ -91,8 +92,17 @@ public class ProtocolService(ApplicationContext contex, EntityCacheManager cache
     }
 
     /// <inheritdoc/>
-    public async Task<Protocol?> GetByIdAsync(Guid id) =>
-        await _context.Protocols.FindAsync(id);
+    public async Task<Protocol?> GetByIdAsync(Guid id)
+    {
+        return await _context.Protocols
+            .AsNoTracking()
+            .Include(p => p.CreatedBy)
+            .Include(p => p.UpdatedBy)
+            .Include(p => p.DestinationUser)
+            .Include(p => p.OriginSector)
+            .Include(p => p.DestinationSector)
+            .FirstOrDefaultAsync(p => p.Id == id);
+    }
 
     /// <inheritdoc/>
     public async Task<ICollection<Protocol>> GetAllAsync() =>
@@ -221,6 +231,7 @@ public class ProtocolService(ApplicationContext contex, EntityCacheManager cache
         protocol.DestinationSectorId = dto.DestinationSectorId;
         protocol.OriginSectorId = dto.OriginSectorId;
         protocol.UpdatedAt = DateTime.UtcNow;
+        protocol.UpdatedById = dto.UpdatedById;
 
         _context.Protocols.Update(protocol);
         await _context.SaveChangesAsync();
@@ -261,7 +272,7 @@ public class ProtocolService(ApplicationContext contex, EntityCacheManager cache
                 s.Subject.Contains(searchString));
         }
 
-        string cacheKey = $"ProtocolCount_Search_{searchString ?? "NoSearch"}";
+        string cacheKey = $"{CacheKeys.ProtocolsTotalCount}{searchString ?? "NoSearch"}";
         int? totalCount = _cache.Get<int?>(cacheKey);
 
         if (!totalCount.HasValue)
