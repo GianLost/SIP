@@ -1,5 +1,5 @@
 ﻿using SIP.API.Domain.DTOs.Users;
-using SIP.API.Domain.DTOs.Users.Responses;
+using SIP.API.Domain.DTOs.Users.Pagination;
 using SIP.API.Domain.Entities.Users;
 
 namespace SIP.API.Domain.Interfaces.Users;

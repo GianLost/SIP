@@ -1,7 +1,7 @@
-﻿using SIP.UI.Models.Users;
+﻿using SIP.API.Domain.DTOs.Users.Default;
+using SIP.API.Domain.Entities.Users;
 
-namespace SIP.UI.Domain.DTOs.Sectors.Responses;
-
+namespace SIP.API.Domain.DTOs.Sectors.Pagination;
 public class SectorListItemDTO
 {
     public Guid Id { get; set; }
@@ -9,8 +9,6 @@ public class SectorListItemDTO
     public string Name { get; set; } = string.Empty;
     public string Acronym { get; set; } = string.Empty;
     public string Phone { get; set; } = string.Empty;
-
-    public bool ShowUsers { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
@@ -22,5 +20,5 @@ public class SectorListItemDTO
     public Guid? UpdatedById { get; set; }
     public User? UpdatedBy { get; set; }
 
-    public ICollection<User> Users { get; set; } = [];
+    public ICollection<UserDefaultDTO> Users { get; set; } = [];
 }

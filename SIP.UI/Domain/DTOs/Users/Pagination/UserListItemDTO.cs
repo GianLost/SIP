@@ -1,7 +1,8 @@
-﻿using SIP.UI.Domain.Enums;
+﻿using SIP.UI.Domain.DTOs.Sectors.Default;
+using SIP.UI.Domain.Enums;
 using SIP.UI.Models.Protocols;
 
-namespace SIP.UI.Domain.DTOs.Users.Responses;
+namespace SIP.UI.Domain.DTOs.Users.Pagination;
 
 public class UserListItemDTO
 {
@@ -24,6 +25,7 @@ public class UserListItemDTO
     public DateTime? UpdatedAt { get; set; }
 
     public string SectorName { get; set; } = string.Empty;
+    public string SectorAcronym { get; set; } = string.Empty;
 
     public ICollection<Protocol> Protocols { get; set; } = [];
 }

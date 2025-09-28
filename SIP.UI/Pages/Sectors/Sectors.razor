@@ -4,7 +4,9 @@
 @using MudBlazor.Utilities
 @using SIP.UI.Components.Dialogs.Sectors
 @using SIP.UI.Domain.DTOs.Sectors
-@using SIP.UI.Domain.DTOs.Sectors.Responses
+@using SIP.UI.Domain.DTOs.Sectors.Pagination
+@using SIP.UI.Domain.DTOs.Users.Default;
+@using SIP.UI.Domain.DTOs.Users.Responses;
 @using SIP.UI.Domain.Helpers.DataFormatting.Strings
 @using SIP.UI.Domain.Services.Sectors
 @using SIP.UI.Models.Sectors
@@ -149,7 +151,7 @@
                                 <MudCardContent Class="pa-0">
 
                                     @* Sub-componente de tabela contendo os dados relacionais de usuários *@
-                                    <MudTable T="User" Items="sectorDetail.Users" Bordered="false" Hover="true" Elevation="0">
+                                    <MudTable T="UserDefaultDTO" Items="sectorDetail.Users" Bordered="false" Hover="true" Elevation="0">
 
                                         <HeaderContent>
                                             <MudTh Style="font-weight: bold;">Status</MudTh>
@@ -163,8 +165,8 @@
 
                                             <MudTd DataLabel="Status">
                                                 @* Ícone de status do usuário *@
-                                                <MudTooltip Text="@(user.IsActive ? "Ativo" : "Inativo")" Arrow="true" Placement="Placement.Left">
-                                                    <MudIcon Icon="@Icons.Material.Filled.Circle" Color="@(user.IsActive ? Color.Success : Color.Error)" Size="Size.Small" />
+                                                <MudTooltip Text="@(user.Status ? "Ativo" : "Inativo")" Arrow="true" Placement="Placement.Left">
+                                                    <MudIcon Icon="@Icons.Material.Filled.Circle" Color="@(user.Status ? Color.Success : Color.Error)" Size="Size.Small" />
                                                 </MudTooltip>
                                             </MudTd>
 

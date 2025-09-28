@@ -1,4 +1,5 @@
 ﻿@using MudBlazor
+@using SIP.UI.Domain.DTOs.Sectors.Default
 @using SIP.UI.Domain.DTOs.Users
 @using SIP.UI.Domain.Services.Sectors
 @using SIP.UI.Domain.Enums
@@ -49,13 +50,14 @@
                                   Required="true"
                                   RequiredError="A nova senha é obrigatória!"
                                   For="@(() => User.Password)"
-                                  OnBlur="() => form!.Validate()"
+                                  OnBlur="() => form!.ResetValidation()"
                                   Adornment="Adornment.End"
                                   AdornmentIcon="@(showNewPassword ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"
                                   OnAdornmentClick="ToggleNewPasswordVisibility" />
                 </MudItem>
                 <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="ConfirmPassword"
+                    <MudTextField T="string" 
+                                  @bind-Value="ConfirmPassword"
                                   Label="Confirmar Senha"
                                   Variant="Variant.Outlined"
                                   Margin="Margin.Normal"
@@ -64,7 +66,7 @@
                                   RequiredError="A confirmação de senha é obrigatória!"
                                   For="@(() => ConfirmPassword)"
                                   Validation="@(new Func<string, string>(ValidateConfirmPassword))"
-                                  OnBlur="() => form!.Validate()"
+                                  OnBlur="() => form!.ResetValidation()"
                                   Adornment="Adornment.End"
                                   AdornmentIcon="@(showConfirmPassword? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"
                                   OnAdornmentClick="ToggleConfirmPasswordVisibility" />
@@ -73,7 +75,7 @@
                 @* Caixa de seleção para selecionar o setor do usuário *@
                 <MudItem xs="12" sm="6">
                     <MudAutocomplete 
-                            T="Sector" 
+                            T="SectorDefaultDTO" 
                             Label="Setor"
                             @bind-Value="selectedSector" 
                             SearchFunc="SearchSectors"
@@ -140,7 +142,7 @@
     /// É carregada pelo serviço de setores e passada pelo componente pai.
     /// </summary>
     [Parameter]
-    public ICollection<Sector>? _allSectors { get; set; }
+    public ICollection<SectorDefaultDTO>? _allSectors { get; set; }
 
     /// <summary>
     /// Referência para o formulário do MudBlazor.
@@ -157,7 +159,7 @@
     /// <summary>
     /// Armazena o setor selecionado pelo usuário no formulário.
     /// </summary>
-    private Sector? selectedSector;
+    private SectorDefaultDTO? selectedSector;
 
     /// <summary>
     /// Flag que controla a visibilidade do campo "Nova Senha".
@@ -183,7 +185,7 @@
     protected override async Task OnInitializedAsync()
     {
         if (_sectorServices is not null)
-            _allSectors = await _sectorServices.GetAllSectorsAsync() ?? new List<Sector>();
+            _allSectors = await _sectorServices.GetAllSectorsAsync() ?? new List<SectorDefaultDTO>();
 
         if (_allSectors != null && !_allSectors.Any())
         {
@@ -263,10 +265,10 @@
     /// Função de pesquisa para o autocomplete de setores.
     /// Filtra a lista de setores com base no valor de pesquisa do usuário.
     /// </summary>
-    private Task<IEnumerable<Sector>> SearchSectors(string value, CancellationToken cancellationToken)
+    private Task<IEnumerable<SectorDefaultDTO>> SearchSectors(string value, CancellationToken cancellationToken)
     {
         if (string.IsNullOrEmpty(value))
-            return Task.FromResult<IEnumerable<Sector>>(_allSectors!);
+            return Task.FromResult<IEnumerable<SectorDefaultDTO>>(_allSectors!);
 
         return Task.FromResult(_allSectors!.Where(s => s.Name.Contains(value, StringComparison.OrdinalIgnoreCase) || s.Acronym.Contains(value, StringComparison.OrdinalIgnoreCase)));
     }

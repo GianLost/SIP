@@ -1,4 +1,5 @@
-﻿@using SIP.UI.Domain.Services.Sectors
+﻿@using SIP.UI.Domain.DTOs.Sectors.Default
+@using SIP.UI.Domain.Services.Sectors
 @using SIP.UI.Models.Sectors
 @using SIP.UI.Models.Users
 
@@ -13,7 +14,7 @@
 
         <MudForm @ref="form" @bind-IsValid="isValid">
 
-            <MudSelect T="Sector" Label="Setor" @bind-Value="selectedSector" Required="true" Dense="true" RequiredError="Selecione um setor!" Variant="Variant.Outlined" Margin="Margin.Normal" Class="mb-3">
+            <MudSelect T="SectorDefaultDTO" Label="Setor" @bind-Value="selectedSector" Required="true" Dense="true" RequiredError="Selecione um setor!" Variant="Variant.Outlined" Margin="Margin.Normal" Class="mb-3">
                 @if (_allSectors != null)
                 {
                     @foreach (var sector in _allSectors)
@@ -49,19 +50,19 @@
 
     [Parameter] public User Users { get; set; } = new();
 
-    private Sector selectedSector = new();
+    private SectorDefaultDTO selectedSector = new();
 
-    private IEnumerable<Sector>? _allSectors = new List<Sector>();
+    private IEnumerable<SectorDefaultDTO>? _allSectors = [];
 
     protected override async Task OnInitializedAsync()
     {
         _allSectors = await _sectorServices.GetAllSectorsAsync();
 
         if (_allSectors is not null && selectedSector != null)
-            selectedSector = _allSectors.FirstOrDefault(s => s.Id == selectedSector.Id) ?? new Sector();
+            selectedSector = _allSectors.FirstOrDefault(s => s.Id == selectedSector.Id) ?? new SectorDefaultDTO();
 
         else if (_allSectors is not null && Users.SectorId != default(Guid))
-            selectedSector = _allSectors.FirstOrDefault(s => s.Id == Users.SectorId) ?? new Sector();
+            selectedSector = _allSectors.FirstOrDefault(s => s.Id == Users.SectorId) ?? new SectorDefaultDTO();
     }
 
     private void Submit()

@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SIP.API.Domain.DTOs.Sectors;
+using SIP.API.Domain.DTOs.Sectors.Default;
+using SIP.API.Domain.DTOs.Sectors.Pagination;
 using SIP.API.Domain.DTOs.Sectors.Responses;
 using SIP.API.Domain.Entities.Sectors;
 using SIP.API.Domain.Interfaces.Sectors;
@@ -98,7 +100,7 @@ public class SectorController(ISector sector) : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<Sector>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllAsync()
     {
-        ICollection<Sector> sectors = await _sectorService.GetAllSectorsAsync();
+        ICollection<SectorDefaultDTO> sectors = await _sectorService.GetAllSectorsAsync();
         return Ok(sectors);
     }
 

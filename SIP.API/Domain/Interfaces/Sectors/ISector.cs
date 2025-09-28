@@ -1,5 +1,6 @@
 ﻿using SIP.API.Domain.DTOs.Sectors;
-using SIP.API.Domain.DTOs.Sectors.Responses;
+using SIP.API.Domain.DTOs.Sectors.Default;
+using SIP.API.Domain.DTOs.Sectors.Pagination;
 using SIP.API.Domain.Entities.Sectors;
 
 namespace SIP.API.Domain.Interfaces.Sectors;
@@ -44,7 +45,7 @@ public interface ISector
     /// <returns>
     /// A task that represents the asynchronous operation. The task result contains a list with all <see cref="Sector"/> entities
     /// </returns>
-    Task<ICollection<Sector>> GetAllSectorsAsync();
+    Task<ICollection<SectorDefaultDTO>> GetAllSectorsAsync();
 
     /// <summary>
     /// Asynchronously updates an existing sector in the database.

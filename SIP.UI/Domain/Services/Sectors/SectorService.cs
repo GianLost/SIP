@@ -1,5 +1,6 @@
 ﻿using SIP.UI.Domain.DTOs.Sectors;
-using SIP.UI.Domain.DTOs.Sectors.Responses;
+using SIP.UI.Domain.DTOs.Sectors.Default;
+using SIP.UI.Domain.DTOs.Sectors.Pagination;
 using SIP.UI.Domain.Helpers.Endpoints;
 using SIP.UI.Models.Sectors;
 using System.Net.Http.Json;
@@ -27,13 +28,13 @@ public class SectorService(HttpClient http)
     /// Busca TODOS os setores da API para usar em dropdowns e seletores.
     /// </summary>
     /// <returns>Uma lista completa de todos os setores.</returns>
-    public async Task<ICollection<Sector>?> GetAllSectorsAsync()
+    public async Task<ICollection<SectorDefaultDTO>?> GetAllSectorsAsync()
     {
         try
         {
             string endpoint = SectorsEndpoints._getAllSectors;
 
-            ICollection<Sector>? sectors = await _http.GetFromJsonAsync<ICollection<Sector>>(endpoint);
+            ICollection<SectorDefaultDTO>? sectors = await _http.GetFromJsonAsync<ICollection<SectorDefaultDTO>>(endpoint);
 
             return sectors ?? [];
         }

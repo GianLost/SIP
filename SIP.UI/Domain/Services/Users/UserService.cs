@@ -1,6 +1,6 @@
 ﻿using SIP.UI.Domain.DTOs.Users;
 using SIP.UI.Domain.DTOs.Users.Configurations;
-using SIP.UI.Domain.DTOs.Users.Responses;
+using SIP.UI.Domain.DTOs.Users.Pagination;
 using SIP.UI.Domain.Helpers.Endpoints;
 using SIP.UI.Models.Users;
 using System.Net.Http.Json;

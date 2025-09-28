@@ -1,4 +1,4 @@
-﻿namespace SIP.API.Domain.DTOs.Sectors.Responses;
+﻿namespace SIP.API.Domain.DTOs.Sectors.Pagination;
 
 /// <summary>
 /// DTO for paginated sectors result.

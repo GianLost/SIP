@@ -1,4 +1,5 @@
-﻿using SIP.UI.Domain.Enums;
+﻿using SIP.UI.Domain.DTOs.Sectors.Default;
+using SIP.UI.Domain.Enums;
 using SIP.UI.Domain.Helpers.RegExpressions;
 using SIP.UI.Models.Sectors;
 using System.ComponentModel.DataAnnotations;
@@ -36,5 +37,5 @@ public class UserCreateDTO
 
     [Required(ErrorMessage = "O setor do usuário é obrigatório.")]
     public Guid SectorId { get; set; }
-    public Sector? Sector { get; set; }
+    public SectorDefaultDTO? Sector { get; set; }
 }

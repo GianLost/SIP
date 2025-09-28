@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SIP.API.Domain.DTOs.Users;
-using SIP.API.Domain.DTOs.Users.Responses;
+using SIP.API.Domain.DTOs.Users.Pagination;
 using SIP.API.Domain.Entities.Users;
 using SIP.API.Domain.Helpers.KeysHelper;
 using SIP.API.Domain.Interfaces.Users;
@@ -163,7 +163,8 @@ public class UserService(ApplicationContext context, EntityCacheManager cache) :
             CreatedAt = u.CreatedAt,
             LastLoginAt = u.LastLoginAt,
             UpdatedAt = u.UpdatedAt,
-            SectorName = u.Sector!.Acronym,
+            SectorName = u.Sector!.Name,
+            SectorAcronym = u.Sector.Acronym,
             Protocols = u.ProtocolsCreated
         });
 

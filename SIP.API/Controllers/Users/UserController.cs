@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SIP.API.Domain.DTOs.Users;
 using SIP.API.Domain.DTOs.Users.Configurations;
+using SIP.API.Domain.DTOs.Users.Pagination;
 using SIP.API.Domain.DTOs.Users.Responses;
 using SIP.API.Domain.Entities.Users;
 using SIP.API.Domain.Interfaces.Users;

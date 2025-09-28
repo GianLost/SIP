@@ -1,4 +1,4 @@
-﻿namespace SIP.UI.Domain.DTOs.Users.Responses;
+﻿namespace SIP.UI.Domain.DTOs.Users.Pagination;
 
 /// <summary>
 /// DTO for paginated users result.

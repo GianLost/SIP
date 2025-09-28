@@ -1,9 +1,11 @@
 ﻿@page "/users"
 
+@using MudBlazor
+@using MudBlazor.Utilities
 @using SIP.UI.Components.Dialogs.Users
 @using SIP.UI.Domain.DTOs.Users
 @using SIP.UI.Domain.DTOs.Users.Configurations
-@using SIP.UI.Domain.DTOs.Users.Responses
+@using SIP.UI.Domain.DTOs.Users.Pagination
 @using SIP.UI.Domain.Enums
 @using SIP.UI.Domain.Helpers.DataFormatting.DateTimes
 @using SIP.UI.Domain.Helpers.DataFormatting.Strings
@@ -12,9 +14,6 @@
 @using SIP.UI.Models.Protocols
 @using SIP.UI.Models.Sectors
 @using SIP.UI.Models.Users
-@using MudBlazor
-@using MudBlazor.Utilities
-
 @using static SIP.UI.Components.Dialogs.Users.UserChangePasswordDialog
 
 @inject UserService _userService
@@ -125,7 +124,7 @@
                 </MudTh>
 
                 <MudTh Style="font-weight: bold;">
-                    <MudTableSortLabel SortLabel="Sector" InitialDirection="SortDirection.Ascending" SortBy="new Func<UserListItemDTO, object?>(x => x.SectorName)">Secretaria</MudTableSortLabel>
+                    <MudTableSortLabel SortLabel="Sector" InitialDirection="SortDirection.Ascending" SortBy="new Func<UserListItemDTO, object?>(x => x.SectorAcronym)">Secretaria</MudTableSortLabel>
                 </MudTh>
             </HeaderContent>
 
@@ -169,8 +168,8 @@
                     </MudTooltip>
                 </MudTd>
                 <MudTd Class="mud-table-cell-truncate" DataLabel="Sector">
-                    <MudTooltip Text="@user?.SectorName.ToUppercase()">
-                        <span>@user?.SectorName.ToUppercase()</span>
+                    <MudTooltip Text="@user?.SectorAcronym.ToUppercase()">
+                        <span>@user?.SectorAcronym.ToUppercase()</span>
                     </MudTooltip>
                 </MudTd>
             </RowTemplate>

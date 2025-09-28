@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SIP.API.Domain.DTOs.Sectors;
-using SIP.API.Domain.DTOs.Sectors.Responses;
+using SIP.API.Domain.DTOs.Sectors.Default;
+using SIP.API.Domain.DTOs.Sectors.Pagination;
+using SIP.API.Domain.DTOs.Users.Default;
 using SIP.API.Domain.Entities.Sectors;
 using SIP.API.Domain.Helpers.KeysHelper;
 using SIP.API.Domain.Helpers.PhoneHelper;
@@ -23,12 +25,11 @@ public class SectorService(ApplicationContext context, EntityCacheManager cache)
     /// <inheritdoc/>
     public async Task<Sector> CreateAsync(SectorCreateDTO dto)
     {
-
         Sector sector = new()
         {
             Name = dto.Name,
             Acronym = dto.Acronym,
-            Phone = PhoneHelper.ExtractDigits(dto.Phone) // Uso do helper para extrair apenas os dígitos, garantindo a consistência do formato no padrão E.164
+            Phone = PhoneHelper.ExtractDigits(dto.Phone) // Uso do helper para extrair apenas os dígitos, garantindo o padrão E.164
         };
 
         await _context.Sectors.AddAsync(sector);
@@ -48,26 +49,37 @@ public class SectorService(ApplicationContext context, EntityCacheManager cache)
             .FirstOrDefaultAsync(s => s.Id == id);
 
     /// <inheritdoc/>
-    public async Task<ICollection<Sector>> GetAllSectorsAsync() => 
-        await _context.Sectors
-            .OrderBy(s => s.Name)
-            .Include(s => s.Users)
-            .AsNoTracking()
-            .ToListAsync();
-    
+    public async Task<ICollection<SectorDefaultDTO>> GetAllSectorsAsync() =>
+    /* TODO: Otimizar consulta para o uso em componente MudSelect no front-end */
+    await _context.Sectors
+        .AsNoTracking()
+        .OrderBy(s => s.Name)
+        .Select(s => new SectorDefaultDTO
+        {
+            Id = s.Id,
+            Name = s.Name,
+            Acronym = s.Acronym,
+            Users = s.Users
+                .Select(u => new UserDefaultDTO
+                {
+                    Id = u.Id,
+                    Name = u.Name,
+                    Login = u.Login
+                }).ToList()
+        })
+        .ToListAsync();
+
     /// <inheritdoc/>
     public async Task<SectorPagedResultDTO> GetPagedAsync(
-    int pageNumber, 
-    int pageSize, 
-    string? sortLabel, 
-    string? sortDirection, 
+    int pageNumber,
+    int pageSize,
+    string? sortLabel,
+    string? sortDirection,
     string? searchString)
     {
         pageSize = Math.Min(pageSize, MaxPageSize);
 
-        IQueryable<Sector> query = _context.Sectors
-            .Include(s => s.Users)
-            .AsNoTracking();
+        IQueryable<Sector> query = _context.Sectors.AsNoTracking();
 
         if (!string.IsNullOrWhiteSpace(searchString))
         {
@@ -77,57 +89,49 @@ public class SectorService(ApplicationContext context, EntityCacheManager cache)
                 s.Phone.Contains(searchString));
         }
 
-        // Get total count (this will use or re-cache based on the token)
-        int? totalCount = _cache.Get<int?>($"SectorCount_Search_{searchString ?? "NoSearch"}");
+        // Cache do count
+        int? totalCount = _cache.Get<int?>($"{CacheKeys.SectorsTotalCount}{searchString ?? "NoSearch"}");
 
         if (!totalCount.HasValue)
         {
             totalCount = await query.CountAsync();
-            _cache.Set($"SectorCount_Search_{searchString ?? "NoSearch"}", totalCount.Value, EntityType);
+            _cache.Set($"{CacheKeys.SectorsTotalCount}{searchString ?? "NoSearch"}", totalCount.Value, EntityType);
         }
 
-        if (!string.IsNullOrWhiteSpace(sortLabel))
+        // Ordenação
+        bool asc = sortDirection?.Trim().Equals("asc", StringComparison.CurrentCultureIgnoreCase) ?? true;
+        query = sortLabel?.ToLower() switch
         {
-            bool asc = sortDirection?.Trim().Equals("asc", StringComparison.CurrentCultureIgnoreCase) ?? true;
+            "name" => asc ? query.OrderBy(s => s.Name) : query.OrderByDescending(s => s.Name),
+            "acronym" => asc ? query.OrderBy(s => s.Acronym) : query.OrderByDescending(s => s.Acronym),
+            _ => asc ? query.OrderBy(s => s.CreatedAt) : query.OrderByDescending(s => s.CreatedAt),
+        };
 
-            query = sortLabel.ToLower() switch
+        // Paginação + projeção
+        var items = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .Select(u => new SectorListItemDTO
             {
-                "name" => asc
-                  ? query.OrderBy(s => s.Name)
-                  : query.OrderByDescending(s => s.Name),
-
-                "acronym" => asc
-                  ? query.OrderBy(s => s.Acronym)
-                  : query.OrderByDescending(s => s.Acronym),
-
-                _ => asc
-                  ? query.OrderBy(s => s.CreatedAt)
-                  : query.OrderByDescending(s => s.CreatedAt),
-            };
-        }
-        else
-        {
-            query = query.OrderByDescending(s => s.CreatedAt);
-        }
-
-        IQueryable<SectorListItemDTO> pagedDataQuery = query
-        .Skip((pageNumber - 1) * pageSize)
-        .Take(pageSize)
-        .Select(u => new SectorListItemDTO
-        {
-            Id = u.Id,
-            Name = u.Name,
-            Acronym = u.Acronym,
-            Phone = u.Phone,
-            CreatedAt = u.CreatedAt,
-            CreatedById = u.CreatedById,
-            UpdatedAt = u.UpdatedAt,
-            UpdatedById = u.UpdatedById,
-            Users = u.Users
-        });
-
-        ICollection<SectorListItemDTO> items = 
-            await pagedDataQuery.ToListAsync();
+                Id = u.Id,
+                Name = u.Name,
+                Acronym = u.Acronym,
+                Phone = u.Phone,
+                CreatedAt = u.CreatedAt,
+                CreatedById = u.CreatedById,
+                UpdatedAt = u.UpdatedAt,
+                UpdatedById = u.UpdatedById,
+                Users = u.Users.Select(user => new UserDefaultDTO
+                {
+                    Id = user.Id,
+                    Masp = user.Masp,
+                    Name = user.Name,
+                    Email = user.Email,
+                    Login = user.Login,
+                    Status = user.IsActive
+                }).ToList()
+            })
+            .ToListAsync();
 
         return new SectorPagedResultDTO
         {
@@ -135,6 +139,7 @@ public class SectorService(ApplicationContext context, EntityCacheManager cache)
             TotalCount = totalCount.Value
         };
     }
+
 
     /// <inheritdoc/>
     public async Task<Sector?> UpdateAsync(Guid id, SectorUpdateDTO dto)
@@ -147,7 +152,7 @@ public class SectorService(ApplicationContext context, EntityCacheManager cache)
 
         sector.Name = dto.Name;
         sector.Acronym = dto.Acronym;
-        sector.Phone = PhoneHelper.ExtractDigits(dto.Phone); // Uso do helper para extrair apenas os dígitos, garantindo a consistência do formato no padrão E.164
+        sector.Phone = PhoneHelper.ExtractDigits(dto.Phone); // Uso do helper para extrair apenas os dígitos, garantindo o padrão E.164
         sector.UpdatedAt = DateTime.UtcNow;
 
         _context.Sectors.Update(sector);

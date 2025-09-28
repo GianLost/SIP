@@ -1,4 +1,5 @@
 ﻿@using MudBlazor
+@using SIP.UI.Domain.DTOs.Sectors.Default
 @using SIP.UI.Domain.Services.Sectors
 @using SIP.UI.Domain.Services.Users
 @using SIP.UI.Domain.Enums
@@ -33,7 +34,7 @@
 
                 @* Caixa de seleção para selecionar o setor de origem *@
                 <MudItem xs="12" sm="6">
-                    <MudAutocomplete T="Sector"
+                    <MudAutocomplete T="SectorDefaultDTO"
                                      @bind-Value="SelectedOriginSector"
                                      Label="Setor de Origem"
                                      SearchFunc="SearchSectors"
@@ -68,7 +69,7 @@
 
                 @* Caixa de seleção para selecionar o setor de destino *@
                 <MudItem xs="12" sm="6">
-                    <MudAutocomplete T="Sector"
+                    <MudAutocomplete T="SectorDefaultDTO"
                                      @bind-Value="SelectedDestinationSector"
                                      Label="Setor de Destino"
                                      SearchFunc="SearchSectors"
@@ -171,21 +172,21 @@
     private Protocol _protocol = new();
 
     // Listas para armazenar dados de setores e usuários para os campos de autocomplete.
-    private List<Sector> Sectors = new();
+    private List<SectorDefaultDTO> Sectors = new();
     private List<User> AllUsers = new();
 
     // Propriedades para armazenar os objetos selecionados nos campos de autocomplete.
-    private Sector? _selectedOriginSector;
+    private SectorDefaultDTO? _selectedOriginSector;
     private User? SelectedCreator;
 
-    private Sector? _selectedDestinationSector;
+    private SectorDefaultDTO? _selectedDestinationSector;
     private User? SelectedDestinationUser;
 
     /// <summary>
     /// Propriedade que gerencia o setor de origem selecionado.
     /// Ao ser alterada, ela garante que o usuário criador seja redefinido para 'null'.
     /// </summary>
-    private Sector? SelectedOriginSector
+    private SectorDefaultDTO? SelectedOriginSector
     {
         get => _selectedOriginSector;
         set
@@ -202,7 +203,7 @@
     /// Propriedade que gerencia o setor de destino selecionado.
     /// Ao ser alterada, ela garante que o usuário de destino seja redefinido para 'null'.
     /// </summary>
-    private Sector? SelectedDestinationSector
+    private SectorDefaultDTO? SelectedDestinationSector
     {
         get => _selectedDestinationSector;
         set
@@ -238,8 +239,8 @@
         };
 
         // Carrega a lista de setores e usuários para os campos de autocomplete
-        ICollection<Sector>? sectorsResult = await SectorService.GetAllSectorsAsync();
-        Sectors = sectorsResult?.ToList() ?? new List<Sector>();
+        ICollection<SectorDefaultDTO>? sectorsResult = await SectorService.GetAllSectorsAsync();
+        Sectors = sectorsResult?.ToList() ?? new List<SectorDefaultDTO>();
 
         ICollection<User>? usersResult = await UserService.GetAllUsersToDropdownAsync();
         AllUsers = usersResult?.ToList() ?? new List<User>();
@@ -263,10 +264,10 @@
     /// Função de pesquisa para o autocomplete de setores.
     /// Filtra a lista de setores com base no valor de pesquisa do usuário.
     /// </summary>
-    private Task<IEnumerable<Sector>> SearchSectors(string value, CancellationToken cancellationToken)
+    private Task<IEnumerable<SectorDefaultDTO>> SearchSectors(string value, CancellationToken cancellationToken)
     {
         if (string.IsNullOrEmpty(value))
-            return Task.FromResult<IEnumerable<Sector>>(Sectors);
+            return Task.FromResult<IEnumerable<SectorDefaultDTO>>(Sectors);
 
         return Task.FromResult(Sectors.Where(s => s.Name.Contains(value, StringComparison.OrdinalIgnoreCase) || s.Acronym.Contains(value, StringComparison.OrdinalIgnoreCase)));
     }
