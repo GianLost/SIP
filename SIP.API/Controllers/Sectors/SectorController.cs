@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SIP.API.Domain.DTOs.Sectors;
+using SIP.API.Domain.Entities.Sectors;
 using SIP.API.Domain.DTOs.Sectors.Default;
 using SIP.API.Domain.DTOs.Sectors.Pagination;
 using SIP.API.Domain.DTOs.Sectors.Responses;
-using SIP.API.Domain.Entities.Sectors;
 using SIP.API.Domain.Interfaces.Sectors;
 
 namespace SIP.API.Controllers.Sectors;
@@ -13,9 +13,10 @@ namespace SIP.API.Controllers.Sectors;
 /// </summary>
 [Route("sip_api/[controller]")]
 [ApiController]
-public class SectorController(ISector sector) : ControllerBase
+public class SectorController(ISector sector, ILogger<SectorController> logguer) : ControllerBase
 {
     private readonly ISector _sectorService = sector;
+    private readonly ILogger<SectorController> _logger = logguer;
 
     /// <summary>
     /// Registers a new sector in the system.
@@ -30,9 +31,11 @@ public class SectorController(ISector sector) : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> RegisterAsync([FromBody] SectorCreateDTO sectorDTO)
     {
+        _logger.LogInformation("Solicitação recebida para registrar um novo Setor. Payload: {@sectorDTO}", sectorDTO);
+
         try
         {
-            Sector entity = await 
+            Sector entity = await
                 _sectorService.CreateAsync(sectorDTO);
 
             SectorResponseDTO response = new()
@@ -44,12 +47,26 @@ public class SectorController(ISector sector) : ControllerBase
                 CreatedAt = entity.CreatedAt
             };
 
+            _logger.LogInformation("Setor '{Name}' registrado com sucesso com ID {Id} em {CreatedAt}.",
+                entity.Name, entity.Id, entity.CreatedAt);
+
             return CreatedAtRoute(nameof(GetSectorByIdAsync), new { id = entity.Id }, response);
+        }
+        catch (ArgumentException argEx)
+        {
+            _logger.LogWarning(
+                argEx, "Dados inválidos fornecidos ao registrar o setor. Payload: {@sectorDTO}",
+                sectorDTO);
+
+            return BadRequest(new ErrorResponse("Invalid data: " + argEx.Message));
         }
         catch (Exception ex)
         {
-            return BadRequest(new ErrorResponse(ex.Message));
-            
+            _logger.LogError(
+                ex, "Ocorreu um erro inesperado ao registrar o setor. Payload: {@sectorDTO}",
+                sectorDTO);
+
+            return BadRequest(new ErrorResponse("Ocorreu um erro inesperado."));
         }
     }
 
@@ -66,13 +83,20 @@ public class SectorController(ISector sector) : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetSectorByIdAsync(Guid id)
     {
+        _logger.LogInformation("Solicitação recebida para buscar um Setor pelo ID. Payload: {@id}", id);
+
         try
         {
             Sector? sector =
                 await _sectorService.GetByIdAsync(id);
 
             if (sector == null)
-                return NotFound();
+            {
+                _logger.LogWarning(
+                    "Nenhum Setor encontrado para o ID {SectorId}", id);
+
+                return NotFound(new ErrorResponse($"Nenhum Setor encontrado para o ID {id}"));
+            }
 
             SectorResponseDTO response = new()
             {
@@ -84,10 +108,17 @@ public class SectorController(ISector sector) : ControllerBase
                 UpdatedAt = sector.UpdatedAt
             };
 
+            _logger.LogInformation(
+                "Setor encontrado. ID: {Id}, Nome: {Name}, Sigla: {Acronym}, CriadoEm: {CreatedAt}, AtualizadoEm: {UpdatedAt}",
+                sector.Id, sector.Name, sector.Acronym, sector.CreatedAt, sector.UpdatedAt);
+
             return Ok(response);
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex,
+                "Erro inesperado ao buscar Setor pelo ID {SectorId}", id);
+
             return NotFound(new ErrorResponse(ex.Message));
         }
     }
@@ -100,8 +131,27 @@ public class SectorController(ISector sector) : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<Sector>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllAsync()
     {
-        ICollection<SectorDefaultDTO> sectors = await _sectorService.GetAllSectorsAsync();
-        return Ok(sectors);
+        _logger.LogInformation("Solicitação recebida para listar todos os setores.");
+
+        try
+        {
+            ICollection<SectorDefaultDTO> sectors = await _sectorService.GetAllSectorsAsync();
+
+            if (sectors == null || sectors.Count == 0)
+            {
+                _logger.LogWarning("Nenhum setor encontrado na base de dados.");
+                return Ok(Enumerable.Empty<SectorDefaultDTO>());
+            }
+
+            _logger.LogInformation("Consulta concluída com sucesso. Total de setores encontrados: {Total}", sectors.Count);
+
+            return Ok(sectors);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao buscar todos os setores.");
+            return StatusCode(StatusCodes.Status500InternalServerError, new ErrorResponse(ex.Message));
+        }
     }
 
     /*
@@ -168,22 +218,50 @@ public class SectorController(ISector sector) : ControllerBase
     /// <returns>A paged result DTO containing the sectors and total count.</returns>
     [HttpGet("show_paged")]
     public async Task<IActionResult> GetPagedAsync(
-    [FromQuery] int pageNumber = 1, 
-    [FromQuery] int pageSize = 15, 
-    [FromQuery] string? sortLabel = null, 
-    [FromQuery] string? sortDirection = null, 
+    [FromQuery] int pageNumber = 1,
+    [FromQuery] int pageSize = 15,
+    [FromQuery] string? sortLabel = null,
+    [FromQuery] string? sortDirection = null,
     [FromQuery] string? searchString = null)
     {
-        SectorPagedResultDTO result = 
-            await _sectorService
-            .GetPagedAsync(
-                pageNumber, 
-                pageSize, 
-                sortLabel, 
-                sortDirection, 
-                searchString);
+        _logger.LogInformation(
+            "Solicitação recebida para buscar setores paginados. PageNumber: {PageNumber}, PageSize: {PageSize}, SortLabel: {SortLabel}, SortDirection: {SortDirection}, SearchString: {@SearchString}",
+            pageNumber, pageSize, sortLabel, sortDirection, searchString);
 
-        return Ok(result);
+        try
+        {
+            SectorPagedResultDTO result =
+                await _sectorService.GetPagedAsync(
+                    pageNumber,
+                    pageSize,
+                    sortLabel,
+                    sortDirection,
+                    searchString);
+
+            if (result.Items == null || result.Items.Count == 0)
+            {
+                _logger.LogWarning(
+                    "Nenhum setor encontrado para os parâmetros fornecidos. PageNumber: {PageNumber}, PageSize: {PageSize}, SearchString: {@SearchString}",
+                    pageNumber, pageSize, searchString);
+            }
+            else
+            {
+                _logger.LogInformation(
+                    "Consulta de setores paginados concluída com sucesso. Total de registros retornados: {ReturnedCount}, Total geral: {TotalCount}",
+                    result.Items.Count, result.TotalCount);
+            }
+
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex, "Erro inesperado ao buscar setores paginados. PageNumber: {PageNumber}, PageSize: {PageSize}, SearchString: {@SearchString}",
+                pageNumber, pageSize, searchString);
+
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new ErrorResponse("Ocorreu um erro inesperado ao buscar setores paginados."));
+        }
     }
 
     /// <summary>
@@ -196,10 +274,29 @@ public class SectorController(ISector sector) : ControllerBase
     [HttpGet("count")]
     public async Task<ActionResult<int>> GetTotalCountAsync([FromQuery] string? searchString = null)
     {
-        int total = 
-            await _sectorService.GetTotalSectorsCountAsync(searchString);
+        _logger.LogInformation(
+            "Solicitação recebida para contar setores. SearchString: {@SearchString}",
+            searchString);
 
-        return Ok(total);
+        try
+        {
+            int total = await _sectorService.GetTotalSectorsCountAsync(searchString);
+
+            _logger.LogInformation(
+                "Total de setores encontrados: {Total}. SearchString: {@SearchString}",
+                total, searchString);
+
+            return Ok(total);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex, "Erro inesperado ao contar setores. SearchString: {@SearchString}",
+                searchString);
+
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new ErrorResponse("Ocorreu um erro inesperado ao contar os setores."));
+        }
     }
 
     /// <summary>
@@ -218,22 +315,45 @@ public class SectorController(ISector sector) : ControllerBase
     Guid id,
     [FromBody] SectorUpdateDTO sectorDTO)
     {
-        Sector? updated = await _sectorService.UpdateAsync(id, sectorDTO);
+        _logger.LogInformation(
+            "Solicitação recebida para atualizar setor. ID: {SectorId}, Payload: {@sectorDTO}",
+            id, sectorDTO);
 
-        if (updated == null)
-            return NotFound();
-
-        SectorResponseDTO response = new()
+        try
         {
-            Id = updated.Id,
-            Name = updated.Name,
-            Acronym = updated.Acronym,
-            Phone = updated.Phone,
-            CreatedAt = updated.CreatedAt,
-            UpdatedAt = updated?.UpdatedAt
-        };
+            Sector? updated = await _sectorService.UpdateAsync(id, sectorDTO);
 
-        return Ok(response);
+            if (updated == null)
+            {
+                _logger.LogWarning("Nenhum setor encontrado para atualização. ID: {sectorDTO}", id);
+                return NotFound(new ErrorResponse($"Nenhum setor encontrado para o ID {id}"));
+            }
+
+            SectorResponseDTO response = new()
+            {
+                Id = updated.Id,
+                Name = updated.Name,
+                Acronym = updated.Acronym,
+                Phone = updated.Phone,
+                CreatedAt = updated.CreatedAt,
+                UpdatedAt = updated.UpdatedAt
+            };
+
+            _logger.LogInformation(
+                "Setor atualizado com sucesso. ID: {SectorId}, Nome: {Name}, Sigla: {Acronym}",
+                updated.Id, updated.Name, updated.Acronym);
+
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex, "Erro inesperado ao atualizar setor. ID: {SectorId}, Payload: {@SectorDTO}",
+                id, sectorDTO);
+
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new ErrorResponse("Ocorreu um erro inesperado ao atualizar o setor."));
+        }
     }
 
     /// <summary>
@@ -251,19 +371,35 @@ public class SectorController(ISector sector) : ControllerBase
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> DeleteAsync(Guid id)
     {
+        _logger.LogInformation("Solicitação recebida para deletar setor. ID: {SectorId}", id);
+
         try
         {
-            bool deleted = 
-                await _sectorService.DeleteAsync(id);
+            bool deleted = await _sectorService.DeleteAsync(id);
 
             if (!deleted)
-                return NotFound();
+            {
+                _logger.LogWarning("Nenhum setor encontrado para exclusão. ID: {SectorId}", id);
+                return NotFound(new ErrorResponse($"Nenhum setor encontrado para o ID {id}"));
+            }
 
-            return Ok(new { Message = "Secretaria deletada com sucesso." });
+            _logger.LogInformation("Setor deletado com sucesso. ID: {SectorId}", id);
+            return Ok(new { Message = "Setor deletado com sucesso." });
         }
         catch (InvalidOperationException ex)
         {
+            _logger.LogWarning(
+                ex, "Falha ao deletar setor devido a restrições de negócio. ID: {SectorId}", id);
+
             return Conflict(new ErrorResponse(ex.Message));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex, "Erro inesperado ao deletar setor. ID: {SectorId}", id);
+
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new ErrorResponse("Ocorreu um erro inesperado ao deletar o setor."));
         }
     }
 }

@@ -21,7 +21,8 @@ appsettings.Local.json
 appsettings.*.local.json
 
 # Logs
-*.log
+Logs/
+*.logs
 
 # Entity Framework Migrations
 Migrations/

@@ -21,7 +21,8 @@ ScaffoldingReadMe.txt
 # appsettings.*.local.json
 
 # Logs
-*.log
+Logs/
+*.logs
 
 ## Entity Framework Migrations
 # Migrations/

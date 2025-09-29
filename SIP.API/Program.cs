@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Serilog;
+using SIP.API.Infrastructure.Caching;
+using SIP.API.Infrastructure.Database;
 using SIP.API.Domain.Interfaces.Hashes.Passwords;
 using SIP.API.Domain.Interfaces.Protocols;
 using SIP.API.Domain.Interfaces.Sectors;
@@ -10,8 +12,7 @@ using SIP.API.Domain.Services.Protocols;
 using SIP.API.Domain.Services.Sectors;
 using SIP.API.Domain.Services.Users;
 using SIP.API.Domain.Services.Users.Configurations;
-using SIP.API.Infrastructure.Caching;
-using SIP.API.Infrastructure.Database;
+using System.Globalization;
 using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -27,36 +28,86 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddMemoryCache();
 
-// Configuração global do Serilog
+var culture = new CultureInfo("pt-BR");
+
 Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Debug()
+    .MinimumLevel.Information()
     .Enrich.FromLogContext()
+    .Enrich.WithMachineName()
+    .Enrich.WithProcessId()
+    .Enrich.WithThreadId()
+    .Enrich.WithProperty("Application", "SIP_WEB") // nome fixo do sistema
 
+    // =============================
+    // Log para o terminal
+    // =============================
+    .WriteTo.Console(
+        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}"
+    )
+
+    // =============================
     // Log geral (tudo)
-    .WriteTo.File("logs/general-.txt", rollingInterval: RollingInterval.Day)
+    // =============================
+    .WriteTo.File(
+      path: "Logs/General/general-.txt", 
+      rollingInterval: RollingInterval.Day,
+      outputTemplate: "[{Timestamp:dd/MM/yyyy HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}",
+      formatProvider: culture)
 
-    // Logs de Controllers
-    .WriteTo.Logger(lc => lc
-        .Filter.ByIncludingOnly(e => e.Properties.ContainsKey("SourceContext") &&
-                                     e.Properties["SourceContext"].ToString().Contains("Controllers"))
-        .WriteTo.File("logs/controllers-.txt", rollingInterval: RollingInterval.Day)
-    )
+    // =============================
+    // Controllers
+    // =============================
+    .WriteTo.Logger(lc => lc.Filter.ByIncludingOnly(e => e.Properties.ContainsKey("SourceContext") && e.Properties["SourceContext"].ToString().Contains("Controllers")).WriteTo.File(
+      path: "Logs/Controllers/controllers-.txt", 
+      rollingInterval: RollingInterval.Day, 
+      outputTemplate: "[{Timestamp:dd/MM/yyyy HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}", 
+      formatProvider: culture))
 
-    // Logs de Entities
-    .WriteTo.Logger(lc => lc
-        .Filter.ByIncludingOnly(e => e.Properties.ContainsKey("SourceContext") &&
-                                     e.Properties["SourceContext"].ToString().Contains("Entities"))
-        .WriteTo.File("logs/entities-.txt", rollingInterval: RollingInterval.Day)
-    )
+    // =============================
+    // Entities
+    // =============================
+    .WriteTo.Logger(lc => lc.Filter.ByIncludingOnly(e => e.Properties.ContainsKey("SourceContext") && e.Properties["SourceContext"].ToString().Contains("Entities")).WriteTo.File(
+      path: "Logs/Entities/entities-.txt", 
+      rollingInterval: RollingInterval.Day, 
+      outputTemplate: "[{Timestamp:dd/MM/yyyy HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}", 
+      formatProvider: culture))
 
-    // Logs de DTOs
-    .WriteTo.Logger(lc => lc
-        .Filter.ByIncludingOnly(e => e.Properties.ContainsKey("SourceContext") &&
-                                     e.Properties["SourceContext"].ToString().Contains("DTO"))
-        .WriteTo.File("logs/dtos-.txt", rollingInterval: RollingInterval.Day)
-    )
+    // =============================
+    // DTOs
+    // =============================
+    .WriteTo.Logger(lc => lc.Filter.ByIncludingOnly(e => e.Properties.ContainsKey("SourceContext") && e.Properties["SourceContext"].ToString().Contains("DTO")).WriteTo.File(
+      path: "Logs/DTOs/dtos-.txt", 
+      rollingInterval: RollingInterval.Day,
+      outputTemplate: "[{Timestamp:dd/MM/yyyy HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}",
+      formatProvider: culture)
 
-    .CreateLogger();
+    // =============================
+    // Users
+    // =============================
+    .WriteTo.Logger(lc => lc.Filter.ByIncludingOnly(e => e.Properties.ContainsKey("SourceContext") && e.Properties["SourceContext"].ToString().Contains("User")).WriteTo.File(
+      path: "Logs/Users/users-.txt", 
+      rollingInterval: RollingInterval.Day,
+      outputTemplate: "[{Timestamp:dd/MM/yyyy HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}",
+      formatProvider: culture))
+
+
+    // =============================
+    // Sectors
+    // =============================
+    .WriteTo.Logger(lc => lc.Filter.ByIncludingOnly(e => e.Properties.ContainsKey("SourceContext") && e.Properties["SourceContext"].ToString().Contains("Sector")).WriteTo.File(
+      path: "Logs/Sectors/sectors-.txt", 
+      rollingInterval: RollingInterval.Day,
+      outputTemplate: "[{Timestamp:dd/MM/yyyy HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}",
+      formatProvider: culture))
+
+    // =============================
+    // Protocols
+    // =============================
+    .WriteTo.Logger(lc => lc.Filter.ByIncludingOnly(e => e.Properties.ContainsKey("SourceContext") && e.Properties["SourceContext"].ToString().Contains("Protocol")).WriteTo.File(
+      path: "Logs/Protocols/protocols-.txt", 
+      rollingInterval: RollingInterval.Day,
+      outputTemplate: "[{Timestamp:dd/MM/yyyy HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}",
+      formatProvider: culture))).CreateLogger();
 
 builder.Host.UseSerilog();
 
