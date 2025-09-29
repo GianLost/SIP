@@ -1,14 +1,17 @@
 ﻿using SIP.API.Domain.DTOs.Users.Configurations;
 using SIP.API.Domain.Entities.Users;
+using SIP.API.Domain.Interfaces.Hashes.Passwords;
 using SIP.API.Domain.Interfaces.Users;
 using SIP.API.Domain.Interfaces.Users.Configurations;
 using SIP.API.Infrastructure.Database;
 
 namespace SIP.API.Domain.Services.Users.Configurations;
 
-public class UserConfigurationService(ApplicationContext context, IUser userService) : IUserConfiguration
+public class UserConfigurationService(ApplicationContext context, ICryptPassword crypt, IUser userService) : IUserConfiguration
 {
     private readonly ApplicationContext _context = context;
+
+    private readonly ICryptPassword _crypt = crypt;
     private readonly IUser _userService = userService;
 
     /// <inheritdoc/>
@@ -22,7 +25,7 @@ public class UserConfigurationService(ApplicationContext context, IUser userServ
         if (user == null)
             return null;
 
-        user.PasswordHash = dto.Password;
+        user.PasswordHash = _crypt.Hash(dto.Password);
         user.UpdatedAt = DateTime.UtcNow;
 
         _context.Users.Update(user);

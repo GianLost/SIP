@@ -5,6 +5,7 @@ using SIP.API.Domain.Entities.Protocols;
 using SIP.API.Domain.Entities.Sectors;
 using SIP.API.Domain.Entities.Users;
 using SIP.API.Domain.Enums;
+using SIP.API.Domain.Interfaces.Hashes.Passwords;
 using SIP.API.Domain.Interfaces.Protocols;
 using SIP.API.Domain.Interfaces.Users;
 using SIP.API.Infrastructure.Database;
@@ -13,9 +14,11 @@ namespace SIP.API.Controllers.Seeds;
 
 [Route("sip_api/[controller]")]
 [ApiController]
-public class SeedController(ApplicationContext context, IProtocol protocolService) : ControllerBase
+public class SeedController(ApplicationContext context, ICryptPassword crypt, IProtocol protocolService) : ControllerBase
 {
     private readonly ApplicationContext _context = context;
+
+    private readonly ICryptPassword _crypt = crypt;
     private readonly IProtocol _protocolService = protocolService;
 
     [HttpPost("import")]
@@ -55,7 +58,7 @@ public class SeedController(ApplicationContext context, IProtocol protocolServic
                 Login = u.Login!,
                 Masp = u.Masp,
                 Email = u.Email!,
-                PasswordHash = u.PasswordHash!,
+                PasswordHash = _crypt.Hash(u.PasswordHash!),
                 CreatedAt = DateTime.Parse(u.CreatedAt!),
                 LastLoginAt = u.LastLoginAt != null ? DateTime.Parse(u.LastLoginAt) : null,
                 UpdatedAt = u.UpdatedAt != null ? DateTime.Parse(u.UpdatedAt) : null,

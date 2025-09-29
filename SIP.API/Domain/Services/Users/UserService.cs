@@ -3,6 +3,7 @@ using SIP.API.Domain.DTOs.Users;
 using SIP.API.Domain.DTOs.Users.Pagination;
 using SIP.API.Domain.Entities.Users;
 using SIP.API.Domain.Helpers.KeysHelper;
+using SIP.API.Domain.Interfaces.Hashes.Passwords;
 using SIP.API.Domain.Interfaces.Users;
 using SIP.API.Infrastructure.Caching;
 using SIP.API.Infrastructure.Database;
@@ -13,10 +14,13 @@ namespace SIP.API.Domain.Services.Users;
 /// <summary>
 /// Service implementation for managing user entities in the database.
 /// </summary>
-public class UserService(ApplicationContext context, EntityCacheManager cache) : IUser
+public class UserService(ICryptPassword cryp, ApplicationContext context, EntityCacheManager cache) : IUser
 {
+    private readonly ICryptPassword _crypt = cryp;
+
     private readonly ApplicationContext _context = context;
     private readonly EntityCacheManager _cache = cache;
+
     private const string EntityType = nameof(User);
 
     private const int MaxPageSize = 100;
@@ -31,7 +35,7 @@ public class UserService(ApplicationContext context, EntityCacheManager cache) :
             Login = dto.Login,
             Masp = dto.Masp,
             Email = dto.Email,
-            PasswordHash = dto.Password ?? throw new ArgumentNullException(dto!.Password, "password isn't empty."),
+            PasswordHash = _crypt.Hash(dto.Password!),
             Role = dto.Role,
             SectorId = dto.SectorId
         };

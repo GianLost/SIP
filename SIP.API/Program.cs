@@ -1,8 +1,11 @@
 using Microsoft.EntityFrameworkCore;
+using Serilog;
+using SIP.API.Domain.Interfaces.Hashes.Passwords;
 using SIP.API.Domain.Interfaces.Protocols;
 using SIP.API.Domain.Interfaces.Sectors;
 using SIP.API.Domain.Interfaces.Users;
 using SIP.API.Domain.Interfaces.Users.Configurations;
+using SIP.API.Domain.Services.Hashes.Passwords;
 using SIP.API.Domain.Services.Protocols;
 using SIP.API.Domain.Services.Sectors;
 using SIP.API.Domain.Services.Users;
@@ -21,9 +24,47 @@ builder.Services.AddCors(options =>
             .AllowAnyHeader()
             .AllowAnyMethod());
 });
+
 builder.Services.AddMemoryCache();
 
+// Configuração global do Serilog
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Debug()
+    .Enrich.FromLogContext()
+
+    // Log geral (tudo)
+    .WriteTo.File("logs/general-.txt", rollingInterval: RollingInterval.Day)
+
+    // Logs de Controllers
+    .WriteTo.Logger(lc => lc
+        .Filter.ByIncludingOnly(e => e.Properties.ContainsKey("SourceContext") &&
+                                     e.Properties["SourceContext"].ToString().Contains("Controllers"))
+        .WriteTo.File("logs/controllers-.txt", rollingInterval: RollingInterval.Day)
+    )
+
+    // Logs de Entities
+    .WriteTo.Logger(lc => lc
+        .Filter.ByIncludingOnly(e => e.Properties.ContainsKey("SourceContext") &&
+                                     e.Properties["SourceContext"].ToString().Contains("Entities"))
+        .WriteTo.File("logs/entities-.txt", rollingInterval: RollingInterval.Day)
+    )
+
+    // Logs de DTOs
+    .WriteTo.Logger(lc => lc
+        .Filter.ByIncludingOnly(e => e.Properties.ContainsKey("SourceContext") &&
+                                     e.Properties["SourceContext"].ToString().Contains("DTO"))
+        .WriteTo.File("logs/dtos-.txt", rollingInterval: RollingInterval.Day)
+    )
+
+    .CreateLogger();
+
+builder.Host.UseSerilog();
+
+
 builder.Services.AddSingleton<EntityCacheManager>();
+
+builder.Services.AddScoped<ICryptPassword, CryptPassword>();
+
 
 builder.Services.AddScoped<IUser, UserService>();
 builder.Services.AddScoped<IUserConfiguration, UserConfigurationService>();

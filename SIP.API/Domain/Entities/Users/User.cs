@@ -46,7 +46,7 @@ public class User : BaseUser
     [Required]
     [StringLength(255)]
     [Column(TypeName = "varchar(255)")]
-    public string PasswordHash { get; set; } = string.Empty;
+    public string? PasswordHash { get; set; }
 
     [Required]
     [StringLength(50)]
