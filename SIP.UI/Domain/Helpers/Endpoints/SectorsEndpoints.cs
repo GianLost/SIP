@@ -2,11 +2,13 @@
 
 public readonly struct SectorsEndpoints
 {
-    public readonly static string _createSector = "sip_api/Sector/register_sector";
-    public readonly static string _sectorsCounter = "sip_api/Sector/count";
-    public readonly static string _getAllSectors = "sip_api/Sector/show";
-    public readonly static string _sectorsPaginationFull = "sip_api/Sector/show_paged?";
-    public readonly static string _getSectorsById = "sip_api/Sector/";
-    public readonly static string _updateSector = "sip_api/Sector/update_sector/";
-    public readonly static string _deleteSector = "sip_api/Sector/delete/";
+    public const string _base = "sip_api/sectors";
+
+    public const string _create = _base;
+    public const string _count = $"{_base}/count";
+    public const string _getAll = _base;
+    public const string _getPaged = $"{_base}/paged?";
+    public const string _getById = $"{_base}/";
+    public const string _update = $"{_base}/";
+    public const string _delete = $"{_base}/";
 }

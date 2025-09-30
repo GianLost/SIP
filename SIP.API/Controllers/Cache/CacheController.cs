@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using SIP.API.Controllers.Errors;
 using SIP.API.Infrastructure.Caching;
 using System.ComponentModel.DataAnnotations;
 
@@ -57,4 +58,3 @@ public class CacheController(EntityCacheManager cache) : ControllerBase
 
 public record CacheResponse(string Message);
 public record CacheStatusResponse(string EntityType, string Status);
-public record ErrorResponse(string Error);

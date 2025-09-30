@@ -21,7 +21,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowBlazorClient",
         policy => policy
-            .WithOrigins("https://localhost:7236") // address of my Blazor WebAssembly
+            .WithOrigins("https://localhost:7236", "https://localhost:7083") // Blazor + Swagger (API)
             .AllowAnyHeader()
             .AllowAnyMethod());
 });

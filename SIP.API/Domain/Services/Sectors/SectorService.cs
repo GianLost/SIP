@@ -19,6 +19,7 @@ public class SectorService(ApplicationContext context, EntityCacheManager cache)
 {
     private readonly ApplicationContext _context = context;
     private readonly EntityCacheManager _cache = cache;
+
     private const string EntityType = nameof(Sector);
     private const int MaxPageSize = 100;
 
@@ -174,6 +175,12 @@ public class SectorService(ApplicationContext context, EntityCacheManager cache)
 
         if (sector.Users.Count > 0)
             throw new InvalidOperationException("Não é possível excluir uma secretaria que possua um ou mais usuários vinculados.");
+
+        bool hasProtocols = 
+            await _context.Protocols.AnyAsync(p => p.OriginSectorId == id);
+
+        if (hasProtocols)
+            throw new InvalidOperationException("Não é possível excluir um setor que possua um ou mais protocolos vinculados.");
 
         _context.Sectors.Remove(sector);
         await _context.SaveChangesAsync();

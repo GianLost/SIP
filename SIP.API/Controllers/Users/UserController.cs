@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using SIP.API.Controllers.Errors;
 using SIP.API.Domain.DTOs.Users;
 using SIP.API.Domain.DTOs.Users.Configurations;
 using SIP.API.Domain.DTOs.Users.Pagination;
