@@ -1,0 +1,9 @@
+# .editorconfig
+
+# Outras configurações do seu projeto...
+[*.cs]
+
+# Adicione esta linha:
+# Desabilita a regra de performance para templates de log,
+# permitindo o uso de helpers genéricos como LoggerExtensions.
+dotnet_diagnostic.CA2254.severity = none
