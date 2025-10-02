@@ -2,84 +2,148 @@
 using SIP.API.Controllers.Errors;
 using SIP.API.Domain.DTOs.Users;
 using SIP.API.Domain.DTOs.Users.Configurations;
+using SIP.API.Domain.DTOs.Users.Default;
 using SIP.API.Domain.DTOs.Users.Pagination;
 using SIP.API.Domain.DTOs.Users.Responses;
 using SIP.API.Domain.Entities.Users;
+using SIP.API.Domain.Helpers.Extensions;
+using SIP.API.Domain.Helpers.Messages.LogMessage.Error;
+using SIP.API.Domain.Helpers.Messages.LogMessage.Info;
+using SIP.API.Domain.Helpers.Messages.LogMessage.Success;
+using SIP.API.Domain.Helpers.Messages.LogMessage.Warning;
 using SIP.API.Domain.Interfaces.Users;
 using SIP.API.Domain.Interfaces.Users.Configurations;
 
 namespace SIP.API.Controllers.Users;
 
 /// <summary>
-/// API controller for managing user entities.
+/// Controller responsável por gerenciar operações relacionadas aos <c>Usuários</c>.
 /// </summary>
-[Route("sip_api/[controller]")]
+/// <remarks>
+/// Um <c>Usuário</c> representa o objeto principal de gerenciamento da aplicação.
+/// Esta controller fornece endpoints para criação, consulta, atualização, manutenção e exclusão de usuários.
+/// </remarks>
+[Route("sip_api/users")]
 [ApiController]
-public class UserController(IUser user, IUserConfiguration userConfiguration) : ControllerBase
+public class UserController(IUser user, IUserConfiguration userConfiguration, ILogger<UserController> logger) : ControllerBase
 {
 
     private readonly IUser _userService = user;
     private readonly IUserConfiguration _userConfigurationService = userConfiguration;
+    private readonly ILogger<UserController> _logger = logger;
 
     /// <summary>
-    /// Registers a new user in the system.
+    /// Cria um novo usuário no sistema.
     /// </summary>
-    /// <param name="userDTO">The data transfer object containing the user's information.</param>
+    /// <param name="userDTO">Objeto contendo os dados necessários para criar um usuário.</param>
     /// <returns>
-    /// Returns <see cref="CreatedAtActionResult"/> with the created user and location header if successful,
-    /// or <see cref="BadRequestObjectResult"/> with error details if the request is invalid.
+    /// Retorna <see cref="CreatedAtActionResult"/> com o usuário criado e o cabeçalho <c>Location</c>,
+    /// ou <see cref="BadRequestObjectResult"/> caso os dados fornecidos sejam inválidos.
     /// </returns>
-    [HttpPost("register_user")]
-    [ProducesResponseType(typeof(User), StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> RegisterAsync([FromBody] UserCreateDTO userDTO)
+    /// <exception cref="ArgumentException">Lançada quando os dados fornecidos são inválidos (ex: nome duplicado, campos obrigatórios ausentes).</exception>
+    /// <exception cref="Exception">Erro inesperado durante o processo de criação.</exception>
+    /// <remarks>
+    /// Ação: <b>Criar usuário</b>.  
+    /// - Retorna 201 (Created) em caso de sucesso.  
+    /// - Retorna 400 (Bad Request) quando os dados não são válidos.  
+    /// - Retorna 500 (Internal Server Error) em caso de falha inesperada.  
+    /// </remarks>
+    [HttpPost]
+    [ProducesResponseType(typeof(UserResponseDTO), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<UserResponseDTO>> CreateAsync([FromBody] UserCreateDTO userDTO)
     {
+        _logger.LogInformation<User>(
+            message: LogInfoMessages.CreateRequest, 
+            args: userDTO);
+
         try
         {
             User entity = 
                 await _userService.CreateAsync(userDTO);
 
-            UserResponseDTO response = new()
-            {
-                Id = entity.Id,
-                Masp = entity.Masp,
-                Name = entity.Name,
-                Login = entity.Login,
-                Email = entity.Email,
-                Status = entity.IsActive == true ? "Active" : "Inactive",
-                Role = entity.Role,
-                CreatedAt = entity.CreatedAt,
-                SectorId = entity.SectorId
-            };
+            _logger.LogInformation<User>(
+            message: LogSuccessMessages.Created,
+            args:
+            [
+                entity.Id,
+                entity.Name,
+                entity.CreatedAt
+            ]);
 
-            return CreatedAtRoute(nameof(GetUserByIdAsync), new { id = entity.Id }, response);
+            return CreatedAtRoute(
+                routeName: "GetUserByIdAsync", 
+                routeValues: new { id = entity.Id }, 
+                value: ToResponse(entity));
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning<User>(
+                exception: ex,
+                message: LogWarningMessages.InvalidCreate,
+                args: userDTO);
+
+            return BadRequest(
+                error: new ErrorResponse("Invalid data: " + ex.Message));
         }
         catch (Exception ex)
         {
-            return BadRequest(new { Error = ex.Message });
+            _logger.LogError<User>(
+                exception: ex,
+                message: LogErrorMessages.CreateError,
+                args: userDTO);
+
+            return StatusCode(
+                statusCode: StatusCodes.Status500InternalServerError, 
+                value: new ErrorResponse("Ocorreu um erro inesperado."));
         }
     }
 
     /// <summary>
-    /// Retrieves a user by their unique identifier.
+    /// Obtém um usuário pelo seu identificador único.
     /// </summary>
-    /// <param name="id">The unique identifier of the user.</param>
+    /// <param name="id">Identificador único (GUID) do usuário.</param>
     /// <returns>
-    /// Returns <see cref="OkObjectResult"/> with the <see cref="User"/> if found,
-    /// or <see cref="NotFoundResult"/> if no user exists with the specified ID.
+    /// Retorna:
+    /// - <see cref="OkObjectResult"/> com os dados do usuário, se encontrado.  
+    /// - <see cref="NotFoundObjectResult"/> caso o usuário não exista.  
+    /// - <see cref="ObjectResult"/> (500) em caso de erro inesperado.  
     /// </returns>
+    /// <exception cref="Exception">Erro inesperado ao consultar o usuário.</exception>
+    /// <remarks>
+    /// Ação: <b>Consultar usuário por ID</b>.  
+    /// - Retorna 200 (OK) com os dados do usuário.  
+    /// - Retorna 404 (Not Found) se o usuário não existir.  
+    /// - Retorna 500 (Internal Server Error) em caso de falha inesperada.  
+    /// </remarks>
     [HttpGet("{id}", Name = "GetUserByIdAsync")]
-    [ProducesResponseType(typeof(User), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetUserByIdAsync(Guid id)
+    [ProducesResponseType(typeof(UserResponseDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<UserResponseDTO>> GetByIdAsync(Guid id)
     {
+        _logger.LogInformation<User>(
+            message: LogInfoMessages.GetByIdRequest,
+            args: id);
         try
         {
             User? user =
-            await _userService.GetByIdAsync(id);
+                await _userService.GetByIdAsync(id);
 
             if (user == null)
-                return NotFound();
+            {
+                _logger.LogWarning<User>(
+                    message: LogWarningMessages.NotFound,
+                    args: id);
+
+                return NotFound(
+                    value: new ErrorResponse($"Nenhum Usuário encontrado para o ID {id}"));
+            }
+
+            _logger.LogInformation<User>(
+                message: LogSuccessMessages.FoundById,
+                args: id);
 
             UserResponseDTO response = new()
             {
@@ -101,224 +165,498 @@ public class UserController(IUser user, IUserConfiguration userConfiguration) : 
         }
         catch (Exception ex)
         {
-            return NotFound(new ErrorResponse(ex.Message));
+            _logger.LogError<User>(
+                exception: ex,
+                message: LogErrorMessages.GetByIdError,
+                args: id);
+
+            return StatusCode(
+               statusCode: StatusCodes.Status500InternalServerError,
+               value: new ErrorResponse("Ocorreu um erro inesperado ao consultar o usuário pelo ID.")
+            );
         }
     }
 
     /// <summary>
-    /// Retrieves all sectors records.
+    /// Obtém todos os usuários cadastrados.
     /// </summary>
-    /// Returns an <see cref="IActionResult"/> containing a list of sectors, wrapped in an HTTP 200 OK response.
-    [HttpGet("show")]
-    [ProducesResponseType(typeof(IEnumerable<User>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAllAsync()
+    /// <returns>
+    /// Retorna <see cref="OkObjectResult"/> com a lista de usuários.
+    /// Se não houver registros, retorna uma lista vazia.
+    /// </returns>
+    /// <exception cref="Exception">Erro inesperado ao buscar todos os usuários.</exception>
+    /// <remarks>
+    /// Ação: <b>Listar todos os usuários</b>.  
+    /// - Retorna 200 (OK) com a lista de usuários.  
+    /// - Retorna lista vazia se não houver usuários cadastrados.  
+    /// - Retorna 500 (Internal Server Error) em caso de falha inesperada.  
+    /// </remarks>
+    [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<UserDefaultDTO>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<IEnumerable<UserDefaultDTO>>> GetAllAsync()
     {
-        ICollection<User> sectors = await _userService.GetAllAsync();
-        return Ok(sectors);
+        _logger.LogInformation<User>(
+            message: LogInfoMessages.GetAllRequest);
+
+        try
+        {
+            ICollection<User> users = 
+                await _userService.GetAllAsync();
+
+            if(users == null || users.Count == 0)
+            {
+                _logger.LogWarning<User>(
+                    message: LogWarningMessages.Empty);
+
+                return Ok(Enumerable.Empty<UserDefaultDTO>());
+            }
+
+            _logger.LogInformation<User>(
+                message: LogSuccessMessages.FoundAll,
+                args: users.Count);
+
+            return Ok(users);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError<User>(
+                exception: ex,
+                message: LogErrorMessages.GetAllError);
+
+            return StatusCode(
+               statusCode: StatusCodes.Status500InternalServerError,
+               value: new ErrorResponse("Ocorreu um erro inesperado ao buscar todos os usuários.")
+            );
+        }
+
+        
     }
 
-    /*
-     Refatored GetAllAsync to future use.
-     */
-    ///// <summary>
-    ///// Retrieves all users records.
-    ///// </summary>
-    ///// Returns an <see cref="IActionResult"/> containing a list of users, wrapped in an HTTP 200 OK response.
-    //[HttpGet("show")]
-    //[ProducesResponseType(typeof(IEnumerable<User>), StatusCodes.Status200OK)]
-    //public async Task<IActionResult> GetAllAsync()
-    //{
-    //    try
-    //    {
-    //        ICollection<User> users =
-    //            await _userService.GetAllAsync();
-
-    //        if (users == null || users.Count == 0)
-    //        {
-    //            return Ok(new UserPagedResultDTO
-    //            {
-    //                Items = [],
-    //                TotalCount = 0
-    //            });
-    //        }
-
-    //        UserPagedResultDTO result = new()
-    //        {
-    //            Items = [.. users.Select(u => new UserListItemDTO
-    //            {
-    //                Id = u.Id,
-    //                Name = u.Name,
-    //                Login = u.Login,
-    //                Masp = u.Masp.ToString(),
-    //                Email = u.Email,
-    //                Role = u.Role,
-    //                Status = u.IsActive,
-    //                CreatedAt = u.CreatedAt,
-    //                LastLoginAt = u.LastLoginAt,
-    //                UpdatedAt = u.UpdatedAt,
-    //                SectorName = u.Sector!.Acronym,
-    //                Protocols = u.ProtocolsCreated
-    //            })],
-    //            TotalCount = users.Count
-    //        };
-
-    //        return Ok(result);
-    //    }
-    //    catch (Exception)
-    //    {
-    //        return StatusCode(StatusCodes.Status500InternalServerError,
-    //            new ErrorResponse("Ocorreu um erro interno ao buscar os usuários."));
-    //    }
-    //}
-
     /// <summary>
-    /// Gets a paginated result of users from the API, including total count. Use in-memory caching and limit the number of records per page to avoid multiple requests for the same data.
+    /// Obtém usuários de forma paginada.
     /// </summary>
-    /// <param name="pageNumber">The page number (starting from 1).</param>
-    /// <param name="pageSize">The number of records per page.</param>
-    /// <param name="sortLabel">The property name to sort by.</param>
-    /// <param name="sortDirection">The sort direction ("asc" or "desc").</param>
-    /// <param name="searchString">Optional search string to filter users.</param>
-    /// <returns>A paged result DTO containing the users and total count.</returns>
-    [HttpGet("show_paged")]
-    public async Task<IActionResult> GetPagedAsync(
+    /// <param name="pageNumber">Número da página (inicia em 1).</param>
+    /// <param name="pageSize">Quantidade de registros por página.</param>
+    /// <param name="sortLabel">Campo para ordenação.</param>
+    /// <param name="sortDirection">Direção da ordenação ("asc" ou "desc").</param>
+    /// <param name="searchString">Filtro opcional para busca por nome ou outros campos.</param>
+    /// <returns>
+    /// Retorna <see cref="OkObjectResult"/> com a lista paginada e o total de registros encontrados.
+    /// </returns>
+    /// <exception cref="Exception">Erro inesperado ao realizar a paginação.</exception>
+    /// <remarks>
+    /// Ação: <b>Listar usuários paginados</b>. 
+    /// 
+    /// <b>Endpoint para carregar dados em tabelas e grades de forma eficiente.</b>
+    /// - Retorna 200 (OK) com a lista de usuários e total de registros.  
+    /// - Retorna lista vazia se nenhum registro for encontrado para os filtros aplicados.  
+    /// - Retorna 500 (Internal Server Error) em caso de falha inesperada.  
+    /// </remarks>
+    [HttpGet("paged")]
+    [ProducesResponseType(typeof(UserPagedResultDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<UserPagedResultDTO>> GetPagedAsync(
     [FromQuery] int pageNumber = 1, 
     [FromQuery] int pageSize = 15, 
     [FromQuery] string? sortLabel = null, 
     [FromQuery] string? sortDirection = null, 
     [FromQuery] string? searchString = null)
     {
-        UserPagedResultDTO result = 
-            await _userService.GetPagedAsync(
+        _logger.LogInformation<User>(
+            message: LogInfoMessages.PaginationRequest,
+            args: 
+            [
                 pageNumber, 
                 pageSize, 
                 sortLabel, 
                 sortDirection, 
                 searchString
-            );
+            ]);
 
-        return Ok(result);
-    }
-
-    /// <summary>
-    /// Retrieves the total number of users that match the given search criteria.
-    /// </summary>
-    /// <param name="searchString">A keyword used to filter users by name or other relevant fields (optional).</param>
-    /// <returns>
-    /// Returns an <see cref="ActionResult{T}"/> containing the total count of users as an integer, wrapped in an HTTP 200 OK response.
-    /// </returns>
-    [HttpGet("count")]
-    public async Task<ActionResult<int>> GetTotalCountAsync([FromQuery] string? searchString = null)
-    {
-        int total = 
-            await _userService.GetTotalUsersCountAsync(searchString);
-
-        return Ok(total);
-    }
-
-    /// <summary>
-    /// Updates an existing user by ID.
-    /// </summary>
-    /// <param name="id">The unique identifier of the user to update.</param>
-    /// <param name="userDTO">The data transfer object with updated user information.</param>
-    /// <returns>
-    /// Returns <see cref="OkObjectResult"/> with the updated <see cref="User"/> if successful,
-    /// or <see cref="NotFoundResult"/> if the user does not exist.
-    /// </returns>
-    [HttpPatch("default_update_user/{id}")]
-    [ProducesResponseType(typeof(User), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> UpdateAsync(Guid id, [FromBody] UserUpdateDTO userDTO)
-    {
-        User? updated = 
-            await _userService.UpdateAsync(id, userDTO);
-
-        if (updated == null)
-            return NotFound();
-
-        UserResponseDTO response = new()
-        {
-            Id = updated.Id,
-            Masp = updated.Masp,
-            Name = updated.Name,
-            Login = updated.Login,
-            Email = updated.Email,
-            Status = updated.IsActive == true ? "Active" : "Inactive",
-            Role = updated.Role,
-            CreatedAt = updated.CreatedAt,
-            UpdatedAt = updated.UpdatedAt,
-            SectorId = updated.SectorId
-        };
-
-        return Ok(response);
-    }
-
-    /// <summary>
-    /// Changes a specific user's password using an administrative flow.
-    /// </summary>
-    /// <remarks>
-    /// This endpoint allows changing a user's password without knowing their current one. 
-    /// The new password will be securely hashed before being stored.
-    /// </remarks>
-    /// <param name="dto">The request body containing the `UserId` and the new `Password`.</param>
-    /// <response code="200">Password was changed successfully. A confirmation message is returned.</response>
-    /// <response code="400">The request is invalid. This can be due to a missing password or other model validation errors.</response>
-    /// <response code="404">No user was found with the provided `UserId`.</response>
-    /// <response code="500">An internal server error occurred.</response>
-    [HttpPatch("default-change-password")]
-    [ProducesResponseType(typeof(ChangedPasswordResponseDTO), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> DefaultChangePasswordAsync([FromBody] UserDefaultChangePasswordDTO dto)
-    {
         try
         {
-            User? updatedUser = 
+            UserPagedResultDTO result =
+            await _userService.GetPagedAsync(
+                pageNumber,
+                pageSize,
+                sortLabel,
+                sortDirection,
+                searchString
+            );
+
+            if (result.Items == null || result.Items.Count == 0)
+            {
+                _logger.LogWarning<User>(
+                    message: LogWarningMessages.EmptyPagination,
+                    args: 
+                    [
+                        pageNumber,
+                        pageSize,
+                        searchString
+                    ]);
+            }
+            else
+            {
+                _logger.LogInformation<User>(
+                    message: LogSuccessMessages.FoundPaged,
+                    args:
+                    [
+                        result.Items.Count,
+                        result.TotalCount,
+                    ]);
+            }
+
+            return Ok(result);
+
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError<User>(
+                exception: ex,
+                message: LogErrorMessages.PaginationError,
+                args:
+                [
+                    pageNumber,
+                    pageSize,
+                    searchString
+                ]);
+
+            return StatusCode(
+               statusCode: StatusCodes.Status500InternalServerError,
+               value: new ErrorResponse("Ocorreu um erro inesperado ao buscar usuários paginados.")
+            );
+        }
+    }
+
+    /// <summary>
+    /// Obtém a quantidade total de usuários cadastrados.
+    /// </summary>
+    /// <param name="searchString">Filtro opcional para restringir a contagem.</param>
+    /// <returns>
+    /// Retorna <see cref="OkObjectResult"/> com o total de usuários encontrados.
+    /// </returns>
+    /// <exception cref="Exception">Erro inesperado ao contar os usuários.</exception>
+    /// <remarks>
+    /// Ação: <b>Contar usuários</b>.  
+    /// - Retorna 200 (OK) com a contagem.  
+    /// - Retorna 500 (Internal Server Error) em caso de falha inesperada.  
+    /// </remarks>
+    [HttpGet("count")]
+    [ProducesResponseType(typeof(int), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<int>> GetTotalCountAsync([FromQuery] string? searchString = null)
+    {
+        _logger.LogInformation<User>(
+            message: LogInfoMessages.CountRequest,
+            args: searchString);
+
+        try
+        {
+            int total =
+                await _userService.GetTotalUsersCountAsync(searchString);
+
+            _logger.LogInformation<User>(
+                message: LogSuccessMessages.Counted,
+                args: 
+                [
+                    total,
+                    searchString
+                ]);
+
+            return Ok(total);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError<User>(
+                exception: ex,
+                message: LogErrorMessages.CountError,
+                args: searchString);
+
+            return StatusCode(
+               statusCode: StatusCodes.Status500InternalServerError,
+               value: new ErrorResponse("Ocorreu um erro inesperado ao contar os usuários.")
+            );
+        }
+    }
+
+    /// <summary>
+    /// Atualiza parcialmente os dados de um usuário existente.
+    /// </summary>
+    /// <param name="id">Identificador único do usuário.</param>
+    /// <param name="userDTO">Objeto contendo os novos dados do usuário.</param>
+    /// <returns>
+    /// Retorna <see cref="OkObjectResult"/> com o usuário atualizado,
+    /// <see cref="NotFoundObjectResult"/> caso o usuário não exista
+    /// ou <see cref="BadRequestObjectResult"/> caso os dados fornecidos sejam inválidos.
+    /// </returns>
+    /// <exception cref="ArgumentException">Lançada quando os dados fornecidos são inválidos (ex: nome duplicado, campos obrigatórios ausentes).</exception>
+    /// <exception cref="Exception">Erro inesperado ao atualizar o usuário.</exception>
+    /// <remarks>
+    /// Ação: <b>Atualizar usuário</b>.  
+    /// - Retorna 200 (OK) em caso de sucesso.  
+    /// - Retorna 404 (Not Found) se o usuário não for encontrado.  
+    /// - Retorna 500 (Internal Server Error) em caso de falha inesperada.  
+    /// </remarks>
+    [HttpPatch("{id}")]
+    [ProducesResponseType(typeof(UserResponseDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<UserResponseDTO>> UpdateAsync(Guid id, [FromBody] UserUpdateDTO userDTO)
+    {
+        _logger.LogInformation<User>(
+            message: LogInfoMessages.UpdateRequest,
+            args:
+            [
+                id,
+                userDTO
+            ]);
+
+        try
+        {
+            User? updated =
+                await _userService.UpdateAsync(id, userDTO);
+
+            if (updated == null)
+            {
+                _logger.LogWarning<User>(
+                    message: LogWarningMessages.NotFound,
+                    args: id);
+
+                return NotFound(
+                    value: new ErrorResponse($"Nenhum usuário encontrado para o ID {id}."));
+            }
+
+            _logger.LogInformation<User>(
+                message: LogSuccessMessages.Updated,
+                args: id);
+
+            return Ok(ToResponse(updated));
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning<User>(
+                exception: ex,
+                message: LogWarningMessages.InvalidUpdate,
+                args:
+                [
+                    id,
+                    userDTO
+                ]);
+
+            return BadRequest(
+                error: new ErrorResponse("Invalid data: " + ex.Message));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError<User>(
+                exception: ex,
+                message: LogErrorMessages.UpdateError,
+                args:
+                [
+                    id,
+                    userDTO
+                ]);
+
+            return StatusCode(
+               statusCode: StatusCodes.Status500InternalServerError,
+               value: new ErrorResponse("Ocorreu um erro inesperado ao atualizar o usuário.")
+            );
+        }
+    }
+
+    /// <summary>
+    /// Altera a senha de um usuário utilizando o fluxo administrativo.
+    /// </summary>
+    /// <param name="dto">
+    /// Objeto <see cref="UserDefaultChangePasswordDTO"/> contendo o identificador do usuário (<c>Id</c>) 
+    /// e a nova senha (<c>Password</c>).
+    /// </param>
+    /// <returns>
+    /// Retorna:
+    /// - <see cref="OkObjectResult"/> com uma mensagem de confirmação caso a senha seja alterada com sucesso.  
+    /// - <see cref="BadRequestObjectResult"/> se os dados fornecidos forem inválidos.  
+    /// - <see cref="NotFoundObjectResult"/> se o usuário não for encontrado.  
+    /// - <see cref="ObjectResult"/> (500) em caso de erro inesperado.  
+    /// </returns>
+    /// <exception cref="ArgumentException">Lançada quando os dados fornecidos são inválidos (ex: senha não fornecida).</exception>
+    /// <exception cref="Exception">Erro inesperado durante o processo de alteração da senha.</exception>
+    /// <remarks>
+    /// Ação: <b>Alterar senha do usuário (fluxo administrativo)</b>.  
+    /// - Este endpoint permite que um administrador altere a senha de um usuário sem precisar da senha atual.  
+    /// - A nova senha será devidamente criptografada antes de ser armazenada.  
+    /// - Retorna 200 (OK) com mensagem de sucesso.  
+    /// - Retorna 400 (Bad Request) quando a requisição é inválida.  
+    /// - Retorna 404 (Not Found) se o usuário não existir.  
+    /// - Retorna 500 (Internal Server Error) em caso de falha inesperada.  
+    /// </remarks>
+    [HttpPatch("password")]
+    [ProducesResponseType(typeof(ChangedPasswordResponseDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> DefaultChangePasswordAsync([FromBody] UserDefaultChangePasswordDTO dto)
+    {
+        _logger.LogInformation<User>(
+            message: LogInfoMessages.DefaultChangePasswordRequest,
+            args: dto.Id);
+
+        try
+        {
+            User? updated =
                 await _userConfigurationService.DefaultChangePasswordAsync(dto);
 
-            if (updatedUser == null)
-                return NotFound("User not found.");
+            if (updated == null)
+            {
+                _logger.LogWarning<User>(
+                    message: LogWarningMessages.NotFound,
+                    args: dto.Id);
 
-            ChangedPasswordResponseDTO response = new($"Password successfully changed for user {updatedUser.Login}.");
+                return NotFound(
+                    value: new ErrorResponse($"Nenhum usuário encontrado para o ID {dto.Id}."));
+            }
+
+            _logger.LogInformation<User>(
+                message: LogSuccessMessages.PasswordChanged,
+                args: updated.Id);
+
+            ChangedPasswordResponseDTO response =
+                new($"Senha alterada com sucesso para o usuário {updated.Login}.");
 
             return Ok(response);
         }
         catch (ArgumentException ex)
         {
-            return BadRequest(ex.Message);
+            _logger.LogWarning<User>(
+                exception: ex,
+                message: LogWarningMessages.InvalidUpdate,
+                args: dto);
+
+            return BadRequest(
+                error: new ErrorResponse("Invalid data: " + ex.Message));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError<User>(
+                exception: ex,
+                message: LogErrorMessages.UpdateError,
+                args: dto);
+
+            return StatusCode(
+                statusCode: StatusCodes.Status500InternalServerError,
+                value: new ErrorResponse("Ocorreu um erro inesperado ao alterar a senha do usuário."));
         }
     }
 
     /// <summary>
-    /// Deletes a user by their unique identifier.
+    /// Exclui um usuário pelo identificador único.
     /// </summary>
-    /// <param name="id">The unique identifier of the user to delete.</param>
+    /// <param name="id">Identificador único do usuário.</param>
     /// <returns>
-    /// Returns <see cref="OkObjectResult"/> with a success message if the user was deleted,
-    /// <see cref="NotFoundResult"/> if the user does not exist,
-    /// or <see cref="ConflictObjectResult"/> with an error message if the deletion is not allowed due to business rules.
+    /// Retorna <see cref="NoContentResult"/> se o usuário for excluído com sucesso,  
+    /// <see cref="NotFoundObjectResult"/> se o usuário não existir,  
+    /// ou <see cref="ConflictObjectResult"/> se houver entidades vinculadas (ex: protocolos).  
     /// </returns>
-    [HttpDelete("delete/{id}")]
+    /// <exception cref="InvalidOperationException">Usuário não pode ser excluído devido a vínculos.</exception>
+    /// <exception cref="Exception">Erro inesperado ao excluir o usuário.</exception>
+    /// <remarks>
+    /// Ação: <b>Excluir usuário</b>.  
+    /// 
+    ///  **Regras de Negócio:** Um usuário não pode ser excluído se houver entidades associadas a ele (ex: protocolos).
+    ///   Neste caso, a API retornará um status 409 (Conflict) com uma mensagem explicativa.
+    /// - Retorna 204 (No Content) em caso de exclusão bem-sucedida.  
+    /// - Retorna 404 (Not Found) se o usuário não for encontrado.  
+    /// - Retorna 409 (Conflict) se houver vínculos impeditivos para exclusão.  
+    /// - Retorna 500 (Internal Server Error) em caso de falha inesperada.  
+    /// </remarks>
+    [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> DeleteAsync(Guid id)
     {
+        _logger.LogInformation<User>(
+            message: LogInfoMessages.DeleteRequest,
+            args: id);
+
         try
         {
             bool deleted = 
                 await _userService.DeleteAsync(id);
 
             if (!deleted)
-                return NotFound();
+            {
+                _logger.LogWarning<User>(
+                    message: LogWarningMessages.NotFound,
+                    args: id);
 
-            return Ok(new { Message = "User was deleted with success." });
+                return NotFound(
+                    value: new ErrorResponse($"Nenhum usuário encontrado para o ID {id}."));
+            }
+
+            _logger.LogInformation<User>(
+                message: LogSuccessMessages.Deleted,
+                args: id);
+
+            return NoContent();
         }
         catch (InvalidOperationException ex)
         {
-            return Conflict( new ErrorResponse(ex.Message));
+            _logger.LogWarning<User>(
+                exception: ex,
+                message: LogWarningMessages.InvalidOperation,
+                args: id);
+
+            return Conflict(
+                error: new ErrorResponse(ex.Message));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError<User>(
+                exception: ex,
+                message: LogErrorMessages.DeleteError,
+                args: id);
+
+            return StatusCode(
+               statusCode: StatusCodes.Status500InternalServerError,
+               value: new ErrorResponse("Ocorreu um erro inesperado ao excluir o usuário.")
+            );
         }
 
     }
+
+    /// <summary>
+    /// Converte uma entidade <see cref="User"/> em um objeto de resposta padronizado <see cref="UserResponseDTO"/>.
+    /// </summary>
+    /// <param name="entity">Entidade <see cref="User"/> obtida da camada de domínio.</param>
+    /// <returns>
+    /// Retorna um objeto <see cref="UserResponseDTO"/> contendo os dados essenciais do setor
+    /// que serão expostos pela API.
+    /// </returns>
+    /// <remarks>
+    /// Este método garante que apenas informações relevantes e seguras sejam retornadas aos consumidores da API,
+    /// servindo como camada de mapeamento entre a entidade de domínio e o contrato de saída.
+    /// 
+    /// **Campos retornados:**
+    /// - <c>Id</c> → Identificador único do setor.  
+    /// - <c>Name</c> → Nome do setor.  
+    /// - <c>Acronym</c> → Sigla ou abreviação do setor.  
+    /// - <c>Phone</c> → Telefone de contato do setor.  
+    /// - <c>CreatedAt</c> → Data de criação do registro.  
+    /// - <c>UpdatedAt</c> → Data da última atualização do registro (se houver).  
+    /// </remarks>
+    private static UserResponseDTO ToResponse(User entity) => new()
+    {
+        Id = entity.Id,
+        Masp = entity.Masp,
+        Name = entity.Name,
+        Login = entity.Login,
+        Email = entity.Email,
+        Status = entity.IsActive == true ? "Active" : "Inactive",
+        Role = entity.Role,
+        CreatedAt = entity.CreatedAt,
+        UpdatedAt = entity.UpdatedAt,
+        SectorId = entity.SectorId
+    };
 }

@@ -3,7 +3,7 @@
 public class LogErrorMessages
 {
     // =============================
-    // Mensagens de Log - Error (Setores)
+    // Mensagens de Log - Error
     // =============================
     public const string CreateError = "Erro inesperado ao criar {EntityName}. Payload: {@Payload}";
     public const string UpdateError = "Erro inesperado ao atualizar {EntityName}. ID: {@Id}, Payload: {@Payload}";

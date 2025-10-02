@@ -69,7 +69,7 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
                 ]);
 
             return CreatedAtRoute(
-                routeName: nameof(GetByIdAsync), 
+                routeName: "GetSectorByIdAsync", 
                 routeValues: new { id = entity.Id }, 
                 value: ToResponse(entity));
         }
@@ -80,7 +80,8 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
                 message: LogWarningMessages.InvalidCreate, 
                 args: sectorDTO);
 
-            return BadRequest(new ErrorResponse("Invalid data: " + ex.Message));
+            return BadRequest(
+                error: new ErrorResponse("Invalid data: " + ex.Message));
         }
         catch (Exception ex)
         {
@@ -89,7 +90,9 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
                 message: LogErrorMessages.CreateError, 
                 args: sectorDTO);
 
-            return StatusCode(StatusCodes.Status500InternalServerError, new ErrorResponse("Ocorreu um erro inesperado."));
+            return StatusCode(
+                statusCode: StatusCodes.Status500InternalServerError, 
+                value: new ErrorResponse("Ocorreu um erro inesperado."));
         }
     }
 
@@ -110,7 +113,7 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
     /// - Retorna 404 (Not Found) se o setor não existir.  
     /// - Retorna 500 (Internal Server Error) em caso de falha inesperada.  
     /// </remarks>
-    [HttpGet("{id}", Name = "GetByIdAsync")]
+    [HttpGet("{id}", Name = "GetSectorByIdAsync")]
     [ProducesResponseType(typeof(SectorResponseDTO), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
@@ -131,7 +134,8 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
                     message: LogWarningMessages.NotFound,
                     args: id);
 
-                return NotFound(new ErrorResponse($"Nenhum Setor encontrado para o ID {id}"));
+                return NotFound(
+                    value: new ErrorResponse($"Nenhum Setor encontrado para o ID {id}"));
             }
 
             _logger.LogInformation<Sector>(
@@ -148,8 +152,8 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
                 args: id);
 
             return StatusCode(
-               StatusCodes.Status500InternalServerError,
-               new ErrorResponse("Ocorreu um erro inesperado ao consultar o setor.")
+               statusCode: StatusCodes.Status500InternalServerError,
+               value: new ErrorResponse("Ocorreu um erro inesperado ao consultar o setor pelo ID.")
             );
         }
     }
@@ -183,7 +187,8 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
 
             if (sectors == null || sectors.Count == 0)
             {
-                _logger.LogWarning<Sector>(message: LogWarningMessages.Empty);
+                _logger.LogWarning<Sector>(
+                    message: LogWarningMessages.Empty);
 
                 return Ok(Enumerable.Empty<SectorDefaultDTO>());
             }
@@ -200,7 +205,9 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
                 exception: ex,
                 message: LogErrorMessages.GetAllError);
 
-            return StatusCode(StatusCodes.Status500InternalServerError, new ErrorResponse(ex.Message));
+            return StatusCode(
+                statusCode: StatusCodes.Status500InternalServerError, 
+                value: new ErrorResponse("Ocorreu um erro inesperado ao buscar todos os setores."));
         }
     }
 
@@ -253,7 +260,8 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
                     pageSize,
                     sortLabel,
                     sortDirection,
-                    searchString);
+                    searchString
+                );
 
             if (result.Items == null || result.Items.Count == 0)
             {
@@ -291,8 +299,9 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
                     searchString
                 ]);
 
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                new ErrorResponse("Ocorreu um erro inesperado ao buscar setores paginados."));
+            return StatusCode(
+                statusCode: StatusCodes.Status500InternalServerError,
+                value: new ErrorResponse("Ocorreu um erro inesperado ao buscar setores paginados."));
         }
     }
 
@@ -340,7 +349,9 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
                 message: LogErrorMessages.CountError,
                 args: searchString);
 
-            return StatusCode(StatusCodes.Status500InternalServerError, new ErrorResponse("Ocorreu um erro inesperado ao contar os setores."));
+            return StatusCode(
+                statusCode: StatusCodes.Status500InternalServerError, 
+                value: new ErrorResponse("Ocorreu um erro inesperado ao contar os setores."));
         }
     }
 
@@ -351,7 +362,8 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
     /// <param name="sectorDTO">Objeto contendo os novos dados do setor.</param>
     /// <returns>
     /// Retorna <see cref="OkObjectResult"/> com o setor atualizado,
-    /// ou <see cref="NotFoundObjectResult"/> caso o setor não exista.
+    /// <see cref="NotFoundObjectResult"/> caso o setor não exista
+    /// ou <see cref="BadRequestObjectResult"/> caso os dados fornecidos sejam inválidos.
     /// </returns>
     /// <exception cref="Exception">Erro inesperado ao atualizar o setor.</exception>
     /// <remarks>
@@ -385,7 +397,8 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
                     message: LogWarningMessages.NotFound,
                     args: id);
 
-                return NotFound(new ErrorResponse($"Nenhum setor encontrado para o ID {id}"));
+                return NotFound(
+                    value: new ErrorResponse($"Nenhum setor encontrado para o ID {id}"));
             }
 
             _logger.LogInformation<Sector>(
@@ -393,6 +406,20 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
                 args: id);
 
             return Ok(ToResponse(updated));
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning<Sector>(
+                exception: ex,
+                message: LogWarningMessages.InvalidUpdate,
+                args:
+                [
+                    id,
+                    sectorDTO
+                ]);
+
+            return BadRequest(
+                error: new ErrorResponse("Invalid data: " + ex.Message));
         }
         catch (Exception ex)
         {
@@ -405,8 +432,9 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
                     sectorDTO
                 ]);
 
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                new ErrorResponse("Ocorreu um erro inesperado ao atualizar o setor."));
+            return StatusCode(
+                statusCode: StatusCodes.Status500InternalServerError,
+                value: new ErrorResponse("Ocorreu um erro inesperado ao atualizar o setor."));
         }
     }
 
@@ -453,7 +481,8 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
                     message: LogWarningMessages.NotFound,
                     args: id);
 
-                return NotFound(new ErrorResponse($"Nenhum setor encontrado para o ID {id}"));
+                return NotFound(
+                    value: new ErrorResponse($"Nenhum setor encontrado para o ID {id}"));
             }
 
             _logger.LogInformation<Sector>(
@@ -478,7 +507,9 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
                 message: LogErrorMessages.DeleteError,
                 args: id);
 
-            return StatusCode(StatusCodes.Status500InternalServerError, new ErrorResponse("Ocorreu um erro inesperado ao deletar o setor."));
+            return StatusCode(
+                statusCode: StatusCodes.Status500InternalServerError, 
+                value: new ErrorResponse("Ocorreu um erro inesperado ao deletar o setor."));
         }
     }
 

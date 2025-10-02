@@ -24,7 +24,7 @@ public class UserService(HttpClient http)
     {
         pageSize = Math.Min(pageSize, 100);
 
-        string url = $"{UsersEndpoints._usersPaginationFull}pageNumber={pageNumber}&pageSize={pageSize}&sortLabel={sortLabel}&sortDirection={sortDirection}&searchString={searchString}";
+        string url = $"{BaseEndpoints<User>._getPaged}pageNumber={pageNumber}&pageSize={pageSize}&sortLabel={sortLabel}&sortDirection={sortDirection}&searchString={searchString}";
 
         UserPagedResultDTO? response = await _http.GetFromJsonAsync<UserPagedResultDTO>(url);
 
@@ -40,7 +40,7 @@ public class UserService(HttpClient http)
     {
         try
         {
-            return await _http.GetFromJsonAsync<User>($"{UsersEndpoints._getUsersById}{id}");
+            return await _http.GetFromJsonAsync<User>($"{BaseEndpoints<User>._getById}{id}");
         }
         catch
         {
@@ -56,7 +56,7 @@ public class UserService(HttpClient http)
     {
         try
         {
-            string endpoint = UsersEndpoints._getAllUsers;
+            string endpoint = BaseEndpoints<User>._getAll;
 
             ICollection<User>? users = await _http.GetFromJsonAsync<ICollection<User>>(endpoint);
 
@@ -75,7 +75,7 @@ public class UserService(HttpClient http)
     /// <param name="user">The user entity to create.</param>
     public async Task CreateUserAsync(UserCreateDTO user)
     {
-        HttpResponseMessage response = await _http.PostAsJsonAsync(UsersEndpoints._createUser, user);
+        HttpResponseMessage response = await _http.PostAsJsonAsync(BaseEndpoints<User>._create, user);
         response.EnsureSuccessStatusCode();
 
         await InvalidateUserCacheAsync();
@@ -87,7 +87,7 @@ public class UserService(HttpClient http)
     /// <param name="user">The user entity to update.</param>
     public async Task UpdateUserAsync(UserUpdateDTO user)
     {
-        HttpResponseMessage response = await _http.PatchAsJsonAsync($"{UsersEndpoints._defaultUpdateUser}{user.Id}", user);
+        HttpResponseMessage response = await _http.PatchAsJsonAsync($"{BaseEndpoints<User>._update}{user.Id}", user);
         response.EnsureSuccessStatusCode();
         await InvalidateUserCacheAsync();
     }
@@ -100,7 +100,7 @@ public class UserService(HttpClient http)
     /// <exception cref="HttpRequestException">Thrown if the request fails.</exception>
     public async Task DeleteUserAsync(Guid id)
     {
-        HttpResponseMessage response = await _http.DeleteAsync($"{UsersEndpoints._deleteUser}{id}");
+        HttpResponseMessage response = await _http.DeleteAsync($"{BaseEndpoints<User>._delete}{id}");
 
         if (!response.IsSuccessStatusCode)
         {
@@ -148,7 +148,7 @@ public class UserService(HttpClient http)
                 Password = newPassword
             };
 
-            HttpResponseMessage response = await _http.PatchAsJsonAsync(UsersEndpoints._defaultUpdatePassword, changePasswordDto);
+            HttpResponseMessage response = await _http.PatchAsJsonAsync(BaseEndpoints<User>._password, changePasswordDto);
 
             response.EnsureSuccessStatusCode();
 

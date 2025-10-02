@@ -22,7 +22,7 @@ public class SectorService(HttpClient http)
     /// <param name="id">The unique identifier of the sector.</param>
     /// <returns>The sector entity if found; otherwise, null.</returns>
     public async Task<Sector?> GetByIdAsync(Guid id) => 
-        await _http.GetFromJsonAsync<Sector>($"{SectorsEndpoints._getById}{id}");
+        await _http.GetFromJsonAsync<Sector>($"{BaseEndpoints<Sector>._getById}{id}");
 
     /// <summary>
     /// Busca TODOS os setores da API para usar em dropdowns e seletores.
@@ -32,7 +32,7 @@ public class SectorService(HttpClient http)
     {
         try
         {
-            string endpoint = SectorsEndpoints._getAll;
+            string endpoint = BaseEndpoints<Sector>._getAll;
 
             ICollection<SectorDefaultDTO>? sectors = await _http.GetFromJsonAsync<ICollection<SectorDefaultDTO>>(endpoint);
 
@@ -58,7 +58,7 @@ public class SectorService(HttpClient http)
     {
         pageSize = Math.Min(pageSize, 100);
 
-        string url = $"{SectorsEndpoints._getPaged}pageNumber={pageNumber}&pageSize={pageSize}&sortLabel={sortLabel}&sortDirection={sortDirection}&searchString={searchString}";
+        string url = $"{BaseEndpoints<Sector>._getPaged}pageNumber={pageNumber}&pageSize={pageSize}&sortLabel={sortLabel}&sortDirection={sortDirection}&searchString={searchString}";
 
         SectorPagedResultDTO? response = await _http.GetFromJsonAsync<SectorPagedResultDTO>(url);
 
@@ -72,7 +72,7 @@ public class SectorService(HttpClient http)
     /// <returns>The total number of sectors matching the filter.</returns>
     public async Task<int> GetTotalSectorsCountAsync(string? searchString = null)
     {
-        string url = SectorsEndpoints._count;
+        string url = BaseEndpoints<Sector>._count;
 
         if (!string.IsNullOrEmpty(searchString))
             url += $"?searchString={Uri.EscapeDataString(searchString)}";
@@ -94,7 +94,7 @@ public class SectorService(HttpClient http)
     /// <param name="setor">The sector entity to create.</param>
     public async Task CreateSectorAsync(SectorCreateDTO setor)
     {
-        HttpResponseMessage response = await _http.PostAsJsonAsync(SectorsEndpoints._create, setor);
+        HttpResponseMessage response = await _http.PostAsJsonAsync(BaseEndpoints<Sector>._create, setor);
         response.EnsureSuccessStatusCode();
         await InvalidateSectorCacheAsync();
     }
@@ -105,7 +105,7 @@ public class SectorService(HttpClient http)
     /// <param name="setor">The sector entity to update.</param>
     public async Task UpdateSectorAsync(SectorUpdateDTO setor)
     {
-        HttpResponseMessage response = await _http.PutAsJsonAsync($"{SectorsEndpoints._update}{setor.Id}", setor);
+        HttpResponseMessage response = await _http.PutAsJsonAsync($"{BaseEndpoints<Sector>._update}{setor.Id}", setor);
         response.EnsureSuccessStatusCode();
         await InvalidateSectorCacheAsync();
     }
@@ -118,7 +118,7 @@ public class SectorService(HttpClient http)
     /// <exception cref="HttpRequestException">Thrown if the request fails.</exception>
     public async Task DeleteSectorAsync(Guid id)
     {
-        HttpResponseMessage response = await _http.DeleteAsync($"{SectorsEndpoints._delete}{id}");
+        HttpResponseMessage response = await _http.DeleteAsync($"{BaseEndpoints<Sector>._delete}{id}");
 
         if (!response.IsSuccessStatusCode)
         {

@@ -1,4 +1,6 @@
-﻿namespace SIP.API.Domain.Helpers.Extensions;
+﻿using Humanizer;
+
+namespace SIP.API.Domain.Helpers.Extensions;
 
 /// <summary>
 /// Fornece métodos de extensão para a interface <see cref="ILogger"/>,
@@ -17,7 +19,7 @@ public static class LoggerExtensions
     private static (string entityName, string entityNamePlural) GetEntityNames<T>()
     {
         var entityName = typeof(T).Name.Replace("DTO", string.Empty);
-        return (entityName, entityName + "s");
+        return (entityName, entityName.Pluralize());
     }
 
     /// <summary>
