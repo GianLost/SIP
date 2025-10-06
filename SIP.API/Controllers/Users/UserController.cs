@@ -138,7 +138,7 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
                     args: id);
 
                 return NotFound(
-                    value: new ErrorResponse($"Nenhum Usuário encontrado para o ID {id}"));
+                    value: new ErrorResponse($"Nenhum usuário encontrado para o ID {id}"));
             }
 
             _logger.LogInformation<User>(
@@ -277,13 +277,13 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
         try
         {
             UserPagedResultDTO result =
-            await _userService.GetPagedAsync(
-                pageNumber,
-                pageSize,
-                sortLabel,
-                sortDirection,
-                searchString
-            );
+                await _userService.GetPagedAsync(
+                    pageNumber,
+                    pageSize,
+                    sortLabel,
+                    sortDirection,
+                    searchString
+                );
 
             if (result.Items == null || result.Items.Count == 0)
             {
@@ -639,12 +639,15 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
     /// servindo como camada de mapeamento entre a entidade de domínio e o contrato de saída.
     /// 
     /// **Campos retornados:**
-    /// - <c>Id</c> → Identificador único do setor.  
-    /// - <c>Name</c> → Nome do setor.  
-    /// - <c>Acronym</c> → Sigla ou abreviação do setor.  
-    /// - <c>Phone</c> → Telefone de contato do setor.  
+    /// - <c>Id</c> → Identificador único do usuário.  
+    /// - <c>Masp</c> → Número de identificação do usuário também utilizado como índice de consulta.  
+    /// - <c>Name</c> → Nome do usuário.  
+    /// - <c>Login</c> → nome de usuário personalizado utilizado para abrir sessão na aplicação.  
+    /// - <c>Status</c> → Indica se o usuário está com a conta ativa ou inativa.  
+    /// - <c>Role</c> → Representa o nível de acesso e permissões do usuário dentro do sistema.  
     /// - <c>CreatedAt</c> → Data de criação do registro.  
     /// - <c>UpdatedAt</c> → Data da última atualização do registro (se houver).  
+    /// - <c>SectorId</c> → Identificador (chave estrangeira) que faz referência ao setor do usuário.  
     /// </remarks>
     private static UserResponseDTO ToResponse(User entity) => new()
     {

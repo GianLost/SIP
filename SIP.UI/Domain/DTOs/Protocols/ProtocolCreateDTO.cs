@@ -1,25 +1,18 @@
 ﻿using SIP.UI.Domain.Enums;
+using SIP.UI.Models.Protocols;
 using System.ComponentModel.DataAnnotations;
 
 namespace SIP.UI.Domain.DTOs.Protocols;
 
-public class ProtocolCreateDTO
+public class ProtocolCreateDTO : BaseProtocol
 {
-    public int Number { get; set; }
-    public string Subject { get; set; } = string.Empty;
-    public string Description { get; set; } = string.Empty;
-    public ProtocolStatus Status { get; set; }
-    public bool IsArchived { get; set; } = false;
-
-    [Required]
-    public Guid CreatedById { get; set; }
-
-    [Required]
-    public Guid OriginSectorId { get; set; }
-
-    [Required]
-    public Guid DestinationSectorId { get; set; }
-
-    [Required]
-    public Guid DestinationUserId { get; set; }
+    public override int Number { get; set; }
+    public override string Subject { get; set; } = string.Empty;
+    public override string Description { get; set; } = string.Empty;
+    public override ProtocolStatus Status { get; set; }
+    public override bool IsArchived { get; set; } = false;
+    public override Guid CreatedById { get; set; }
+    public override Guid OriginSectorId { get; set; }
+    public override Guid DestinationSectorId { get; set; }
+    public override Guid DestinationUserId { get; set; }
 }

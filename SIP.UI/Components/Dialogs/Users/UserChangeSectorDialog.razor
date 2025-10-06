@@ -56,7 +56,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _allSectors = await _sectorServices.GetAllSectorsAsync();
+        _allSectors = await _sectorServices.GetAllAsync();
 
         if (_allSectors is not null && selectedSector != null)
             selectedSector = _allSectors.FirstOrDefault(s => s.Id == selectedSector.Id) ?? new SectorDefaultDTO();

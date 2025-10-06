@@ -1,4 +1,6 @@
 ﻿@using MudBlazor
+@using SIP.UI.Domain.DTOs.Protocols
+@using SIP.UI.Domain.DTOs.Protocols.Default
 @using SIP.UI.Domain.DTOs.Sectors.Default
 @using SIP.UI.Domain.Services.Sectors
 @using SIP.UI.Domain.Services.Users
@@ -18,18 +20,18 @@
     <DialogContent>
 
         @* Formulário de edição *@
-        <MudForm @ref="form" @bind-IsValid="isValid" Model="_protocol">
+        <MudForm @ref="form" @bind-IsValid="isValid" Model="Protocol">
 
             <MudGrid Spacing="2">
 
                 @* Campo assunto *@
                 <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="_protocol.Subject" Label="Assunto" For="() => _protocol.Subject" Required="true" Variant="Variant.Outlined" Margin="Margin.Normal" />
+                    <MudTextField @bind-Value="Protocol.Subject" Label="Assunto" For="() => Protocol.Subject" Required="true" Variant="Variant.Outlined" Margin="Margin.Normal" />
                 </MudItem>
 
                 @* Campo descrição *@
                 <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="_protocol.Description" Label="Descrição" For="() => _protocol.Description" Required="true" Variant="Variant.Outlined" Margin="Margin.Normal" />
+                    <MudTextField @bind-Value="Protocol.Description" Label="Descrição" For="() => Protocol.Description" Required="true" Variant="Variant.Outlined" Margin="Margin.Normal" />
                 </MudItem>
 
                 @* Caixa de seleção para selecionar o setor de origem *@
@@ -104,7 +106,7 @@
                     (** TODO: Deverá ser retirado ao realizar a implementação da tramitação de protocolos **)
                 *@
                 <MudItem xs="12" sm="6">
-                    <MudSelect T="ProtocolStatus" Label="Status" @bind-Value="_protocol.Status" For="() => _protocol.Status" Required="true" Variant="Variant.Outlined" Margin="Margin.Normal">
+                    <MudSelect T="ProtocolStatus" Label="Status" @bind-Value="Protocol.Status" For="() => Protocol.Status" Required="true" Variant="Variant.Outlined" Margin="Margin.Normal">
                         @* Percorre o enum para mapear nomes amigáveis aos status *@
                         @foreach (ProtocolStatus status in Enum.GetValues(typeof(ProtocolStatus)))
                         {
@@ -117,7 +119,7 @@
                     (** TODO: Deverá ser retirado ao realizar a implementação automação da finalização da tramitação de protocolos quando se encerra o ciclo de vida. **)
                 *@
                 <MudItem xs="12" sm="6" Class="m-0">
-                    <MudCheckBox Size="Size.Small" @bind-Value="_protocol.IsArchived" Color="@Color.Primary"> @(_protocol.IsArchived == true ? "Desarquivar" : "Arquivar")</MudCheckBox>
+                    <MudCheckBox Size="Size.Small" @bind-Value="Protocol.IsArchived" Color="@Color.Primary"> @(Protocol.IsArchived == true ? "Desarquivar" : "Arquivar")</MudCheckBox>
                 </MudItem>
 
             </MudGrid>
@@ -149,11 +151,13 @@
     [CascadingParameter]
     private IMudDialogInstance MudDialog { get; set; } = default!;
 
+
     /// <summary>
-    /// Parâmetro de entrada que contém os dados do protocolo a ser editado.
+    /// Uma cópia local do objeto Protocolo para edição no formulário.
+    /// Isso evita a modificação direta do objeto original antes do usuário confirmar.
     /// </summary>
-    [Parameter] 
-    public Protocol Protocol { get; set; } = new();
+    [Parameter]
+    public BaseProtocol Protocol { get; set; } = default!;
 
     /// <summary>
     /// Referência ao componente MudForm, usada para chamar o método de validação.
@@ -164,12 +168,6 @@
     /// Indicates if the form is currently valid.
     /// </summary>
     private bool isValid;
-
-    /// <summary>
-    /// Uma cópia local do objeto Protocolo para edição no formulário.
-    /// Isso evita a modificação direta do objeto original antes do usuário confirmar.
-    /// </summary>
-    private Protocol _protocol = new();
 
     // Listas para armazenar dados de setores e usuários para os campos de autocomplete.
     private List<SectorDefaultDTO> Sectors = new();
@@ -223,40 +221,25 @@
     /// </summary>
     protected override async Task OnInitializedAsync()
     {
-        // Cria uma cópia do protocolo para edição, sem afetar o original
-        _protocol = new Protocol
-        {
-            Id = Protocol.Id,
-            Number = Protocol.Number,
-            Subject = Protocol.Subject,
-            Description = Protocol.Description,
-            OriginSectorId = Protocol.OriginSectorId,
-            CreatedById = Protocol.CreatedById,
-            DestinationSectorId = Protocol.DestinationSectorId,
-            DestinationUserId = Protocol.DestinationUserId,
-            Status = Protocol.Status,
-            IsArchived = Protocol.IsArchived
-        };
-
         // Carrega a lista de setores e usuários para os campos de autocomplete
-        ICollection<SectorDefaultDTO>? sectorsResult = await SectorService.GetAllSectorsAsync();
+        ICollection<SectorDefaultDTO>? sectorsResult = await SectorService.GetAllAsync();
         Sectors = sectorsResult?.ToList() ?? new List<SectorDefaultDTO>();
 
         ICollection<User>? usersResult = await UserService.GetAllUsersToDropdownAsync();
         AllUsers = usersResult?.ToList() ?? new List<User>();
 
         // Preenche os campos de autocomplete com os dados do protocolo original
-        if (_protocol.OriginSectorId != Guid.Empty)
-            SelectedOriginSector = Sectors.FirstOrDefault(s => s.Id == _protocol.OriginSectorId);
+        if (Protocol.OriginSectorId != Guid.Empty)
+            SelectedOriginSector = Sectors.FirstOrDefault(s => s.Id == Protocol.OriginSectorId);
 
-        if (_protocol.CreatedById != Guid.Empty)
-            SelectedCreator = AllUsers.FirstOrDefault(u => u.Id == _protocol.CreatedById);
+        if (Protocol.CreatedById != Guid.Empty)
+            SelectedCreator = AllUsers.FirstOrDefault(u => u.Id == Protocol.CreatedById);
 
-        if (_protocol.DestinationSectorId != Guid.Empty)
-            SelectedDestinationSector = Sectors.FirstOrDefault(s => s.Id == _protocol.DestinationSectorId);
+        if (Protocol.DestinationSectorId != Guid.Empty)
+            SelectedDestinationSector = Sectors.FirstOrDefault(s => s.Id == Protocol.DestinationSectorId);
 
-        if (_protocol.DestinationUserId != Guid.Empty)
-            SelectedDestinationUser = AllUsers.FirstOrDefault(u => u.Id == _protocol.DestinationUserId);
+        if (Protocol.DestinationUserId != Guid.Empty)
+            SelectedDestinationUser = AllUsers.FirstOrDefault(u => u.Id == Protocol.DestinationUserId);
 
     }
 
@@ -342,13 +325,13 @@
             return;
         }
 
-        _protocol.OriginSectorId = SelectedOriginSector.Id;
-        _protocol.CreatedById = SelectedCreator.Id;
-        _protocol.DestinationSectorId = SelectedDestinationSector.Id;
-        _protocol.DestinationUserId = SelectedDestinationUser.Id;
+        Protocol.OriginSectorId = SelectedOriginSector.Id;
+        Protocol.CreatedById = SelectedCreator.Id;
+        Protocol.DestinationSectorId = SelectedDestinationSector.Id;
+        Protocol.DestinationUserId = SelectedDestinationUser.Id;
 
         // Retorna o objeto Protocolo modificado para o componente pai.
-        MudDialog.Close(DialogResult.Ok(_protocol));
+        MudDialog.Close(DialogResult.Ok(Protocol));
     }
 
     /// <summary>

@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SIP.API.Domain.DTOs.Protocols;
-using SIP.API.Domain.DTOs.Protocols.Responses;
+using SIP.API.Domain.DTOs.Protocols.Pagination;
 using SIP.API.Domain.Entities.Protocols;
 using SIP.API.Domain.Enums;
 using SIP.API.Domain.Helpers.KeysHelper;
@@ -134,12 +134,12 @@ public class ProtocolService(ApplicationContext contex, EntityCacheManager cache
                 (s.DestinationSector != null && s.DestinationSector.Acronym.Contains(searchString)));
         }
 
-        int? totalCount = _cache.Get<int?>($"ProtocolCount_Search_{searchString ?? "NoSearch"}");
+        int? totalCount = _cache.Get<int?>($"{CacheKeys.ProtocolsTotalCount}{searchString ?? "NoSearch"}");
 
         if (!totalCount.HasValue)
         {
             totalCount = await query.CountAsync();
-            _cache.Set($"ProtocolCount_Search_{searchString ?? "NoSearch"}", totalCount.Value, EntityType);
+            _cache.Set($"{CacheKeys.ProtocolsTotalCount}{searchString ?? "NoSearch"}", totalCount.Value, EntityType);
         }
 
         Expression<Func<Protocol, int>> statusOrderExpr = s =>
@@ -205,7 +205,8 @@ public class ProtocolService(ApplicationContext contex, EntityCacheManager cache
         });
 
 
-        ICollection<ProtocolListItemDTO> items = await pagedDataQuery.ToListAsync();
+        ICollection<ProtocolListItemDTO> items = 
+            await pagedDataQuery.ToListAsync();
 
         return new ProtocolPagedResultDTO
         {
@@ -217,7 +218,8 @@ public class ProtocolService(ApplicationContext contex, EntityCacheManager cache
     /// <inheritdoc/>
     public async Task<Protocol?> UpdateAsync(Guid id, ProtocolUpdateDTO dto)
     {
-        Protocol? protocol = await GetByIdAsync(id);
+        Protocol? protocol = 
+            await GetByIdAsync(id);
 
         if (protocol == null)
             return null;

@@ -280,7 +280,7 @@
 
         try
         {
-            UserPagedResultDTO users = await _userService.GetPagedUsersAsync(
+            UserPagedResultDTO users = await _userService.GetPagedAsync(
                 state.Page + 1,
                 state.PageSize,
                 sortLabel,
@@ -346,7 +346,7 @@
             {
                 try
                 {
-                    await _userService.CreateUserAsync(savedUser);
+                    await _userService.CreateAsync(savedUser);
                     Snackbar.Add("Usuário criado com sucesso!", Severity.Success);
                     if (table is not null)
                         await table.ReloadServerData();
@@ -389,7 +389,7 @@
             {
                 try
                 {
-                    await _userService.UpdateUserAsync(updatedUser);
+                    await _userService.UpdateAsync(updatedUser);
 
                     Snackbar.Add("Usuário atualizado com sucesso!", Severity.Success);
 
@@ -465,7 +465,7 @@
         {
             try
             {
-                await _userService.DeleteUserAsync(user.Id);
+                await _userService.DeleteAsync(user.Id);
                 Snackbar.Add("Usuário excluído com sucesso!", Severity.Success);
                 if (table is not null)
                     await table.ReloadServerData();

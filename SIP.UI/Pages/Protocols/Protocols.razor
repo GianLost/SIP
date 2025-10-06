@@ -1,16 +1,17 @@
 ﻿@page "/protocols"
 
+@using MudBlazor
+@using MudBlazor.Utilities
 @using SIP.UI.Components.Dialogs.Protocols
-@using SIP.UI.Domain.DTOs.Protocols.Responses
+@using SIP.UI.Domain.DTOs.Protocols
+@using SIP.UI.Domain.DTOs.Protocols.Pagination
 @using SIP.UI.Domain.Enums
 @using SIP.UI.Domain.Helpers.DataFormatting.DateTimes
 @using SIP.UI.Domain.Helpers.DataFormatting.Strings
 @using SIP.UI.Domain.Services.Protocols
 @using SIP.UI.Models.Protocols
-@using SIP.UI.Models.Users
 @using SIP.UI.Models.Sectors
-@using MudBlazor
-@using MudBlazor.Utilities
+@using SIP.UI.Models.Users
 
 @inject ProtocolService _protocolService
 @inject ISnackbar Snackbar
@@ -278,7 +279,7 @@
 
         try
         {
-            ProtocolPagedResultDTO protocols = await _protocolService.GetPagedProtocolsAsync(
+            ProtocolPagedResultDTO protocols = await _protocolService.GetPagedAsync(
                 state.Page + 1,
                 state.PageSize,
                 sortLabel,
@@ -322,23 +323,25 @@
     {
         _isModalOpen = true;
 
-        DialogParameters<ProtocolEditDialog> parameters = new();
-        parameters.Add(x => x.Protocol, new Protocol { Id = Guid.Empty });
-        IDialogReference dialog = await DialogService.ShowAsync<ProtocolEditDialog>(" ", parameters);
+        DialogParameters<ProtocolDialog> parameters = new();
+        parameters.Add(x => x.Protocol, new ProtocolCreateDTO());
+
+        IDialogReference dialog = await DialogService.ShowAsync<ProtocolDialog>(" ", parameters);
         DialogResult? result = await dialog.Result;
 
         _isModalOpen = false;
 
         if (result is not null && !result.Canceled)
         {
-            Protocol? savedProtocol = result.Data as Protocol;
+            var savedProtocol = result.Data as ProtocolCreateDTO;
 
             if (savedProtocol != null)
             {
                 try
                 {
-                    await _protocolService.CreateProtocolAsync(savedProtocol);
+                    await _protocolService.CreateAsync(savedProtocol);
                     Snackbar.Add("Protocolo criado com sucesso!", Severity.Success);
+
                     if (table is not null)
                         await table.ReloadServerData();
                 }
@@ -358,23 +361,36 @@
     {
         _isModalOpen = true;
 
-        DialogParameters<ProtocolEditDialog> parameters = new();
-        parameters.Add(x => x.Protocol, protocol);
+        DialogParameters<ProtocolDialog> parameters = new();
 
-        IDialogReference dialog = await DialogService.ShowAsync<ProtocolEditDialog>(" ", parameters);
+        parameters.Add(x => x.Protocol, new ProtocolUpdateDTO
+        {
+            Id = protocol.Id,
+            Number = Convert.ToInt32(protocol.Number),
+            Subject = protocol.Subject!,
+            Description = protocol.Description!,
+            Status = protocol.Status,
+            CreatedById = protocol.CreatedById,
+            OriginSectorId = protocol.OriginSectorId,
+            DestinationUserId = protocol.DestinationUserId,
+            DestinationSectorId = protocol.DestinationSectorId,
+            IsArchived = protocol.IsArchived
+        });
+
+        IDialogReference dialog = await DialogService.ShowAsync<ProtocolDialog>(" ", parameters);
         DialogResult? result = await dialog.Result;
 
         _isModalOpen = false;
 
         if (result is not null && !result.Canceled)
         {
-            Protocol? updatedProtocol = result.Data as Protocol;
+            var updatedProtocol = result.Data as ProtocolUpdateDTO;
 
             if (updatedProtocol != null)
             {
                 try
                 {
-                    await _protocolService.UpdateProtocolAsync(updatedProtocol);
+                    await _protocolService.UpdateAsync(updatedProtocol);
                     Snackbar.Add("Protocolo atualizado com sucesso!", Severity.Success);
                     if (table is not null)
                         await table.ReloadServerData();
@@ -398,7 +414,7 @@
         var selectedProtocolDto = _selectedProtocols.First();
         isLoading = true;
 
-        var fullProtocol = await _protocolService.GetProtocolByIdAsync(selectedProtocolDto.Id);
+        var fullProtocol = await _protocolService.GetByIdAsync(selectedProtocolDto.Id);
 
         isLoading = false;
 
@@ -427,7 +443,7 @@
         {
             try
             {
-                await _protocolService.DeleteProtocolAsync(protocolDto.Id);
+                await _protocolService.DeleteAsync(protocolDto.Id);
                 Snackbar.Add("Protocolo excluído com sucesso!", Severity.Success);
 
                 if (table is not null)

@@ -1,4 +1,4 @@
-﻿namespace SIP.UI.Domain.DTOs.Protocols.Responses;
+﻿namespace SIP.UI.Domain.DTOs.Protocols.Pagination;
 
 public class ProtocolPagedResultDTO
 {

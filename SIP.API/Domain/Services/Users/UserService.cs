@@ -106,12 +106,12 @@ public class UserService(ICryptPassword cryp, ApplicationContext context, Entity
         }
 
         // Get total count (this will use or re-cache based on the token)
-        int? totalCount = _cache.Get<int?>($"UserCount_Search_{searchString ?? "NoSearch"}");
+        int? totalCount = _cache.Get<int?>($"{CacheKeys.UsersTotalCount}{searchString ?? "NoSearch"}");
 
         if (!totalCount.HasValue)
         {
             totalCount = await query.CountAsync();
-            _cache.Set($"UserCount_Search_{searchString ?? "NoSearch"}", totalCount.Value, EntityType);
+            _cache.Set($"{CacheKeys.UsersTotalCount}{searchString ?? "NoSearch"}", totalCount.Value, EntityType);
         }
 
         Expression<Func<User, object>> statusOrderExpr = u => u.IsActive ? 0 : 1;
@@ -172,7 +172,8 @@ public class UserService(ICryptPassword cryp, ApplicationContext context, Entity
             Protocols = u.ProtocolsCreated
         });
 
-        ICollection<UserListItemDTO> items = await pagedDataQuery.ToListAsync();
+        ICollection<UserListItemDTO> items = 
+            await pagedDataQuery.ToListAsync();
 
         return new UserPagedResultDTO
         {
@@ -185,7 +186,8 @@ public class UserService(ICryptPassword cryp, ApplicationContext context, Entity
     /// <inheritdoc/>
     public async Task<User?> UpdateAsync(Guid id, UserUpdateDTO dto)
     {
-        User? user = await GetByIdAsync(id);
+        User? user = 
+            await GetByIdAsync(id);
 
         if (user == null)
             return null;

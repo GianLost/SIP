@@ -4,4 +4,5 @@ public readonly struct CacheEndpoints
 {
     public readonly static string _invalidateSectorCount = "sip_api/cache/invalidate?entityType=Sector";
     public readonly static string _invalidateUserCount = "sip_api/cache/invalidate?entityType=User";
+    public readonly static string _invalidateProtocolCount = "sip_api/cache/invalidate?entityType=Protocol";
 }

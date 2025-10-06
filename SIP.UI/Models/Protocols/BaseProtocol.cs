@@ -1,11 +1,8 @@
-﻿using SIP.API.Domain.Enums;
+﻿using SIP.UI.Domain.Enums;
 using System.ComponentModel.DataAnnotations;
 
-namespace SIP.API.Domain.Models.Protocols;
+namespace SIP.UI.Models.Protocols;
 
-/// <summary>
-/// Provides base properties for protocol data transfer objects (DTOs).
-/// </summary>
 public abstract class BaseProtocol
 {
     [Required(ErrorMessage = "O número do protocolo é obrigatório.")]
@@ -24,4 +21,16 @@ public abstract class BaseProtocol
     public virtual ProtocolStatus Status { get; set; }
 
     public virtual bool IsArchived { get; set; } = false;
+
+    [Required(ErrorMessage = "Obrigatório informar quem está gerando o protocolo.")]
+    public virtual Guid CreatedById { get; set; }
+
+    [Required(ErrorMessage = "Obrigatório informar o setor de origem do protocolo.")]
+    public virtual Guid OriginSectorId { get; set; }
+
+    [Required(ErrorMessage = "Obrigatório informar o setor de destino do protocolo.")]
+    public virtual Guid DestinationSectorId { get; set; }
+
+    [Required(ErrorMessage = "Obrigatório informar o usuário de destino do protocolo.")]
+    public virtual Guid DestinationUserId { get; set; }
 }

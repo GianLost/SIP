@@ -12,17 +12,18 @@ public class ProtocolUpdateDTO : BaseProtocol
     public override ProtocolStatus Status { get; set; }
     public override bool IsArchived { get; set; } = false;
 
-    [Required]
+
+    [Required(ErrorMessage = "Obrigatório informar quem está gerando o protocolo.")]
     public Guid CreatedById { get; set; }
 
     public Guid? UpdatedById { get; set; }
 
-    [Required]
+    [Required(ErrorMessage = "Obrigatório informar o setor de origem do protocolo.")]
     public Guid OriginSectorId { get; set; }
 
-    [Required]
+    [Required(ErrorMessage = "Obrigatório informar o setor de destino do protocolo.")]
     public Guid DestinationSectorId { get; set; }
 
-    [Required]
+    [Required(ErrorMessage = "Obrigatório informar o usuário de destino do protocolo.")]
     public Guid DestinationUserId { get; set; }
 }

@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace SIP.UI.Models.Sectors;
 
-public class BaseSector
+public abstract class BaseSector
 {
     [Required(ErrorMessage = "O nome do setor é obrigatório.")]
     [StringLength(150, MinimumLength = 3, ErrorMessage = "O nome deve ter entre 3 e 150 caracteres.")]

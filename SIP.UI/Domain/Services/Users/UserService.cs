@@ -2,6 +2,7 @@
 using SIP.UI.Domain.DTOs.Users.Configurations;
 using SIP.UI.Domain.DTOs.Users.Pagination;
 using SIP.UI.Domain.Helpers.Endpoints;
+using SIP.UI.Models.Errors;
 using SIP.UI.Models.Users;
 using System.Net.Http.Json;
 
@@ -12,31 +13,11 @@ public class UserService(HttpClient http)
     private readonly HttpClient _http = http;
 
     /// <summary>
-    /// Gets a paginated result of users from the API, including total count. Use in-memory caching and limit the number of records per page to avoid multiple requests for the same data.
-    /// </summary>
-    /// <param name="pageNumber">The page number (starting from 1).</param>
-    /// <param name="pageSize">The number of records per page (limited to 100).</param>
-    /// <param name="sortLabel">The property name to sort by.</param>
-    /// <param name="sortDirection">The sort direction ("asc" or "desc").</param>
-    /// <param name="searchString">Optional search string to filter sectors.</param>
-    /// <returns>A paged result DTO containing the users and total count.</returns>
-    public async Task<UserPagedResultDTO> GetPagedUsersAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection, string? searchString)
-    {
-        pageSize = Math.Min(pageSize, 100);
-
-        string url = $"{BaseEndpoints<User>._getPaged}pageNumber={pageNumber}&pageSize={pageSize}&sortLabel={sortLabel}&sortDirection={sortDirection}&searchString={searchString}";
-
-        UserPagedResultDTO? response = await _http.GetFromJsonAsync<UserPagedResultDTO>(url);
-
-        return response ?? new UserPagedResultDTO();
-    }
-
-    /// <summary>
     /// Gets a user by its unique identifier from the API.
     /// </summary>
     /// <param name="id">The unique identifier of the user.</param>
     /// <returns>The user entity if found; otherwise, null.</returns>
-    public async Task<User?> GetUsersByIdAsync(Guid id)
+    public async Task<User?> GetByIdAsync(Guid id)
     {
         try
         {
@@ -46,6 +27,27 @@ public class UserService(HttpClient http)
         {
             return null;
         }
+
+    }
+
+    /// <summary>
+    /// Gets a paginated result of users from the API, including total count. Use in-memory caching and limit the number of records per page to avoid multiple requests for the same data.
+    /// </summary>
+    /// <param name="pageNumber">The page number (starting from 1).</param>
+    /// <param name="pageSize">The number of records per page (limited to 100).</param>
+    /// <param name="sortLabel">The property name to sort by.</param>
+    /// <param name="sortDirection">The sort direction ("asc" or "desc").</param>
+    /// <param name="searchString">Optional search string to filter sectors.</param>
+    /// <returns>A paged result DTO containing the users and total count.</returns>
+    public async Task<UserPagedResultDTO> GetPagedAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection, string? searchString)
+    {
+        pageSize = Math.Min(pageSize, 100);
+
+        string url = $"{BaseEndpoints<User>._getPaged}pageNumber={pageNumber}&pageSize={pageSize}&sortLabel={sortLabel}&sortDirection={sortDirection}&searchString={searchString}";
+
+        UserPagedResultDTO? response = await _http.GetFromJsonAsync<UserPagedResultDTO>(url);
+
+        return response ?? new UserPagedResultDTO();
     }
 
     /// <summary>
@@ -73,23 +75,23 @@ public class UserService(HttpClient http)
     /// Creates a new User via the API.
     /// </summary>
     /// <param name="user">The user entity to create.</param>
-    public async Task CreateUserAsync(UserCreateDTO user)
+    public async Task CreateAsync(UserCreateDTO user)
     {
         HttpResponseMessage response = await _http.PostAsJsonAsync(BaseEndpoints<User>._create, user);
         response.EnsureSuccessStatusCode();
 
-        await InvalidateUserCacheAsync();
+        await InvalidateCacheAsync();
     }
 
     /// <summary>
     /// Updates an existing user via the API.
     /// </summary>
     /// <param name="user">The user entity to update.</param>
-    public async Task UpdateUserAsync(UserUpdateDTO user)
+    public async Task UpdateAsync(UserUpdateDTO user)
     {
         HttpResponseMessage response = await _http.PatchAsJsonAsync($"{BaseEndpoints<User>._update}{user.Id}", user);
         response.EnsureSuccessStatusCode();
-        await InvalidateUserCacheAsync();
+        await InvalidateCacheAsync();
     }
 
     /// <summary>
@@ -98,7 +100,7 @@ public class UserService(HttpClient http)
     /// <param name="id">The unique identifier of the user to delete.</param>
     /// <exception cref="InvalidOperationException">Thrown if the user cannot be deleted due to business rules.</exception>
     /// <exception cref="HttpRequestException">Thrown if the request fails.</exception>
-    public async Task DeleteUserAsync(Guid id)
+    public async Task DeleteAsync(Guid id)
     {
         HttpResponseMessage response = await _http.DeleteAsync($"{BaseEndpoints<User>._delete}{id}");
 
@@ -129,7 +131,7 @@ public class UserService(HttpClient http)
             }
         }
 
-        await InvalidateUserCacheAsync();
+        await InvalidateCacheAsync();
     }
 
     /// <summary>
@@ -161,18 +163,10 @@ public class UserService(HttpClient http)
         }
     }
 
-    private async Task InvalidateUserCacheAsync()
+    private async Task InvalidateCacheAsync()
     {
         string url = CacheEndpoints._invalidateUserCount;
         HttpResponseMessage response = await _http.PostAsync(url, null);
         response.EnsureSuccessStatusCode();
     }
-}
-
-public class ErrorResponse
-{
-    /// <summary>
-    /// The error message returned by the API.
-    /// </summary>
-    public string? Error { get; set; }
 }

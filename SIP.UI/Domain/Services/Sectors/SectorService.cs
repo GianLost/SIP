@@ -2,6 +2,7 @@
 using SIP.UI.Domain.DTOs.Sectors.Default;
 using SIP.UI.Domain.DTOs.Sectors.Pagination;
 using SIP.UI.Domain.Helpers.Endpoints;
+using SIP.UI.Models.Errors;
 using SIP.UI.Models.Sectors;
 using System.Net.Http.Json;
 
@@ -28,7 +29,7 @@ public class SectorService(HttpClient http)
     /// Busca TODOS os setores da API para usar em dropdowns e seletores.
     /// </summary>
     /// <returns>Uma lista completa de todos os setores.</returns>
-    public async Task<ICollection<SectorDefaultDTO>?> GetAllSectorsAsync()
+    public async Task<ICollection<SectorDefaultDTO>?> GetAllAsync()
     {
         try
         {
@@ -54,7 +55,7 @@ public class SectorService(HttpClient http)
     /// <param name="sortDirection">The sort direction ("asc" or "desc").</param>
     /// <param name="searchString">Optional search string to filter sectors.</param>
     /// <returns>A paged result DTO containing the sectors and total count.</returns>
-    public async Task<SectorPagedResultDTO> GetPagedSectorsAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection, string? searchString)
+    public async Task<SectorPagedResultDTO> GetPagedAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection, string? searchString)
     {
         pageSize = Math.Min(pageSize, 100);
 
@@ -66,48 +67,25 @@ public class SectorService(HttpClient http)
     }
 
     /// <summary>
-    /// Gets the total count of sectors from the API, optionally filtered by a search string.
-    /// </summary>
-    /// <param name="searchString">Optional search string to filter sectors.</param>
-    /// <returns>The total number of sectors matching the filter.</returns>
-    public async Task<int> GetTotalSectorsCountAsync(string? searchString = null)
-    {
-        string url = BaseEndpoints<Sector>._count;
-
-        if (!string.IsNullOrEmpty(searchString))
-            url += $"?searchString={Uri.EscapeDataString(searchString)}";
-
-        try
-        {
-            int count = await _http.GetFromJsonAsync<int>(url);
-            return count;
-        }
-        catch (HttpRequestException ex)
-        {
-            throw new Exception($"Falha ao obter o total de secretarias. Detalhes: {ex.Message}");
-        }
-    }
-
-    /// <summary>
     /// Creates a new sector via the API.
     /// </summary>
     /// <param name="setor">The sector entity to create.</param>
-    public async Task CreateSectorAsync(SectorCreateDTO setor)
+    public async Task CreateAsync(SectorCreateDTO setor)
     {
         HttpResponseMessage response = await _http.PostAsJsonAsync(BaseEndpoints<Sector>._create, setor);
         response.EnsureSuccessStatusCode();
-        await InvalidateSectorCacheAsync();
+        await InvalidateCacheAsync();
     }
 
     /// <summary>
     /// Updates an existing sector via the API.
     /// </summary>
     /// <param name="setor">The sector entity to update.</param>
-    public async Task UpdateSectorAsync(SectorUpdateDTO setor)
+    public async Task UpdateAsync(SectorUpdateDTO setor)
     {
         HttpResponseMessage response = await _http.PutAsJsonAsync($"{BaseEndpoints<Sector>._update}{setor.Id}", setor);
         response.EnsureSuccessStatusCode();
-        await InvalidateSectorCacheAsync();
+        await InvalidateCacheAsync();
     }
 
     /// <summary>
@@ -116,7 +94,7 @@ public class SectorService(HttpClient http)
     /// <param name="id">The unique identifier of the sector to delete.</param>
     /// <exception cref="InvalidOperationException">Thrown if the sector cannot be deleted due to business rules.</exception>
     /// <exception cref="HttpRequestException">Thrown if the request fails.</exception>
-    public async Task DeleteSectorAsync(Guid id)
+    public async Task DeleteAsync(Guid id)
     {
         HttpResponseMessage response = await _http.DeleteAsync($"{BaseEndpoints<Sector>._delete}{id}");
 
@@ -146,24 +124,13 @@ public class SectorService(HttpClient http)
                 throw new HttpRequestException($"Erro na requisição: {response.StatusCode} - {errorContent}");
             }
         }
-        await InvalidateSectorCacheAsync();
+        await InvalidateCacheAsync();
     }
 
-    private async Task InvalidateSectorCacheAsync()
+    private async Task InvalidateCacheAsync()
     {
         string url = CacheEndpoints._invalidateSectorCount;
         HttpResponseMessage response = await _http.PostAsync(url, null);
         response.EnsureSuccessStatusCode();
     }
-}
-
-/// <summary>
-/// Model for error responses from the API.
-/// </summary>
-public class ErrorResponse
-{
-    /// <summary>
-    /// The error message returned by the API.
-    /// </summary>
-    public string? Error { get; set; }
 }

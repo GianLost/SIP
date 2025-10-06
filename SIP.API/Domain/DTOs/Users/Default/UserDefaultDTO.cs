@@ -1,6 +1,7 @@
 ﻿using SIP.API.Domain.Models.Users;
 
 namespace SIP.API.Domain.DTOs.Users.Default;
+
 public class UserDefaultDTO : BaseUser
 {
     public Guid Id { get; set; }

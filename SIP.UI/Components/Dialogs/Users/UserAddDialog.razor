@@ -185,7 +185,7 @@
     protected override async Task OnInitializedAsync()
     {
         if (_sectorServices is not null)
-            _allSectors = await _sectorServices.GetAllSectorsAsync() ?? new List<SectorDefaultDTO>();
+            _allSectors = await _sectorServices.GetAllAsync() ?? new List<SectorDefaultDTO>();
 
         if (_allSectors != null && !_allSectors.Any())
         {

@@ -1,0 +1,30 @@
+﻿using SIP.UI.Domain.Enums;
+using SIP.UI.Domain.Helpers.RegExpressions;
+using System.ComponentModel.DataAnnotations;
+
+namespace SIP.UI.Models.Users;
+
+public abstract class BaseUser
+{
+    [Required(ErrorMessage = "O MASP é obrigatório.")]
+    [Range(1, int.MaxValue, ErrorMessage = "O MASP deve ser um número positivo.")]
+    public virtual string Masp { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "O nome é obrigatório.")]
+    [StringLength(150, MinimumLength = 3, ErrorMessage = "O nome deve ter entre 3 e 150 caracteres.")]
+    [RegularExpression(ConstExpressions.NameRegex, ErrorMessage = "O nome deve conter apenas letras e espaços.")]
+    public virtual string Name { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "O login é obrigatório.")]
+    [StringLength(50, MinimumLength = 3, ErrorMessage = "O login deve ter entre 3 e 50 caracteres.")]
+    [RegularExpression(ConstExpressions.AbridgementRegex, ErrorMessage = "O login deve conter apenas letras, números e os caracteres . _ -")]
+    public virtual string Login { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "O e-mail é obrigatório.")]
+    [StringLength(200, ErrorMessage = "O e-mail deve ter no máximo 200 caracteres.")]
+    [EmailAddress(ErrorMessage = "O e-mail informado não é válido.")]
+    public virtual string Email { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "O papel do usuário é obrigatório.")]
+    public virtual RoleEnum Role { get; set; }
+}

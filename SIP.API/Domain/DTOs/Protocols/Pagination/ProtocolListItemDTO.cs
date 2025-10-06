@@ -1,6 +1,6 @@
 ﻿using SIP.API.Domain.Enums;
 
-namespace SIP.API.Domain.DTOs.Protocols.Responses;
+namespace SIP.API.Domain.DTOs.Protocols.Pagination;
 
 public class ProtocolListItemDTO
 {

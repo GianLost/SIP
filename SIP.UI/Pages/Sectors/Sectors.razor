@@ -230,11 +230,6 @@
     private int pageSize = 15;
 
     /// <summary>
-    /// Total number of items for pagination.
-    /// </summary>
-    private int totalItems = 0;
-
-    /// <summary>
     /// Search string for filtering sectors.
     /// </summary>
     private string searchString = string.Empty;
@@ -280,14 +275,12 @@
 
         try
         {
-            SectorPagedResultDTO sectors = await _sectorService.GetPagedSectorsAsync(
+            SectorPagedResultDTO sectors = await _sectorService.GetPagedAsync(
                 state.Page + 1,
                 state.PageSize,
                 sortLabel,
                 GetSortDirectionString(state.SortDirection),
                 searchString);
-
-            totalItems = await _sectorService.GetTotalSectorsCountAsync(searchString);
 
             return new TableData<SectorListItemDTO>
             {
@@ -389,7 +382,7 @@
             {
                 try
                 {
-                    await _sectorService.CreateSectorAsync(createdSector);
+                    await _sectorService.CreateAsync(createdSector);
                     Snackbar.Add("Secretaria criada com sucesso!", Severity.Success);
 
                     if (table is not null)
@@ -434,7 +427,7 @@
             {
                 try
                 {
-                    await _sectorService.UpdateSectorAsync(updatedSector);
+                    await _sectorService.UpdateAsync(updatedSector);
                     Snackbar.Add("Secretaria atualizada com sucesso!", Severity.Success);
 
                     if (table is not null)
@@ -470,7 +463,7 @@
         {
             try
             {
-                await _sectorService.DeleteSectorAsync(sector.Id);
+                await _sectorService.DeleteAsync(sector.Id);
 
                 Snackbar.Add("Secretaria excluída com sucesso!", Severity.Success);
 

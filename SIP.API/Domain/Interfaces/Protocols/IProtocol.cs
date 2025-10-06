@@ -1,5 +1,5 @@
 ﻿using SIP.API.Domain.DTOs.Protocols;
-using SIP.API.Domain.DTOs.Protocols.Responses;
+using SIP.API.Domain.DTOs.Protocols.Pagination;
 using SIP.API.Domain.Entities.Protocols;
 
 namespace SIP.API.Domain.Interfaces.Protocols;

@@ -1,8 +1,8 @@
 ﻿using SIP.UI.Domain.DTOs.Protocols;
-using SIP.UI.Domain.DTOs.Protocols.Responses;
+using SIP.UI.Domain.DTOs.Protocols.Pagination;
 using SIP.UI.Domain.Helpers.Endpoints;
+using SIP.UI.Models.Errors;
 using SIP.UI.Models.Protocols;
-using System.Net;
 using System.Net.Http.Json;
 
 namespace SIP.UI.Domain.Services.Protocols;
@@ -11,83 +11,94 @@ public class ProtocolService(HttpClient http)
 {
     private readonly HttpClient _http = http;
 
-    public async Task<ProtocolPagedResultDTO> GetPagedProtocolsAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection, string? searchString)
+    public async Task<Protocol?> GetByIdAsync(Guid id)
+    {
+        try
+        {
+            return await _http.GetFromJsonAsync<Protocol>($"{BaseEndpoints<Protocol>._getById}{id}");
+        }
+        catch
+        {
+            return null;
+        }
+
+    }
+
+    public async Task<ProtocolPagedResultDTO> GetPagedAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection, string? searchString)
     {
         pageSize = Math.Min(pageSize, 100);
 
-        string url = $"{ProtocolsEndpoints._protocolsPaginationFull}pageNumber={pageNumber}&pageSize={pageSize}&sortLabel={sortLabel}&sortDirection={sortDirection}&searchString={searchString}";
+        string url = $"{BaseEndpoints<Protocol>._getPaged}pageNumber={pageNumber}&pageSize={pageSize}&sortLabel={sortLabel}&sortDirection={sortDirection}&searchString={searchString}";
 
         ProtocolPagedResultDTO? response = await _http.GetFromJsonAsync<ProtocolPagedResultDTO>(url);
 
         return response ?? new ProtocolPagedResultDTO();
     }
 
-    public async Task<Protocol?> GetProtocolByIdAsync(Guid id)
+    public async Task CreateAsync(ProtocolCreateDTO protocol)
     {
-        try
-        {
-            return await _http.GetFromJsonAsync<Protocol>($"{ProtocolsEndpoints._getProtocolsById}{id}");
-        }
-        catch
-        {
-            return null;
-        }
-    }
-
-    public async Task CreateProtocolAsync(Protocol protocol)
-    {
-        // Mapeia o objeto Protocol para o DTO de criação
-        ProtocolCreateDTO protocolCreateDto = new()
-        {
-            Subject = protocol.Subject,
-            Description = protocol.Description,
-            OriginSectorId = protocol.OriginSectorId,
-            CreatedById = protocol.CreatedById,
-            DestinationSectorId = protocol.DestinationSectorId,
-            DestinationUserId = protocol.DestinationUserId,
-            Status = protocol.Status,
-            IsArchived = protocol.IsArchived
-        };
-
-        await _http.PostAsJsonAsync(ProtocolsEndpoints._createProtocol, protocolCreateDto);
-        await InvalidateSectorCacheAsync();
-    }
-
-    public async Task UpdateProtocolAsync(Protocol protocol)
-    {
-        await _http.PutAsJsonAsync($"sip_api/Protocol/update_protocol/{protocol.Id}", protocol);
-        await InvalidateSectorCacheAsync();
-    }
-
-    public async Task DeleteProtocolAsync(Guid id)
-    {
-        HttpResponseMessage response = await _http.DeleteAsync($"{ProtocolsEndpoints._deleteProtocol}{id}");
-
-        if (response.StatusCode == HttpStatusCode.Conflict)
-        {
-            var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
-            throw new InvalidOperationException(error?.Error ?? "Erro ao excluir protocolo.");
-        }
+        HttpResponseMessage response = await _http.PostAsJsonAsync(BaseEndpoints<Protocol>._create, protocol);
         response.EnsureSuccessStatusCode();
-
-        await InvalidateSectorCacheAsync();
+        await InvalidateCacheAsync();
+        //// Mapeia o objeto Protocol para o DTO de criação
+        //ProtocolCreateDTO protocolCreateDto = new()
+        //{
+        //    Subject = protocol.Subject,
+        //    Description = protocol.Description,
+        //    OriginSectorId = protocol.OriginSectorId,
+        //    CreatedById = protocol.CreatedById,
+        //    DestinationSectorId = protocol.DestinationSectorId,
+        //    DestinationUserId = protocol.DestinationUserId,
+        //    Status = protocol.Status,
+        //    IsArchived = protocol.IsArchived
+        //};
     }
 
-    private async Task InvalidateSectorCacheAsync()
+    public async Task UpdateAsync(ProtocolUpdateDTO protocol)
     {
-        string url = CacheEndpoints._invalidateSectorCount;
+        HttpResponseMessage response = await _http.PutAsJsonAsync($"{BaseEndpoints<Protocol>._update}{protocol.Id}", protocol);
+        response.EnsureSuccessStatusCode();
+        await InvalidateCacheAsync();
+    }
+
+    public async Task DeleteAsync(Guid id)
+    {
+        HttpResponseMessage response = await _http.DeleteAsync($"{BaseEndpoints<Protocol>._delete}{id}");
+
+        if (!response.IsSuccessStatusCode)
+        {
+            string errorContent = await response.Content.ReadAsStringAsync();
+
+            if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
+            {
+                try
+                {
+                    ErrorResponse? errorObject = System.Text.Json.JsonSerializer.Deserialize<ErrorResponse>(errorContent);
+
+                    throw new InvalidOperationException(errorObject?.Error ?? "Erro desconhecido ao excluir protocolo.");
+                }
+                catch (System.Text.Json.JsonException)
+                {
+                    throw new InvalidOperationException($"Erro de formato ao excluir protocolo: {errorContent}");
+                }
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                throw new InvalidOperationException("Protocolo não encontrado.");
+            }
+            else
+            {
+                throw new HttpRequestException($"Erro na requisição: {response.StatusCode} - {errorContent}");
+            }
+        }
+
+        await InvalidateCacheAsync();
+    }
+
+    private async Task InvalidateCacheAsync()
+    {
+        string url = CacheEndpoints._invalidateProtocolCount;
         HttpResponseMessage response = await _http.PostAsync(url, null);
         response.EnsureSuccessStatusCode();
     }
-}
-
-/// <summary>
-/// Model for error responses from the API.
-/// </summary>
-public class ErrorResponse
-{
-    /// <summary>
-    /// The error message returned by the API.
-    /// </summary>
-    public string? Error { get; set; }
 }
