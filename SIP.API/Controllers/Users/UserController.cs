@@ -201,7 +201,7 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
 
         try
         {
-            ICollection<User> users = 
+            ICollection<UserDefaultDTO> users = 
                 await _userService.GetAllAsync();
 
             if(users == null || users.Count == 0)

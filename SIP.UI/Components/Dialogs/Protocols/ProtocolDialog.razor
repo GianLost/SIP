@@ -1,113 +1,98 @@
 ﻿@using MudBlazor
 @using SIP.UI.Domain.DTOs.Protocols
-@using SIP.UI.Domain.DTOs.Protocols.Default
 @using SIP.UI.Domain.DTOs.Sectors.Default
+@using SIP.UI.Domain.DTOs.Users.Default
 @using SIP.UI.Domain.Services.Sectors
 @using SIP.UI.Domain.Services.Users
 @using SIP.UI.Domain.Enums
 @using SIP.UI.Models.Protocols
-@using SIP.UI.Models.Users
-@using SIP.UI.Models.Sectors
 
 @inject SectorService SectorService
 @inject UserService UserService
-
 @inject ISnackbar Snackbar
 
 <MudDialog Style="width:600px">
 
-    @* Conteúdo do diálogo *@
     <DialogContent>
 
-        @* Formulário de edição *@
         <MudForm @ref="form" @bind-IsValid="isValid" Model="Protocol">
 
             <MudGrid Spacing="2">
 
-                @* Campo assunto *@
+                <!-- Assunto -->
                 <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="Protocol.Subject" Label="Assunto" For="() => Protocol.Subject" Required="true" Variant="Variant.Outlined" Margin="Margin.Normal" />
+                    <MudTextField @bind-Value="Protocol.Subject"
+                                  Label="Assunto"
+                                  Required="true"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Normal" />
                 </MudItem>
 
-                @* Campo descrição *@
+                <!-- Descrição -->
                 <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="Protocol.Description" Label="Descrição" For="() => Protocol.Description" Required="true" Variant="Variant.Outlined" Margin="Margin.Normal" />
+                    <MudTextField @bind-Value="Protocol.Description"
+                                  Label="Descrição"
+                                  Required="true"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Normal" />
                 </MudItem>
 
-                @* Caixa de seleção para selecionar o setor de origem *@
+                <!-- Usuário de origem -->
                 <MudItem xs="12" sm="6">
-                    <MudAutocomplete T="SectorDefaultDTO"
-                                     @bind-Value="SelectedOriginSector"
-                                     Label="Setor de Origem"
-                                     SearchFunc="SearchSectors"
-                                     For="() => SelectedOriginSector"
-                                     Required="true"
-                                     Variant="Variant.Outlined"
-                                     Margin="Margin.Normal"
-                                     ToStringFunc="@(s => s == null ? null : $"{s.Name} ({s.Acronym})")"
-                                     Clearable="true"
-                                     Placeholder="Pesquisar setor..."
-                                     MaxItems="int.MaxValue" />
-                </MudItem>
-
-                @* Caixa de seleção para selecionar o usuário criador 
-                    (** TODO: Deverá ser substituido para uma caixa comum contendo o usuário da sessão após implementação de sessão e autenticação de usuários. **)
-                *@
-                <MudItem xs="12" sm="6">
-                    <MudAutocomplete T="User"
+                    <MudAutocomplete T="UserDefaultDTO"
                                      @bind-Value="SelectedCreator"
                                      Label="Criado Por"
-                                     SearchFunc="SearchUsersForOrigin"
-                                     For="() => SelectedCreator"
+                                     SearchFunc="SearchUsers"
                                      Required="true"
                                      Variant="Variant.Outlined"
                                      Margin="Margin.Normal"
                                      Clearable="true"
-                                     Placeholder="Pesquisar usuário..."
+                                     Placeholder="Pesquisar usuário de origem..."
                                      ToStringFunc="@(u => u?.Name)"
-                                     Disabled="SelectedOriginSector is null"
                                      MaxItems="int.MaxValue" />
                 </MudItem>
 
-                @* Caixa de seleção para selecionar o setor de destino *@
+                <!-- Setor de origem (bloqueado) -->
                 <MudItem xs="12" sm="6">
-                    <MudAutocomplete T="SectorDefaultDTO"
-                                     @bind-Value="SelectedDestinationSector"
-                                     Label="Setor de Destino"
-                                     SearchFunc="SearchSectors"
-                                     For="() => SelectedDestinationSector"
-                                     Required="true"
-                                     Variant="Variant.Outlined"
-                                     Margin="Margin.Normal"
-                                     ToStringFunc="@(s => s == null ? null : $"{s.Name} ({s.Acronym})")"
-                                     Clearable="true"
-                                     Placeholder="Pesquisar setor..."
-                                     MaxItems="int.MaxValue" />
+                    <MudTextField Value="@(SelectedOriginSector?.Name ?? string.Empty)"
+                                  Label="Setor de Origem"
+                                  Disabled="true"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Normal" />
                 </MudItem>
 
-                @* Caixa de seleção para selecionar o usuário de destino *@
+                <!-- Usuário de destino -->
                 <MudItem xs="12" sm="6">
-                    <MudAutocomplete T="User"
+                    <MudAutocomplete T="UserDefaultDTO"
                                      @bind-Value="SelectedDestinationUser"
                                      Label="Destinado a"
-                                     SearchFunc="SearchUsersForDestination"
-                                     For="() => SelectedDestinationUser"
+                                     SearchFunc="SearchUsers"
                                      Required="true"
                                      Variant="Variant.Outlined"
                                      Margin="Margin.Normal"
                                      Clearable="true"
-                                     Placeholder="Pesquisar usuário..."
+                                     Placeholder="Pesquisar usuário de destino..."
                                      ToStringFunc="@(u => u?.Name)"
-                                     Disabled="SelectedDestinationSector is null"
                                      MaxItems="int.MaxValue" />
                 </MudItem>
 
-                @* Caixa de seleção para selecionar o status 
-                    (** TODO: Deverá ser retirado ao realizar a implementação da tramitação de protocolos **)
-                *@
+                <!-- Setor de destino (bloqueado) -->
                 <MudItem xs="12" sm="6">
-                    <MudSelect T="ProtocolStatus" Label="Status" @bind-Value="Protocol.Status" For="() => Protocol.Status" Required="true" Variant="Variant.Outlined" Margin="Margin.Normal">
-                        @* Percorre o enum para mapear nomes amigáveis aos status *@
+                    <MudTextField Value="@(SelectedDestinationSector?.Name ?? string.Empty)"
+                                  Label="Setor de Destino"
+                                  Disabled="true"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Normal" />
+                </MudItem>
+
+                <!-- Status -->
+                <MudItem xs="12" sm="6">
+                    <MudSelect T="ProtocolStatus"
+                               Label="Status"
+                               @bind-Value="Protocol.Status"
+                               Required="true"
+                               Variant="Variant.Outlined"
+                               Margin="Margin.Normal">
                         @foreach (ProtocolStatus status in Enum.GetValues(typeof(ProtocolStatus)))
                         {
                             <MudSelectItem Value="status">@GetStatusDisplayName(status)</MudSelectItem>
@@ -115,11 +100,13 @@
                     </MudSelect>
                 </MudItem>
 
-                @* Caixa de verificação para definir o arquivamento do protocolo
-                    (** TODO: Deverá ser retirado ao realizar a implementação automação da finalização da tramitação de protocolos quando se encerra o ciclo de vida. **)
-                *@
+                <!-- Arquivar -->
                 <MudItem xs="12" sm="6" Class="m-0">
-                    <MudCheckBox Size="Size.Small" @bind-Value="Protocol.IsArchived" Color="@Color.Primary"> @(Protocol.IsArchived == true ? "Desarquivar" : "Arquivar")</MudCheckBox>
+                    <MudCheckBox Size="Size.Small"
+                                 @bind-Value="Protocol.IsArchived"
+                                 Color="@Color.Primary">
+                        @(Protocol.IsArchived ? "Desarquivar" : "Arquivar")
+                    </MudCheckBox>
                 </MudItem>
 
             </MudGrid>
@@ -128,13 +115,18 @@
 
     </DialogContent>
 
-    @* @* Botões de ações *@
     <DialogActions>
         <MudStack Row="true" Class="justify-end pa-4">
-            <MudButton OnClick="Submit" Color="Color.Primary" Variant="Variant.Filled" Disabled="!isValid" Class="mr-3">
+            <MudButton OnClick="Submit"
+                       Color="Color.Primary"
+                       Variant="Variant.Filled"
+                       Disabled="!isValid"
+                       Class="mr-3">
                 Salvar
             </MudButton>
-            <MudButton Color="Color.Secondary" Variant="Variant.Outlined" OnClick="Cancel">
+            <MudButton Color="Color.Secondary"
+                       Variant="Variant.Outlined"
+                       OnClick="Cancel">
                 Cancelar
             </MudButton>
         </MudStack>
@@ -143,201 +135,111 @@
 </MudDialog>
 
 @code {
-
-    /// <summary>
-    /// A instância do diálogo do MudBlazor para controlar as ações do diálogo.
-    /// É injetada automaticamente pelo framework.
-    /// </summary>
     [CascadingParameter]
     private IMudDialogInstance MudDialog { get; set; } = default!;
 
-
-    /// <summary>
-    /// Uma cópia local do objeto Protocolo para edição no formulário.
-    /// Isso evita a modificação direta do objeto original antes do usuário confirmar.
-    /// </summary>
     [Parameter]
     public BaseProtocol Protocol { get; set; } = default!;
 
-    /// <summary>
-    /// Referência ao componente MudForm, usada para chamar o método de validação.
-    /// </summary>
     private MudForm? form;
-
-    /// <summary>
-    /// Indicates if the form is currently valid.
-    /// </summary>
     private bool isValid;
 
-    // Listas para armazenar dados de setores e usuários para os campos de autocomplete.
+    private List<UserDefaultDTO> AllUsers = new();
     private List<SectorDefaultDTO> Sectors = new();
-    private List<User> AllUsers = new();
 
-    // Propriedades para armazenar os objetos selecionados nos campos de autocomplete.
-    private SectorDefaultDTO? _selectedOriginSector;
-    private User? SelectedCreator;
+    private UserDefaultDTO? _selectedCreator;
+    private UserDefaultDTO? _selectedDestinationUser;
+    private SectorDefaultDTO? SelectedOriginSector;
+    private SectorDefaultDTO? SelectedDestinationSector;
 
-    private SectorDefaultDTO? _selectedDestinationSector;
-    private User? SelectedDestinationUser;
-
-    /// <summary>
-    /// Propriedade que gerencia o setor de origem selecionado.
-    /// Ao ser alterada, ela garante que o usuário criador seja redefinido para 'null'.
-    /// </summary>
-    private SectorDefaultDTO? SelectedOriginSector
+    private UserDefaultDTO? SelectedCreator
     {
-        get => _selectedOriginSector;
+        get => _selectedCreator;
         set
         {
-            if (_selectedOriginSector != value)
+            if (_selectedCreator != value)
             {
-                _selectedOriginSector = value;
-                SelectedCreator = null; // Limpa a seleção de usuário quando o setor de origem muda
+                _selectedCreator = value;
+                SelectedOriginSector = Sectors.FirstOrDefault(s => s.Id == _selectedCreator?.SectorId);
             }
         }
     }
 
-    /// <summary>
-    /// Propriedade que gerencia o setor de destino selecionado.
-    /// Ao ser alterada, ela garante que o usuário de destino seja redefinido para 'null'.
-    /// </summary>
-    private SectorDefaultDTO? SelectedDestinationSector
+    private UserDefaultDTO? SelectedDestinationUser
     {
-        get => _selectedDestinationSector;
+        get => _selectedDestinationUser;
         set
         {
-            if (_selectedDestinationSector != value)
+            if (_selectedDestinationUser != value)
             {
-                _selectedDestinationSector = value;
-                SelectedDestinationUser = null; // Limpa a seleção de usuário quando o setor de destino muda
+                _selectedDestinationUser = value;
+                SelectedDestinationSector = Sectors.FirstOrDefault(s => s.Id == _selectedDestinationUser?.SectorId);
             }
         }
     }
 
-    /// <summary>
-    /// Método de ciclo de vida do componente, chamado quando ele é inicializado.
-    /// Responsável por carregar os dados de setores e usuários, e preencher o formulário
-    /// com as informações do protocolo recebido como parâmetro.
-    /// </summary>
     protected override async Task OnInitializedAsync()
     {
-        // Carrega a lista de setores e usuários para os campos de autocomplete
-        ICollection<SectorDefaultDTO>? sectorsResult = await SectorService.GetAllAsync();
-        Sectors = sectorsResult?.ToList() ?? new List<SectorDefaultDTO>();
-
-        ICollection<User>? usersResult = await UserService.GetAllUsersToDropdownAsync();
-        AllUsers = usersResult?.ToList() ?? new List<User>();
-
-        // Preenche os campos de autocomplete com os dados do protocolo original
-        if (Protocol.OriginSectorId != Guid.Empty)
-            SelectedOriginSector = Sectors.FirstOrDefault(s => s.Id == Protocol.OriginSectorId);
+        Sectors = (await SectorService.GetAllAsync())?.ToList() ?? [];
+        AllUsers = (await UserService.GetAllUsersToDropdownAsync())?.ToList() ?? [];
 
         if (Protocol.CreatedById != Guid.Empty)
+        {
             SelectedCreator = AllUsers.FirstOrDefault(u => u.Id == Protocol.CreatedById);
-
-        if (Protocol.DestinationSectorId != Guid.Empty)
-            SelectedDestinationSector = Sectors.FirstOrDefault(s => s.Id == Protocol.DestinationSectorId);
+            SelectedOriginSector = Sectors.FirstOrDefault(s => s.Id == SelectedCreator?.SectorId);
+        }
 
         if (Protocol.DestinationUserId != Guid.Empty)
-            SelectedDestinationUser = AllUsers.FirstOrDefault(u => u.Id == Protocol.DestinationUserId);
-
-    }
-
-    /// <summary>
-    /// Função de pesquisa para o autocomplete de setores.
-    /// Filtra a lista de setores com base no valor de pesquisa do usuário.
-    /// </summary>
-    private Task<IEnumerable<SectorDefaultDTO>> SearchSectors(string value, CancellationToken cancellationToken)
-    {
-        if (string.IsNullOrEmpty(value))
-            return Task.FromResult<IEnumerable<SectorDefaultDTO>>(Sectors);
-
-        return Task.FromResult(Sectors.Where(s => s.Name.Contains(value, StringComparison.OrdinalIgnoreCase) || s.Acronym.Contains(value, StringComparison.OrdinalIgnoreCase)));
-    }
-
-    /// <summary>
-    /// Função de pesquisa para o autocomplete de usuários, filtrando por setor de origem.
-    /// Retorna uma lista de usuários que pertencem ao setor de origem selecionado.
-    /// </summary>
-    private Task<IEnumerable<User>> SearchUsersForOrigin(string value, CancellationToken cancellationToken)
-    {
-        if (SelectedOriginSector is null)
-            return Task.FromResult(Enumerable.Empty<User>());
-
-        IEnumerable<User> usersFilteredBySector = AllUsers.Where(u => u.SectorId == SelectedOriginSector.Id);
-
-        if (string.IsNullOrEmpty(value))
-            return Task.FromResult(usersFilteredBySector);
-
-        return Task.FromResult(usersFilteredBySector.Where(u => u.Name.Contains(value, StringComparison.OrdinalIgnoreCase)));
-    }
-
-    /// <summary>
-    /// Função de pesquisa para o autocomplete de usuários, filtrando por setor de destino.
-    /// Retorna uma lista de usuários que pertencem ao setor de destino selecionado.
-    /// </summary>
-    private Task<IEnumerable<User>> SearchUsersForDestination(string value, CancellationToken cancellationToken)
-    {
-        if (SelectedDestinationSector is null)
-            return Task.FromResult(Enumerable.Empty<User>());
-
-        IEnumerable<User> usersFilteredBySector = AllUsers.Where(u => u.SectorId == SelectedDestinationSector.Id);
-
-        if (string.IsNullOrEmpty(value))
-            return Task.FromResult(usersFilteredBySector);
-
-        return Task.FromResult(usersFilteredBySector.Where(u => u.Name.Contains(value, StringComparison.OrdinalIgnoreCase)));
-    }
-
-    /// <summary>
-    /// Converte um valor do enum ProtocolStatus para um nome de exibição amigável.
-    /// </summary>
-    private string GetStatusDisplayName(ProtocolStatus status)
-    {
-        return status switch
         {
-            ProtocolStatus.Open => "Em Aberto",
-            ProtocolStatus.SentForReview => "Enviado",
-            ProtocolStatus.Received => "Recebido",
-            ProtocolStatus.UnderReview => "Em Análise",
-            ProtocolStatus.Approved => "Aprovado",
-            ProtocolStatus.Rejected => "Rejeitado",
-            ProtocolStatus.CorrectionRequested => "Correção",
-            ProtocolStatus.Finalized => "Finalizado",
-            _ => status.ToString()
-        };
+            SelectedDestinationUser = AllUsers.FirstOrDefault(u => u.Id == Protocol.DestinationUserId);
+            SelectedDestinationSector = Sectors.FirstOrDefault(s => s.Id == SelectedDestinationUser?.SectorId);
+        }
     }
 
-    /// <summary>
-    /// Acionado ao clicar no botão 'Salvar'.
-    /// Valida o formulário, atribui os IDs dos objetos selecionados e fecha o diálogo com o objeto Protocolo atualizado.
-    /// </summary>
+    private Task<IEnumerable<UserDefaultDTO>> SearchUsers(string value, CancellationToken cancellationToken)
+    {
+        IEnumerable<UserDefaultDTO> users = AllUsers;
+
+        if (!string.IsNullOrWhiteSpace(value))
+        {
+            users = users.Where(u => u.Name.Contains(value, StringComparison.OrdinalIgnoreCase));
+        }
+
+        return Task.FromResult(users);
+    }
+
+    private string GetStatusDisplayName(ProtocolStatus status) => status switch
+    {
+        ProtocolStatus.Open => "Em Aberto",
+        ProtocolStatus.SentForReview => "Enviado",
+        ProtocolStatus.Received => "Recebido",
+        ProtocolStatus.UnderReview => "Em Análise",
+        ProtocolStatus.Approved => "Aprovado",
+        ProtocolStatus.Rejected => "Rejeitado",
+        ProtocolStatus.CorrectionRequested => "Correção",
+        ProtocolStatus.Finalized => "Finalizado",
+        _ => status.ToString()
+    };
+
     private async Task Submit()
     {
         await form!.Validate();
 
         if (!isValid) return;
 
-        // Validação adicional para os campos de autocomplete
-        if (SelectedOriginSector is null || SelectedCreator is null || SelectedDestinationSector is null || SelectedDestinationUser is null)
+        if (SelectedCreator is null || SelectedOriginSector is null || SelectedDestinationUser is null || SelectedDestinationSector is null)
         {
-            Snackbar.Add("Por favor, preencha todos os campos obrigatórios de setor e usuário.", Severity.Warning);
+            Snackbar.Add("Por favor, selecione os usuários de origem e destino corretamente.", Severity.Warning);
             return;
         }
 
-        Protocol.OriginSectorId = SelectedOriginSector.Id;
         Protocol.CreatedById = SelectedCreator.Id;
-        Protocol.DestinationSectorId = SelectedDestinationSector.Id;
+        Protocol.OriginSectorId = SelectedOriginSector.Id;
         Protocol.DestinationUserId = SelectedDestinationUser.Id;
+        Protocol.DestinationSectorId = SelectedDestinationSector.Id;
 
-        // Retorna o objeto Protocolo modificado para o componente pai.
         MudDialog.Close(DialogResult.Ok(Protocol));
     }
 
-    /// <summary>
-    /// Acionado ao clicar no botão 'Cancelar'.
-    /// Cancela a operação e fecha o diálogo sem retornar dados.
-    /// </summary>
-    private void Cancel() 
-        => MudDialog.Cancel();
+    private void Cancel() => MudDialog.Cancel();
 }

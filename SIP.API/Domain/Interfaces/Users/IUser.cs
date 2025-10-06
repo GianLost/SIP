@@ -1,4 +1,5 @@
 ﻿using SIP.API.Domain.DTOs.Users;
+using SIP.API.Domain.DTOs.Users.Default;
 using SIP.API.Domain.DTOs.Users.Pagination;
 using SIP.API.Domain.Entities.Users;
 
@@ -33,7 +34,7 @@ public interface IUser
     /// <returns>
     /// A task that represents the asynchronous operation. The task result contains a list with all <see cref="User"/> entities
     /// </returns>
-    Task<ICollection<User>> GetAllAsync();
+    Task<ICollection<UserDefaultDTO>> GetAllAsync();
 
     /// <summary>
     /// Retorna usuários paginados, com filtro, ordenação e total de registros.

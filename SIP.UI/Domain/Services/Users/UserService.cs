@@ -1,5 +1,6 @@
 ﻿using SIP.UI.Domain.DTOs.Users;
 using SIP.UI.Domain.DTOs.Users.Configurations;
+using SIP.UI.Domain.DTOs.Users.Default;
 using SIP.UI.Domain.DTOs.Users.Pagination;
 using SIP.UI.Domain.Helpers.Endpoints;
 using SIP.UI.Models.Errors;
@@ -54,13 +55,13 @@ public class UserService(HttpClient http)
     /// Busca TODOS os usuários da API para usar em dropdowns e seletores.
     /// </summary>
     /// <returns>Uma lista completa de todos os usuários.</returns>
-    public async Task<ICollection<User>?> GetAllUsersToDropdownAsync()
+    public async Task<ICollection<UserDefaultDTO>?> GetAllUsersToDropdownAsync()
     {
         try
         {
             string endpoint = BaseEndpoints<User>._getAll;
 
-            ICollection<User>? users = await _http.GetFromJsonAsync<ICollection<User>>(endpoint);
+            ICollection<UserDefaultDTO>? users = await _http.GetFromJsonAsync<ICollection<UserDefaultDTO>>(endpoint);
 
             return users ?? [];
         }

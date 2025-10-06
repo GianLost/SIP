@@ -83,7 +83,7 @@ public class SectorService(HttpClient http)
     /// <param name="setor">The sector entity to update.</param>
     public async Task UpdateAsync(SectorUpdateDTO setor)
     {
-        HttpResponseMessage response = await _http.PutAsJsonAsync($"{BaseEndpoints<Sector>._update}{setor.Id}", setor);
+        HttpResponseMessage response = await _http.PatchAsJsonAsync($"{BaseEndpoints<Sector>._update}{setor.Id}", setor);
         response.EnsureSuccessStatusCode();
         await InvalidateCacheAsync();
     }

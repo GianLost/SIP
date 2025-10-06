@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using SIP.API.Domain.DTOs.Sectors.Default;
 using SIP.API.Domain.DTOs.Users;
+using SIP.API.Domain.DTOs.Users.Default;
 using SIP.API.Domain.DTOs.Users.Pagination;
 using SIP.API.Domain.Entities.Users;
 using SIP.API.Domain.Helpers.KeysHelper;
@@ -59,13 +61,20 @@ public class UserService(ICryptPassword cryp, ApplicationContext context, Entity
     }
 
     /// <inheritdoc/>
-    public async Task<ICollection<User>> GetAllAsync() =>
+    public async Task<ICollection<UserDefaultDTO>> GetAllAsync() =>
         await _context.Users
-            .OrderBy(u => u.CreatedAt)
-            .Include(s => s.Sector)
-            .Include(p => p.ProtocolsCreated)
             .AsNoTracking()
-            .ToListAsync();
+            .OrderBy(u => u.CreatedAt)
+            .Select(u => new UserDefaultDTO
+            {
+                Id = u.Id,
+                Name = u.Name,
+                Login = u.Login,
+                Masp = u.Masp,
+                Email = u.Email,
+                Status = u.IsActive,
+                SectorId = u.SectorId
+            }).ToListAsync();
 
     /// <inheritdoc/>
     public async Task<UserPagedResultDTO> GetPagedAsync(

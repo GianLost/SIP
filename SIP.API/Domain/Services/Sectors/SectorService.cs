@@ -64,8 +64,12 @@ public class SectorService(ApplicationContext context, EntityCacheManager cache)
                 .Select(u => new UserDefaultDTO
                 {
                     Id = u.Id,
+                    Status = u.IsActive,
+                    Masp = u.Masp,
                     Name = u.Name,
-                    Login = u.Login
+                    Login = u.Login,
+                    Email = u.Email,
+                    SectorId = s.Id,
                 }).ToList()
         })
         .ToListAsync();

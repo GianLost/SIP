@@ -372,7 +372,7 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
     /// - Retorna 404 (Not Found) se o setor não for encontrado.  
     /// - Retorna 500 (Internal Server Error) em caso de falha inesperada.  
     /// </remarks>
-    [HttpPut("{id}")]
+    [HttpPatch("{id}")]
     [ProducesResponseType(typeof(SectorResponseDTO), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]

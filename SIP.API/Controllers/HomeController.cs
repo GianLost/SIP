@@ -3,19 +3,28 @@ using SIP.API.Domain.ModelView.Home;
 
 namespace SIP.API.Controllers;
 
+/// <summary>
+/// Controlador responsável por fornecer informações básicas sobre o estado e o funcionamento da API.
+/// </summary>
+/// <remarks>
+/// Este controlador disponibiliza um endpoint que pode ser utilizado para verificar se a API está
+/// em execução e acessível, além de retornar o link direto para a documentação Swagger.
+/// </remarks>
 [Route("/")]
 [ApiController]
 public class HomeController : ControllerBase
 {
     /// <summary>
-    /// Returns basic information about the API or its status.
+    /// Retorna informações básicas sobre a API, incluindo o link para a documentação Swagger.
     /// </summary>
     /// <remarks>
-    /// This endpoint can be used to verify that the API is running and accessible.
+    /// Este endpoint é útil para validar se a API está operacional e para facilitar o acesso à
+    /// interface de documentação e testes interativos disponibilizada pelo Swagger.
     /// </remarks>
     /// <returns>
-    /// Returns a <see cref="Home"/> object with basic API information.
+    /// Um objeto <see cref="Home"/> contendo informações básicas e o link da documentação da API.
     /// </returns>
+    /// <response code="200">Informações da API retornadas com sucesso.</response>
     [HttpGet]
     [ProducesResponseType(typeof(Home), StatusCodes.Status200OK)]
     public IActionResult GetHome()
@@ -26,7 +35,7 @@ public class HomeController : ControllerBase
 
         string baseUrl = $"{scheme}://{host}";
 
-        Home response = new(documentationUrl: $"{baseUrl}/swagger");
+        Home response = new(DocumentationUrl: $"{baseUrl}/swagger");
 
         return Ok(response);
     }

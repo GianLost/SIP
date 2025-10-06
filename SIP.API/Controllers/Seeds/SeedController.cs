@@ -7,12 +7,28 @@ using SIP.API.Domain.Entities.Users;
 using SIP.API.Domain.Enums;
 using SIP.API.Domain.Interfaces.Hashes.Passwords;
 using SIP.API.Domain.Interfaces.Protocols;
-using SIP.API.Domain.Interfaces.Users;
 using SIP.API.Infrastructure.Database;
 
 namespace SIP.API.Controllers.Seeds;
 
-[Route("sip_api/[controller]")]
+/// <summary>
+/// Controlador responsável por realizar a importação de dados iniciais (seeds) 
+/// no banco de dados do sistema SIP.  
+/// Essa funcionalidade é destinada a ambientes de desenvolvimento e homologação, 
+/// permitindo popular rapidamente as tabelas de setores, usuários e protocolos
+/// a partir de um arquivo <c>seed.json</c>.
+/// </summary>
+/// <remarks>
+/// O arquivo <c>seed.json</c> deve estar localizado na raiz do projeto e seguir a estrutura
+/// compatível com as classes <see cref="SeedData"/>, <see cref="SectorSeed"/>, 
+/// <see cref="UserSeed"/> e <see cref="ProtocolSeed"/>.  
+/// 
+/// O método <see cref="ImportSeed"/>:
+/// - Cria os setores (secretarias);
+/// - Associa usuários a setores de forma aleatória;
+/// - Gera registros de protocolos fictícios.
+/// </remarks>
+[Route("sip_api/seeds")]
 [ApiController]
 public class SeedController(ApplicationContext context, ICryptPassword crypt, IProtocol protocolService) : ControllerBase
 {
@@ -21,6 +37,24 @@ public class SeedController(ApplicationContext context, ICryptPassword crypt, IP
     private readonly ICryptPassword _crypt = crypt;
     private readonly IProtocol _protocolService = protocolService;
 
+    /// <summary>
+    /// Importa dados de teste (seeds) a partir de um arquivo <c>seed.json</c> localizado na raiz do projeto.
+    /// </summary>
+    /// <remarks>
+    /// Este método realiza as seguintes operações:
+    /// <list type="number">
+    /// <item>Cria registros de setores (secretarias);</item>
+    /// <item>Cria registros de usuários, vinculando-os a setores de forma aleatória;</item>
+    /// <item>Gera registros de protocolos com base nos usuários e setores criados.</item>
+    /// </list>
+    /// 
+    /// O arquivo <c>seed.json</c> deve possuir estrutura compatível com o modelo <see cref="SeedData"/>.
+    /// 
+    /// ⚠️ Este endpoint é voltado exclusivamente para **uso interno** em ambientes de teste.
+    /// </remarks>
+    /// <response code="200">Seed importado com sucesso.</response>
+    /// <response code="400">Falha ao ler ou deserializar o arquivo de seed.</response>
+    /// <response code="500">Erro interno ao importar dados para o banco.</response>
     [HttpPost("import")]
     public async Task<IActionResult> ImportSeed()
     {
@@ -112,6 +146,10 @@ public class SeedController(ApplicationContext context, ICryptPassword crypt, IP
     }
 }
 
+/// <summary>
+/// Modelo raiz da estrutura de dados utilizada no arquivo de seed.
+/// Contém coleções de setores, usuários e protocolos.
+/// </summary>
 public class SeedData
 {
     public List<SectorSeed>? Sectors { get; set; }
@@ -119,6 +157,9 @@ public class SeedData
     public List<ProtocolSeed>? Protocols { get; set; }
 }
 
+/// <summary>
+/// Representa a estrutura de um setor (secretaria) no arquivo de seed.
+/// </summary>
 public class SectorSeed
 {
     public string? Name { get; set; }
@@ -128,6 +169,9 @@ public class SectorSeed
     public string? UpdatedAt { get; set; }
 }
 
+/// <summary>
+/// Representa a estrutura de um usuário no arquivo de seed.
+/// </summary>
 public class UserSeed
 {
     public string? FullName { get; set; }
@@ -142,6 +186,9 @@ public class UserSeed
     public bool IsActive { get; set; }
 }
 
+/// <summary>
+/// Representa a estrutura de um protocolo no arquivo de seed.
+/// </summary>
 public class ProtocolSeed
 {
     public string Subject { get; set; } = string.Empty;
