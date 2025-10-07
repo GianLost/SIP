@@ -1,6 +1,6 @@
-﻿namespace SIP.API.Domain.Helpers.Messages.LogMessage.Success;
+﻿namespace SIP.API.Domain.Helpers.Messages.LogMessages.Success;
 
-public static class LogSuccessMessages
+public readonly struct LogSuccessMessages
 {
     // =============================
     // Mensagens de Log - Success

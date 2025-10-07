@@ -1,6 +1,6 @@
-﻿namespace SIP.API.Domain.Helpers.Messages.LogMessage.Info;
+﻿namespace SIP.API.Domain.Helpers.Messages.LogMessages.Info;
 
-public static class LogInfoMessages
+public readonly struct LogInfoMessages
 {
     // =============================
     // Mensagens de Log - Info

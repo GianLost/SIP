@@ -1,6 +1,6 @@
-﻿namespace SIP.API.Domain.Helpers.Messages.LogMessage.Warning;
+﻿namespace SIP.API.Domain.Helpers.Messages.LogMessages.Warning;
 
-public static class LogWarningMessages
+public readonly struct LogWarningMessages
 {
     // =============================
     // Mensagens de Log - Warning

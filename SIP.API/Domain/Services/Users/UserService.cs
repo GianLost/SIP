@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using SIP.API.Domain.DTOs.Sectors.Default;
 using SIP.API.Domain.DTOs.Users;
 using SIP.API.Domain.DTOs.Users.Default;
 using SIP.API.Domain.DTOs.Users.Pagination;

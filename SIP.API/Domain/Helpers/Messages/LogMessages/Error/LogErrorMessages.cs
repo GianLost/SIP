@@ -1,6 +1,6 @@
-﻿namespace SIP.API.Domain.Helpers.Messages.LogMessage.Error;
+﻿namespace SIP.API.Domain.Helpers.Messages.LogMessages.Error;
 
-public class LogErrorMessages
+public readonly struct LogErrorMessages
 {
     // =============================
     // Mensagens de Log - Error

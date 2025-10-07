@@ -7,10 +7,10 @@ using SIP.API.Domain.DTOs.Users.Pagination;
 using SIP.API.Domain.DTOs.Users.Responses;
 using SIP.API.Domain.Entities.Users;
 using SIP.API.Domain.Helpers.Extensions;
-using SIP.API.Domain.Helpers.Messages.LogMessage.Error;
-using SIP.API.Domain.Helpers.Messages.LogMessage.Info;
-using SIP.API.Domain.Helpers.Messages.LogMessage.Success;
-using SIP.API.Domain.Helpers.Messages.LogMessage.Warning;
+using SIP.API.Domain.Helpers.Messages.LogMessages.Error;
+using SIP.API.Domain.Helpers.Messages.LogMessages.Info;
+using SIP.API.Domain.Helpers.Messages.LogMessages.Success;
+using SIP.API.Domain.Helpers.Messages.LogMessages.Warning;
 using SIP.API.Domain.Interfaces.Users;
 using SIP.API.Domain.Interfaces.Users.Configurations;
 

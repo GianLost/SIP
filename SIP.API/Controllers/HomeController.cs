@@ -1,4 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using MySqlConnector;
+using SIP.API.Domain.Helpers.Messages.HomeMessages.Error;
+using SIP.API.Domain.Helpers.Messages.HomeMessages.Success;
 using SIP.API.Domain.ModelView.Home;
 
 namespace SIP.API.Controllers;
@@ -12,8 +15,21 @@ namespace SIP.API.Controllers;
 /// </remarks>
 [Route("/")]
 [ApiController]
-public class HomeController : ControllerBase
+public class HomeController(IConfiguration configuration) : ControllerBase
 {
+    private readonly IConfiguration _configuration = configuration;
+
+    /// <summary>
+    /// Endpoint rápido de verificação de disponibilidade da API.
+    /// </summary>
+    /// <response code="200">A API está em execução e acessível.</response>
+    [HttpHead]
+    public IActionResult HealthCheck()
+    {
+        Response.Headers.Append("X-API-Status", "Online");
+        return Ok();
+    }
+
     /// <summary>
     /// Retorna informações básicas sobre a API, incluindo o link para a documentação Swagger.
     /// </summary>
@@ -27,16 +43,44 @@ public class HomeController : ControllerBase
     /// <response code="200">Informações da API retornadas com sucesso.</response>
     [HttpGet]
     [ProducesResponseType(typeof(Home), StatusCodes.Status200OK)]
-    public IActionResult GetHome()
+    public async Task<IActionResult> GetHome()
     {
         HttpRequest request = HttpContext.Request;
-        string scheme = request.Scheme;
-        string host = request.Host.Value;
+        string baseUrl = $"{request.Scheme}://{request.Host.Value}";
 
-        string baseUrl = $"{scheme}://{host}";
+        bool isDatabaseOnline = await CheckDatabaseConnectionAsync();
+        string status = isDatabaseOnline ? "Online" : "Degraded";
 
-        Home response = new(DocumentationUrl: $"{baseUrl}/swagger");
+        string message = isDatabaseOnline
+            ? HomeSuccessMessages.APIConnectionSuccess
+            : HomeErrorMessages.DatabaseConnectionFail;
+
+        Home response = new(
+            ApiName: "SIP_API",
+            Version: "1.0",
+            Status: status,
+            DocumentationUrl: $"{baseUrl}/swagger"
+        )
+        {
+            Message = message
+        };
 
         return Ok(response);
+    }
+
+    private async Task<bool> CheckDatabaseConnectionAsync()
+    {
+        try
+        {
+            string? connectionString = _configuration.GetConnectionString("MySql");
+
+            using var connection = new MySqlConnection(connectionString);
+            await connection.OpenAsync();
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 }
