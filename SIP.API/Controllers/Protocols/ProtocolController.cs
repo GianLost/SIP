@@ -227,10 +227,10 @@ public class ProtocolController(IProtocol protocol, ILogger<ProtocolController> 
     /// </returns>
     /// <exception cref="Exception">Erro inesperado ao realizar a paginação.</exception>
     /// <remarks>
-    /// Ação: <b>Listar usuários paginados</b>. 
+    /// Ação: <b>Listar protocolos paginados</b>. 
     /// 
     /// <b>Endpoint para carregar dados em tabelas e grades de forma eficiente.</b>
-    /// - Retorna 200 (OK) com a lista de usuários e total de registros.  
+    /// - Retorna 200 (OK) com a lista de protocolos e total de registros.  
     /// - Retorna lista vazia se nenhum registro for encontrado para os filtros aplicados.  
     /// - Retorna 500 (Internal Server Error) em caso de falha inesperada.  
     /// </remarks>

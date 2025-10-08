@@ -7,6 +7,4 @@ public record Home(
     string DocumentationUrl = "",
     string? Message = null
 )
-{
-
-}
+{ }

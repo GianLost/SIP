@@ -130,7 +130,10 @@ builder.Services.AddControllers()
     options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.Never;
 });
 
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
+
+// Configuração do Swagger com informações da API e inclusão dos comentários XML
 builder.Services.AddSwaggerGen(s =>
 {
     s.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
@@ -145,6 +148,8 @@ builder.Services.AddSwaggerGen(s =>
     s.IncludeXmlComments(xmlPath);
 });
 
+
+// Configuração do DbContext com MySQL passando string de conexão através do arquivo appsettings.Development.json
 builder.Services.AddDbContext<ApplicationContext>(options =>
 {
     options.UseMySql(
@@ -155,6 +160,7 @@ builder.Services.AddDbContext<ApplicationContext>(options =>
 
 WebApplication app = builder.Build();
 
+// Habilita o CORS para permitir requisições do cliente Blazor
 app.UseCors("AllowBlazorClient");
 
 // Configure the HTTP request pipeline.
