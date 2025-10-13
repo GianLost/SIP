@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MySqlConnector;
+using SIP.API.Domain.Helpers.ApplicationHelper;
 using SIP.API.Domain.Helpers.Messages.HomeMessages.Error;
 using SIP.API.Domain.Helpers.Messages.HomeMessages.Success;
 using SIP.API.Domain.ModelView.Health;
@@ -107,8 +108,6 @@ public class HomeController(IConfiguration configuration) : ControllerBase
             : HomeErrorMessages.DatabaseConnectionFail;
 
         Home response = new(
-            ApiName: "SIP_API",
-            Version: "1.0",
             Status: status,
             DocumentationUrl: $"{baseUrl}/swagger"
         )

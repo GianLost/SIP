@@ -14,6 +14,7 @@ using SIP.API.Domain.Services.Users;
 using SIP.API.Domain.Services.Users.Configurations;
 using System.Globalization;
 using System.Reflection;
+using SIP.API.Domain.Helpers.ApplicationHelper;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,7 +37,7 @@ Log.Logger = new LoggerConfiguration()
     .Enrich.WithMachineName()
     .Enrich.WithProcessId()
     .Enrich.WithThreadId()
-    .Enrich.WithProperty("Application", "SIP_WEB") // nome fixo do sistema
+    .Enrich.WithProperty("Application", "SIP_API") // nome fixo do sistema
 
     // =============================
     // Log para o terminal
@@ -139,7 +140,7 @@ builder.Services.AddSwaggerGen(s =>
     s.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
     {
         Title = "SIP API",
-        Version = "v1",
+        Version = ApplicationInfo.Version,
         Description = "Integrated management API for 'SIP - INTERNAL PROTOCOL SYSTEM'."
     });
 

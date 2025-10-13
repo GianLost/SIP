@@ -133,7 +133,8 @@ public class SectorService(ApplicationContext context, EntityCacheManager cache)
                     Name = user.Name,
                     Email = user.Email,
                     Login = user.Login,
-                    Status = user.IsActive
+                    Status = user.IsActive,
+                    SectorId = user.SectorId
                 }).ToList()
             })
             .ToListAsync();
