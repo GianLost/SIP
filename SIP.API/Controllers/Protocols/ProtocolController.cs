@@ -558,12 +558,10 @@ public class ProtocolController(IProtocol protocol, ILogger<ProtocolController> 
         Description = entity.Description,
         Status = entity.Status,
         IsArchived = entity.IsArchived,
-        CreatedByName = entity.CreatedBy?.Name ?? string.Empty,
-        DestinationUserName = entity.DestinationUser?.Name ?? string.Empty,
         CreatedAt = entity.CreatedAt,
-        OriginSectorAcronym = entity.OriginSector?.Acronym ?? string.Empty,
-        DestinationSectorAcronym = entity.DestinationSector?.Acronym ?? string.Empty,
-        UpdatedAt = entity.UpdatedAt,
-        UpdatedByName = entity.UpdatedBy?.Name ?? string.Empty
+        CreatedById = entity.CreatedById,
+        OriginSectorId = entity.OriginSectorId,
+        DestinationUserId = entity.DestinationUserId,
+        DestinationSectorId = entity.DestinationSectorId
     };
 }

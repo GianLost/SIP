@@ -1,5 +1,6 @@
 ﻿using SIP.UI.Domain.DTOs.Protocols;
 using SIP.UI.Domain.DTOs.Protocols.Pagination;
+using SIP.UI.Domain.DTOs.Protocols.Response;
 using SIP.UI.Domain.Helpers.Endpoints;
 using SIP.UI.Models.Errors;
 using SIP.UI.Models.Protocols;
@@ -11,11 +12,11 @@ public class ProtocolService(HttpClient http)
 {
     private readonly HttpClient _http = http;
 
-    public async Task<Protocol?> GetByIdAsync(Guid id)
+    public async Task<ProtocolResponseDTO?> GetByIdAsync(Guid id)
     {
         try
         {
-            return await _http.GetFromJsonAsync<Protocol>($"{BaseEndpoints<Protocol>._getById}{id}");
+            return await _http.GetFromJsonAsync<ProtocolResponseDTO>($"{BaseEndpoints<Protocol>._getById}{id}");
         }
         catch
         {
@@ -56,7 +57,7 @@ public class ProtocolService(HttpClient http)
 
     public async Task UpdateAsync(ProtocolUpdateDTO protocol)
     {
-        HttpResponseMessage response = await _http.PutAsJsonAsync($"{BaseEndpoints<Protocol>._update}{protocol.Id}", protocol);
+        HttpResponseMessage response = await _http.PatchAsJsonAsync($"{BaseEndpoints<Protocol>._update}{protocol.Id}", protocol);
         response.EnsureSuccessStatusCode();
         await InvalidateCacheAsync();
     }

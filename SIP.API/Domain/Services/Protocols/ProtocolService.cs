@@ -95,7 +95,6 @@ public class ProtocolService(ApplicationContext contex, EntityCacheManager cache
     public async Task<Protocol?> GetByIdAsync(Guid id)
     {
         return await _context.Protocols
-            .AsNoTracking()
             .Include(p => p.CreatedBy)
             .Include(p => p.UpdatedBy)
             .Include(p => p.DestinationUser)
@@ -235,7 +234,6 @@ public class ProtocolService(ApplicationContext contex, EntityCacheManager cache
         protocol.UpdatedAt = DateTime.UtcNow;
         protocol.UpdatedById = dto.UpdatedById;
 
-        _context.Protocols.Update(protocol);
         await _context.SaveChangesAsync();
 
         ClearTotalProtocolsCountCache();

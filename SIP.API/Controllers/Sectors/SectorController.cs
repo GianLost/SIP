@@ -11,6 +11,7 @@ using SIP.API.Domain.Helpers.Messages.LogMessages.Warning;
 using SIP.API.Domain.Helpers.Messages.LogMessages.Error;
 using SIP.API.Domain.Helpers.Extensions;
 using SIP.API.Controllers.Errors;
+using SIP.API.Domain.DTOs.Users.Default;
 
 namespace SIP.API.Controllers.Sectors;
 
@@ -540,6 +541,16 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
         Acronym = entity.Acronym,
         Phone = entity.Phone,
         CreatedAt = entity.CreatedAt,
-        UpdatedAt = entity.UpdatedAt
+        UpdatedAt = entity.UpdatedAt,
+        Users = [.. entity.Users.Select(user => new UserDefaultDTO
+        {
+            Id = user.Id,
+            Masp = user.Masp,
+            Name = user.Name,
+            Email = user.Email,
+            Login = user.Login,
+            Status = user.IsActive,
+            SectorId = user.SectorId
+        })]
     };
 }

@@ -1,6 +1,8 @@
 ﻿using SIP.API.Domain.Enums;
 using SIP.API.Domain.Helpers.StatusHelper;
 using SIP.API.Domain.Models.Protocols;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SIP.API.Domain.DTOs.Protocols.Responses;
 
@@ -14,14 +16,12 @@ public class ProtocolResponseDTO : BaseProtocol
     public override ProtocolStatus Status { get; set; }
     public override bool IsArchived { get; set; } = false;
 
-    public string CreatedByName { get; set; } = string.Empty;
-    public string DestinationUserName { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-    public string OriginSectorAcronym { get; set; } = string.Empty;
-    public string DestinationSectorAcronym { get; set; } = string.Empty;
-    public DateTime? UpdatedAt { get; set; } = null;
-    public string? UpdatedByName { get; set; } = string.Empty;
+    public override Guid? CreatedById { get; set; }
+    public override Guid DestinationUserId { get; set; }
+    public override Guid OriginSectorId { get; set; }
+    public override Guid DestinationSectorId { get; set; }
 
     public string StatusName => Status.ToFriendlyName();
 }

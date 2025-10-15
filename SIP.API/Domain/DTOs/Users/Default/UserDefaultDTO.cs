@@ -1,5 +1,4 @@
-﻿using SIP.API.Domain.DTOs.Sectors.Default;
-using SIP.API.Domain.Models.Users;
+﻿using SIP.API.Domain.Models.Users;
 
 namespace SIP.API.Domain.DTOs.Users.Default;
 

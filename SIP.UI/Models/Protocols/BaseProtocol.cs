@@ -6,7 +6,7 @@ namespace SIP.UI.Models.Protocols;
 public abstract class BaseProtocol
 {
     [Required(ErrorMessage = "O número do protocolo é obrigatório.")]
-    [Range(0, int.MaxValue, ErrorMessage = "O número do protocolo deve ser um valor positivo.")]
+    [Range(1, int.MaxValue, ErrorMessage = "O número do protocolo deve ser um valor positivo.")]
     public virtual int Number { get; set; }
 
     [Required(ErrorMessage = "O assunto é obrigatório.")]

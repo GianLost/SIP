@@ -5,6 +5,7 @@
 @using SIP.UI.Components.Dialogs.Protocols
 @using SIP.UI.Domain.DTOs.Protocols
 @using SIP.UI.Domain.DTOs.Protocols.Pagination
+@using SIP.UI.Domain.DTOs.Protocols.Response
 @using SIP.UI.Domain.Enums
 @using SIP.UI.Domain.Helpers.DataFormatting.DateTimes
 @using SIP.UI.Domain.Helpers.DataFormatting.Strings
@@ -325,6 +326,7 @@
 
         DialogParameters<ProtocolDialog> parameters = new();
         parameters.Add(x => x.Protocol, new ProtocolCreateDTO());
+        parameters.Add(x => x.IsEdit, false);
 
         IDialogReference dialog = await DialogService.ShowAsync<ProtocolDialog>(" ", parameters);
         DialogResult? result = await dialog.Result;
@@ -357,7 +359,7 @@
         }
     }
 
-    private async Task ShowEditDialog(Protocol protocol)
+    private async Task ShowEditDialog(ProtocolResponseDTO protocol)
     {
         _isModalOpen = true;
 
@@ -376,6 +378,7 @@
             DestinationSectorId = protocol.DestinationSectorId,
             IsArchived = protocol.IsArchived
         });
+        parameters.Add(x => x.IsEdit, true);
 
         IDialogReference dialog = await DialogService.ShowAsync<ProtocolDialog>(" ", parameters);
         DialogResult? result = await dialog.Result;
@@ -414,7 +417,7 @@
         var selectedProtocolDto = _selectedProtocols.First();
         isLoading = true;
 
-        var fullProtocol = await _protocolService.GetByIdAsync(selectedProtocolDto.Id);
+        ProtocolResponseDTO? fullProtocol = await _protocolService.GetByIdAsync(selectedProtocolDto.Id);
 
         isLoading = false;
 

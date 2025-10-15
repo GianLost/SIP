@@ -49,7 +49,8 @@
                                      Clearable="true"
                                      Placeholder="Pesquisar usuário de origem..."
                                      ToStringFunc="@(u => u?.Name)"
-                                     MaxItems="int.MaxValue" />
+                                     MaxItems="int.MaxValue"
+                                     Disabled="IsEdit" />
                 </MudItem>
 
                 <!-- Setor de origem (bloqueado) -->
@@ -73,16 +74,17 @@
                                      Clearable="true"
                                      Placeholder="Pesquisar usuário de destino..."
                                      ToStringFunc="@(u => u?.Name)"
-                                     MaxItems="int.MaxValue" />
+                                     MaxItems="int.MaxValue"
+                                     Disabled="IsEdit" />
                 </MudItem>
 
                 <!-- Setor de destino (bloqueado) -->
                 <MudItem xs="12" sm="6">
                     <MudTextField Value="@(SelectedDestinationSector?.Name ?? string.Empty)"
-                                  Label="Setor de Destino"
-                                  Disabled="true"
-                                  Variant="Variant.Outlined"
-                                  Margin="Margin.Normal" />
+                  Label="Setor de Destino"
+                  Disabled="true"
+                  Variant="Variant.Outlined"
+                  Margin="Margin.Normal" />
                 </MudItem>
 
                 <!-- Status -->
@@ -141,6 +143,9 @@
     [Parameter]
     public BaseProtocol Protocol { get; set; } = default!;
 
+    [Parameter]
+    public bool IsEdit { get; set; }
+
     private MudForm? form;
     private bool isValid;
 
@@ -194,6 +199,8 @@
             SelectedDestinationUser = AllUsers.FirstOrDefault(u => u.Id == Protocol.DestinationUserId);
             SelectedDestinationSector = Sectors.FirstOrDefault(s => s.Id == SelectedDestinationUser?.SectorId);
         }
+
+        StateHasChanged();
     }
 
     private Task<IEnumerable<UserDefaultDTO>> SearchUsers(string value, CancellationToken cancellationToken)

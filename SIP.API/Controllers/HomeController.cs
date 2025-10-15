@@ -2,6 +2,7 @@
 using MySqlConnector;
 using SIP.API.Domain.Helpers.ApplicationHelper;
 using SIP.API.Domain.Helpers.Messages.HomeMessages.Error;
+using SIP.API.Domain.Helpers.Messages.HomeMessages.info;
 using SIP.API.Domain.Helpers.Messages.HomeMessages.Success;
 using SIP.API.Domain.ModelView.Health;
 using SIP.API.Domain.ModelView.Home;
@@ -68,8 +69,8 @@ public class HomeController(IConfiguration configuration) : ControllerBase
             Status = allHealthy ? "Healthy" : "Degraded",
             Dependencies = checks.ToDictionary(c => c.Key, c => c.Value ? "Healthy" : "Degraded"),
             Message = allHealthy
-                ? "Todos os serviços operacionais."
-                : "Uma ou mais dependências estão indisponíveis.",
+                ? HomeInfoMessages.AllServicesOperational
+                : HomeInfoMessages.DependenciesUnavailable,
             Timestamp = DateTime.UtcNow
         };
 

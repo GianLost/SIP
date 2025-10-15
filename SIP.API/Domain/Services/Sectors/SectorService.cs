@@ -44,9 +44,9 @@ public class SectorService(ApplicationContext context, EntityCacheManager cache)
     /// <inheritdoc/>
     public async Task<Sector?> GetByIdAsync(Guid id) =>
         await _context.Sectors
+            .AsNoTracking()
             .OrderBy(s => s.CreatedAt)
             .Include(s => s.Users)
-            .AsNoTracking()
             .FirstOrDefaultAsync(s => s.Id == id);
 
     /// <inheritdoc/>
@@ -60,15 +60,16 @@ public class SectorService(ApplicationContext context, EntityCacheManager cache)
             Id = s.Id,
             Name = s.Name,
             Acronym = s.Acronym,
+            Phone = s.Phone,
             Users = s.Users
                 .Select(u => new UserDefaultDTO
                 {
                     Id = u.Id,
-                    Status = u.IsActive,
                     Masp = u.Masp,
                     Name = u.Name,
                     Login = u.Login,
                     Email = u.Email,
+                    Status = u.IsActive,
                     SectorId = s.Id,
                 }).ToList()
         })

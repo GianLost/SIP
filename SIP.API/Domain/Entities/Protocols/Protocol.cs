@@ -52,7 +52,7 @@ public class Protocol : BaseProtocol
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     [Column(TypeName = "char(36)")]
-    public Guid? CreatedById { get; set; }
+    public override Guid? CreatedById { get; set; }
     public User? CreatedBy { get; set; }
 
     [Column(TypeName = "datetime(6)")]
@@ -64,17 +64,17 @@ public class Protocol : BaseProtocol
 
     [Required]
     [Column(TypeName = "char(36)")]
-    public Guid DestinationUserId { get; set; }
+    public override Guid DestinationUserId { get; set; }
     public User? DestinationUser { get; set; }
 
     [Required]
     [Column(TypeName = "char(36)")]
-    public Guid OriginSectorId { get; set; }
+    public override Guid OriginSectorId { get; set; }
     public Sector? OriginSector { get; set; }
 
     [Required]
     [Column(TypeName = "char(36)")]
-    public Guid DestinationSectorId { get; set; }
+    public override Guid DestinationSectorId { get; set; }
     public Sector? DestinationSector { get; set; }
 
     public ICollection<Attachment> Attachments { get; set; } = [];
