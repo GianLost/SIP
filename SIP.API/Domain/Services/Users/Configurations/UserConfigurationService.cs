@@ -7,12 +7,11 @@ using SIP.API.Infrastructure.Database;
 
 namespace SIP.API.Domain.Services.Users.Configurations;
 
-public class UserConfigurationService(ApplicationContext context, ICryptPassword crypt, IUser userService) : IUserConfiguration
+public class UserConfigurationService(ApplicationContext context, ICryptPassword crypt) : IUserConfiguration
 {
     private readonly ApplicationContext _context = context;
 
     private readonly ICryptPassword _crypt = crypt;
-    private readonly IUser _userService = userService;
 
     /// <inheritdoc/>
     public async Task<User?> DefaultChangePasswordAsync(UserDefaultChangePasswordDTO dto)
@@ -20,7 +19,8 @@ public class UserConfigurationService(ApplicationContext context, ICryptPassword
         if (dto == null || string.IsNullOrWhiteSpace(dto.Password))
             return null;
 
-        User? user = await _userService.GetByIdAsync(dto.Id);
+        User? user = 
+            await _context.Users.FindAsync(dto.Id);
 
         if (user == null)
             return null;

@@ -1,5 +1,4 @@
-﻿using SIP.API.Domain.DTOs.Users.Default;
-using SIP.API.Domain.Models.Sectors;
+﻿using SIP.API.Domain.Models.Sectors;
 
 namespace SIP.API.Domain.DTOs.Sectors.Responses;
 
@@ -16,6 +15,4 @@ public class SectorResponseDTO : BaseSector
 
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
-
-    public ICollection<UserDefaultDTO> Users { get; set; } = [];
 }

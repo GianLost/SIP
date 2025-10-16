@@ -22,9 +22,4 @@ public class UserResponseDTO : BaseUser
     public DateTime? UpdatedAt { get; set; }
 
     public UserRole Role { get; set; }
-
-    public Guid SectorId { get; set; }
-
-    public ICollection<Protocol> ProtocolsCreated { get; set; } = [];
-    public ICollection<Protocol> ProtocolsReceived { get; set; } = [];
 }

@@ -2,6 +2,7 @@
 using SIP.API.Domain.DTOs.Users;
 using SIP.API.Domain.DTOs.Users.Default;
 using SIP.API.Domain.DTOs.Users.Pagination;
+using SIP.API.Domain.DTOs.Users.Responses;
 using SIP.API.Domain.Entities.Users;
 using SIP.API.Domain.Helpers.KeysHelper;
 using SIP.API.Domain.Interfaces.Hashes.Passwords;
@@ -36,7 +37,7 @@ public class UserService(ICryptPassword cryp, ApplicationContext context, Entity
             Login = dto.Login,
             Masp = dto.Masp,
             Email = dto.Email,
-            PasswordHash = _crypt.Hash(dto.Password!),
+            PasswordHash = _crypt.Hash(dto.Password!), // Criptografia de senha com Bycrypt
             Role = dto.Role,
             SectorId = dto.SectorId
         };
@@ -50,17 +51,49 @@ public class UserService(ICryptPassword cryp, ApplicationContext context, Entity
     }
 
     /// <inheritdoc/>
-    public async Task<User?> GetByIdAsync(Guid id)
+    public async Task<UserResponseDTO?> GetByIdAsync(Guid id)
     {
         return await _context.Users
-            .OrderBy(u => u.CreatedAt)
-            .Include(p => p.ProtocolsCreated)
             .AsNoTracking()
-            .FirstOrDefaultAsync(u => u.Id == id);
+            .OrderBy(u => u.CreatedAt)
+            .Where(u => u.Id == id)
+            .Select(u => new UserResponseDTO
+            {
+                Id = u.Id,
+                Name = u.Name,
+                Login = u.Login,
+                Masp = u.Masp,
+                Email = u.Email,
+                Status = u.IsActive ? "Ativo" : "Inativo",
+                CreatedAt = u.CreatedAt,
+                UpdatedAt = u.UpdatedAt,
+                Role = u.Role
+            }).FirstOrDefaultAsync();
+    }
+
+    public async Task<UserResponseDTO?> GetByIdDefaultAsync(Guid id)
+    {
+        return await _context.Users
+            .AsNoTracking()
+            .OrderBy(u => u.CreatedAt)
+            .Where(u => u.Id == id)
+            .Select(u => new UserResponseDTO
+            {
+                Id = u.Id,
+                Name = u.Name,
+                Login = u.Login,
+                Masp = u.Masp,
+                Email = u.Email,
+                Status = u.IsActive ? "Ativo" : "Inativo",
+                CreatedAt = u.CreatedAt,
+                UpdatedAt = u.UpdatedAt,
+                Role = u.Role
+            }).FirstOrDefaultAsync();
     }
 
     /// <inheritdoc/>
     public async Task<ICollection<UserDefaultDTO>> GetAllAsync() =>
+    /* TODO: Otimizar consulta para o uso em componente MudSelect no front-end */
         await _context.Users
             .AsNoTracking()
             .OrderBy(u => u.CreatedAt)
@@ -71,8 +104,7 @@ public class UserService(ICryptPassword cryp, ApplicationContext context, Entity
                 Login = u.Login,
                 Masp = u.Masp,
                 Email = u.Email,
-                Status = u.IsActive,
-                SectorId = u.SectorId
+                Status = u.IsActive
             }).ToListAsync();
 
     /// <inheritdoc/>
@@ -85,10 +117,8 @@ public class UserService(ICryptPassword cryp, ApplicationContext context, Entity
     {
         pageSize = Math.Min(pageSize, MaxPageSize); // Limite máximo
 
-        IQueryable<User> query = _context.Users
-            .Include(s => s.Sector)
-            .Include(p => p.ProtocolsCreated)
-            .AsNoTracking();
+        IQueryable<User> query = 
+            _context.Users.AsNoTracking();
 
         if (!string.IsNullOrWhiteSpace(searchString))
         {
@@ -130,13 +160,14 @@ public class UserService(ICryptPassword cryp, ApplicationContext context, Entity
 
             query = sortLabel.ToLower() switch
             {
-                "masp" => asc
-                  ? query.OrderBy(u => u.Masp)
-                  : query.OrderByDescending(s => s.Masp),
 
                 "status" => asc
                   ? query.OrderBy(statusOrderExpr)
                   : query.OrderByDescending(statusOrderExpr),
+
+                "masp" => asc
+                  ? query.OrderBy(u => u.Masp)
+                  : query.OrderByDescending(s => s.Masp),
 
                 "name" => asc
                   ? query.OrderBy(u => u.Name)
@@ -168,16 +199,10 @@ public class UserService(ICryptPassword cryp, ApplicationContext context, Entity
             Id = u.Id,
             Name = u.Name,
             Login = u.Login,
-            Masp = u.Masp.ToString(),
+            Masp = u.Masp,
             Email = u.Email,
-            Role = u.Role,
             Status = u.IsActive,
-            CreatedAt = u.CreatedAt,
-            LastLoginAt = u.LastLoginAt,
-            UpdatedAt = u.UpdatedAt,
-            SectorName = u.Sector!.Name,
-            SectorAcronym = u.Sector.Acronym,
-            Protocols = u.ProtocolsCreated
+            SectorAcronym = u.Sector!.Acronym
         });
 
         ICollection<UserListItemDTO> items = 
@@ -195,7 +220,7 @@ public class UserService(ICryptPassword cryp, ApplicationContext context, Entity
     public async Task<User?> UpdateAsync(Guid id, UserUpdateDTO dto)
     {
         User? user = 
-            await GetByIdAsync(id);
+            await _context.Users.FindAsync(id);
 
         if (user == null)
             return null;
@@ -219,18 +244,25 @@ public class UserService(ICryptPassword cryp, ApplicationContext context, Entity
     /// <inheritdoc/>
     public async Task<bool> DeleteAsync(Guid id)
     {
-        bool userHasProtocols = await _context.Protocols
-        .AnyAsync(p => p.CreatedById == id || p.DestinationUserId == id);
-
-        if (userHasProtocols)
-            throw new InvalidOperationException("Não é possível excluir um usuário que possua um ou mais protocolos vinculados.");
-
-        User? user = await GetByIdAsync(id);
+        UserResponseDTO? user = 
+            await GetByIdDefaultAsync(id);
 
         if (user == null)
             return false;
 
-        _context.Users.Remove(user);
+        bool userHasProtocols = await _context.Protocols
+            .AnyAsync(p => p.CreatedById == id || p.DestinationUserId == id);
+
+        if (userHasProtocols)
+            throw new InvalidOperationException("Não é possível excluir um usuário que possua um ou mais protocolos vinculados.");
+
+        User? entity =
+            await _context.Users.FindAsync(id);
+
+        if (entity == null)
+            return false;
+
+        _context.Users.Remove(entity);
         await _context.SaveChangesAsync();
 
         ClearTotalUsersCountCache();

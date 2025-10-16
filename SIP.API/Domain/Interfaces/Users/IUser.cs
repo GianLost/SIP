@@ -1,6 +1,7 @@
 ﻿using SIP.API.Domain.DTOs.Users;
 using SIP.API.Domain.DTOs.Users.Default;
 using SIP.API.Domain.DTOs.Users.Pagination;
+using SIP.API.Domain.DTOs.Users.Responses;
 using SIP.API.Domain.Entities.Users;
 
 namespace SIP.API.Domain.Interfaces.Users;
@@ -26,7 +27,16 @@ public interface IUser
     /// <returns>
     /// A task that represents the asynchronous operation. The task result contains the <see cref="User"/> entity if found; otherwise, <c>null</c>.
     /// </returns>
-    Task<User?> GetByIdAsync(Guid id);
+    Task<UserResponseDTO?> GetByIdAsync(Guid id);
+
+    /// <summary>
+    /// Asynchronously retrieves a user by its unique identifier.
+    /// </summary>
+    /// <param name="id">The unique identifier of the user.</param>
+    /// <returns>
+    /// A task that represents the asynchronous operation. The task result contains the <see cref="User"/> entity if found; otherwise, <c>null</c>.
+    /// </returns>
+    Task<UserResponseDTO?> GetByIdDefaultAsync(Guid id);
 
     /// <summary>
     /// Retrieves all users records.

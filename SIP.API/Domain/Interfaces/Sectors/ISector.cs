@@ -1,6 +1,7 @@
 ﻿using SIP.API.Domain.DTOs.Sectors;
 using SIP.API.Domain.DTOs.Sectors.Default;
 using SIP.API.Domain.DTOs.Sectors.Pagination;
+using SIP.API.Domain.DTOs.Sectors.Responses;
 using SIP.API.Domain.Entities.Sectors;
 
 namespace SIP.API.Domain.Interfaces.Sectors;
@@ -20,13 +21,22 @@ public interface ISector
     Task<Sector> CreateAsync(SectorCreateDTO dto);
 
     /// <summary>
-    /// Asynchronously retrieves a sector by its unique identifier.
+    /// Asynchronously retrieves a standardized sector with only the necessary fields using its unique identifier.
     /// </summary>
     /// <param name="id">The unique identifier of the sector.</param>
     /// <returns>
-    /// A task that represents the asynchronous operation. The task result contains the <see cref="Sector"/> entity if found; otherwise, <c>null</c>.
+    /// A task that represents the asynchronous operation. The task result contains the <see cref="SectorListItemDTO"/> entity if found; otherwise, <c>null</c>.
     /// </returns>
-    Task<Sector?> GetByIdAsync(Guid id);
+    Task<SectorResponseDTO?> GetByIdAsync(Guid id);
+
+    /// <summary>
+    /// Asynchronously retrieves a standardized sector with only the required fields using its unique identifier and including the collection of users linked to the sector.
+    /// </summary>
+    /// <param name="id">The unique identifier of the sector.</param>
+    /// <returns>
+    /// A task that represents the asynchronous operation. The task result contains the <see cref="SectorDefaultDTO"/> entity if found; otherwise, <c>null</c>.
+    /// </returns>
+    Task<SectorDefaultDTO?> GetByIdDefaultAsync(Guid id);
 
     /// <summary>
     /// Gets a paginated result of sectors from the API, including total count. Use in-memory caching and limit the number of records per page to avoid multiple requests for the same data.
@@ -53,7 +63,7 @@ public interface ISector
     /// <param name="id">The unique identifier of the sector to update.</param>
     /// <param name="dto">A data transfer object containing the updated sector values.</param>
     /// <returns>
-    /// A task that represents the asynchronous operation. The task result contains the updated <see cref="Sector"/> entity if found; otherwise, <c>null</c>.
+    /// A task that represents the asynchronous operation. The task result contains the updated <see cref="SectorResponseDTO"/> entity if found; otherwise, <c>null</c>.
     /// </returns>
     Task<Sector?> UpdateAsync(Guid id, SectorUpdateDTO dto);
 

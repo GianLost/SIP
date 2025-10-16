@@ -28,7 +28,7 @@ namespace SIP.API.Controllers.Users;
 public class UserController(IUser user, IUserConfiguration userConfiguration, ILogger<UserController> logger) : ControllerBase
 {
 
-    private readonly IUser _userService = user;
+
     private readonly IUserConfiguration _userConfigurationService = userConfiguration;
     private readonly ILogger<UserController> _logger = logger;
 
@@ -61,7 +61,7 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
         try
         {
             User entity = 
-                await _userService.CreateAsync(userDTO);
+                await user.CreateAsync(userDTO);
 
             _logger.LogInformation<User>(
             message: LogSuccessMessages.Created,
@@ -128,10 +128,10 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
             args: id);
         try
         {
-            User? user =
-                await _userService.GetByIdAsync(id);
+            UserResponseDTO? response =
+                await user.GetByIdAsync(id);
 
-            if (user == null)
+            if (response == null)
             {
                 _logger.LogWarning<User>(
                     message: LogWarningMessages.NotFound,
@@ -144,22 +144,6 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
             _logger.LogInformation<User>(
                 message: LogSuccessMessages.FoundById,
                 args: id);
-
-            UserResponseDTO response = new()
-            {
-                Id = user.Id,
-                Name = user.Name,
-                Login = user.Login,
-                Masp = user.Masp,
-                Email = user.Email,
-                Role = user.Role,
-                Status = user.IsActive == true ? "Active" : "Inactive",
-                CreatedAt = user.CreatedAt,
-                UpdatedAt = user.UpdatedAt,
-                SectorId = user.SectorId,
-                ProtocolsCreated = user.ProtocolsCreated,
-                ProtocolsReceived = user.ProtocolsReceived
-            };
 
             return Ok(response);
         }
@@ -202,7 +186,7 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
         try
         {
             ICollection<UserDefaultDTO> users = 
-                await _userService.GetAllAsync();
+                await user.GetAllAsync();
 
             if(users == null || users.Count == 0)
             {
@@ -277,7 +261,7 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
         try
         {
             UserPagedResultDTO result =
-                await _userService.GetPagedAsync(
+                await user.GetPagedAsync(
                     pageNumber,
                     pageSize,
                     sortLabel,
@@ -354,7 +338,7 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
         try
         {
             int total =
-                await _userService.GetTotalUsersCountAsync(searchString);
+                await user.GetTotalUsersCountAsync(searchString);
 
             _logger.LogInformation<User>(
                 message: LogSuccessMessages.Counted,
@@ -415,7 +399,7 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
         try
         {
             User? updated =
-                await _userService.UpdateAsync(id, userDTO);
+                await user.UpdateAsync(id, userDTO);
 
             if (updated == null)
             {
@@ -583,7 +567,7 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
         try
         {
             bool deleted = 
-                await _userService.DeleteAsync(id);
+                await user.DeleteAsync(id);
 
             if (!deleted)
             {
@@ -659,7 +643,6 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
         Status = entity.IsActive == true ? "Active" : "Inactive",
         Role = entity.Role,
         CreatedAt = entity.CreatedAt,
-        UpdatedAt = entity.UpdatedAt,
-        SectorId = entity.SectorId
+        UpdatedAt = entity.UpdatedAt
     };
 }

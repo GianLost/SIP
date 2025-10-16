@@ -26,7 +26,6 @@ namespace SIP.API.Controllers.Sectors;
 [ApiController]
 public class SectorController(ISector sector, ILogger<SectorController> logger) : ControllerBase
 {
-    private readonly ISector _sectorService = sector;
     private readonly ILogger<SectorController> _logger = logger;
 
     /// <summary>
@@ -58,7 +57,7 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
         try
         {
             Sector entity = await
-                _sectorService.CreateAsync(sectorDTO);
+                sector.CreateAsync(sectorDTO);
 
             _logger.LogInformation<Sector>(
                 message: LogSuccessMessages.Created, 
@@ -126,8 +125,8 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
 
         try
         {
-            Sector? sector =
-                await _sectorService.GetByIdAsync(id);
+            SectorResponseDTO? response =
+                await sector.GetByIdAsync(id);
 
             if (sector == null)
             {
@@ -143,7 +142,7 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
                 message: LogSuccessMessages.FoundById,
                 args: id);
 
-            return Ok(ToResponse(sector));
+            return Ok(response);
         }
         catch (Exception ex)
         {
@@ -184,7 +183,7 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
         try
         {
             ICollection<SectorDefaultDTO> sectors = 
-                await _sectorService.GetAllSectorsAsync();
+                await sector.GetAllSectorsAsync();
 
             if (sectors == null || sectors.Count == 0)
             {
@@ -256,7 +255,7 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
         try
         {
             SectorPagedResultDTO result =
-                await _sectorService.GetPagedAsync(
+                await sector.GetPagedAsync(
                     pageNumber,
                     pageSize,
                     sortLabel,
@@ -331,7 +330,7 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
         try
         {
             int total = 
-                await _sectorService.GetTotalSectorsCountAsync(searchString);
+                await sector.GetTotalSectorsCountAsync(searchString);
 
             _logger.LogInformation<Sector>(
                 message: LogSuccessMessages.Counted,
@@ -390,7 +389,7 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
         try
         {
             Sector? updated = 
-                await _sectorService.UpdateAsync(id, sectorDTO);
+                await sector.UpdateAsync(id, sectorDTO);
 
             if (updated == null)
             {
@@ -474,7 +473,7 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
         try
         {
             bool deleted = 
-                await _sectorService.DeleteAsync(id);
+                await sector.DeleteAsync(id);
 
             if (!deleted)
             {
@@ -541,16 +540,6 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
         Acronym = entity.Acronym,
         Phone = entity.Phone,
         CreatedAt = entity.CreatedAt,
-        UpdatedAt = entity.UpdatedAt,
-        Users = [.. entity.Users.Select(user => new UserDefaultDTO
-        {
-            Id = user.Id,
-            Masp = user.Masp,
-            Name = user.Name,
-            Email = user.Email,
-            Login = user.Login,
-            Status = user.IsActive,
-            SectorId = user.SectorId
-        })]
+        UpdatedAt = entity.UpdatedAt
     };
 }
