@@ -11,7 +11,6 @@ using SIP.API.Domain.Helpers.Messages.LogMessages.Warning;
 using SIP.API.Domain.Helpers.Messages.LogMessages.Error;
 using SIP.API.Domain.Helpers.Extensions;
 using SIP.API.Controllers.Errors;
-using SIP.API.Domain.DTOs.Users.Default;
 
 namespace SIP.API.Controllers.Sectors;
 

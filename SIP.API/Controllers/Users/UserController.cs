@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using SIP.API.Controllers.Errors;
 using SIP.API.Domain.DTOs.Users;
 using SIP.API.Domain.DTOs.Users.Configurations;
 using SIP.API.Domain.DTOs.Users.Default;
@@ -13,6 +12,7 @@ using SIP.API.Domain.Helpers.Messages.LogMessages.Success;
 using SIP.API.Domain.Helpers.Messages.LogMessages.Warning;
 using SIP.API.Domain.Interfaces.Users;
 using SIP.API.Domain.Interfaces.Users.Configurations;
+using SIP.API.Controllers.Errors;
 
 namespace SIP.API.Controllers.Users;
 
@@ -27,8 +27,6 @@ namespace SIP.API.Controllers.Users;
 [ApiController]
 public class UserController(IUser user, IUserConfiguration userConfiguration, ILogger<UserController> logger) : ControllerBase
 {
-
-
     private readonly IUserConfiguration _userConfigurationService = userConfiguration;
     private readonly ILogger<UserController> _logger = logger;
 
