@@ -1,7 +1,6 @@
-﻿using SIP.API.Domain.Enums;
-using SIP.API.Domain.Helpers.RegExpressionHelper;
+﻿using System.ComponentModel.DataAnnotations;
 using SIP.API.Domain.Models.Users;
-using System.ComponentModel.DataAnnotations;
+using SIP.API.Domain.Enums;
 
 namespace SIP.API.Domain.DTOs.Users;
 
@@ -20,8 +19,5 @@ public class UserUpdateDTO : BaseUser
     [Required(ErrorMessage = "O papel do usuário é obrigatório.")]
     public UserRole Role { get; set; }
 
-    /// <summary>
-    /// Representação mais amigável para o front-end se o usuário está ativo ou inativo
-    /// </summary>
     public bool Status { get; set; }
 }

@@ -37,6 +37,9 @@ public class SeedController(ApplicationContext context, ICryptPassword crypt, IP
     private readonly ICryptPassword _crypt = crypt;
     private readonly IProtocol _protocolService = protocolService;
 
+    // Add this static readonly field to cache the JsonSerializerOptions instance
+    private static readonly JsonSerializerOptions _jsonOptions = new() { PropertyNameCaseInsensitive = true };
+
     /// <summary>
     /// Importa dados de teste (seeds) a partir de um arquivo <c>seed.json</c> localizado na raiz do projeto.
     /// </summary>
@@ -58,9 +61,11 @@ public class SeedController(ApplicationContext context, ICryptPassword crypt, IP
     [HttpPost("import")]
     public async Task<IActionResult> ImportSeed()
     {
-        var json = await System.IO.File.ReadAllTextAsync("seed.json", Encoding.UTF8);
+        // Lê o conteúdo do arquivo seed.json utilizado para popular o banco de dados
+        var json = await System.IO.File.ReadAllTextAsync("Controllers/Seeds/seed.json", Encoding.UTF8);
 
-        var seedData = JsonSerializer.Deserialize<SeedData>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        // Desserializa o conteúdo JSON para o modelo SeedData usando a instância cacheada
+        var seedData = JsonSerializer.Deserialize<SeedData>(json, _jsonOptions);
 
         // 1. Crie as secretarias (setores) sem Id
         var sectorEntities = seedData?.Sectors?.Select(s => new Sector
@@ -72,17 +77,18 @@ public class SeedController(ApplicationContext context, ICryptPassword crypt, IP
             UpdatedAt = s.UpdatedAt != null ? DateTime.Parse(s.UpdatedAt) : null
         }).ToList() ?? [];
 
+        // 2. Adiciona todos os setores ao contexto e os salva
         _context.Sectors.AddRange(sectorEntities);
         await _context.SaveChangesAsync();
 
-        // 2. Recupere os Ids dos setores já persistidos
+        // 3. Recupera os Ids dos setores já persistidos
         var sectorIds = _context.Sectors.Select(s => s.Id).ToList();
 
-        // 3. Embaralhe os Ids para sortear
+        // 4. Embaralha os Ids para sortear
         var random = new Random();
         var shuffledSectorIds = sectorIds.OrderBy(x => random.Next()).ToList();
 
-        // 4. Crie os usuários, preenchendo SectorId dinamicamente
+        // 5. Cria os usuários, preenchendo SectorId dinamicamente
         int sectorIndex = 0;
         var userEntities = seedData?.Users?.Select(u =>
         {
@@ -104,17 +110,20 @@ public class SeedController(ApplicationContext context, ICryptPassword crypt, IP
             return user;
         }).ToList() ?? [];
 
+        // 6. Adiciona todos os usuários ao contexto e os salva
         _context.Users.AddRange(userEntities);
         await _context.SaveChangesAsync();
 
-        //// Obter IDs de usuários
+        // 7. Obtém os IDs dos usuários
         var userIds = _context.Users.Select(u => u.Id).ToList();
 
-        // 3. Busque o último número de protocolo UMA ÚNICA VEZ antes do loop
+        // 8. Busca o último número de protocolo (UMA ÚNICA VEZ) antes do loop
         var lastProtocolNumber = await _protocolService.GetLastProtocolNumberAsync();
+
+        // 9. Obtém o próximo número sequencial de protocolo
         int nextSequence = _protocolService.GetNextSequence(lastProtocolNumber);
 
-        // 4. Crie os protocolos em memória, incrementando o número sequencial localmente
+        // 10. Cria os protocolos em memória, incrementando o número sequencial localmente
         var protocolEntities = new List<Protocol>();
         foreach (var p in seedData?.Protocols!)
         {
@@ -138,10 +147,11 @@ public class SeedController(ApplicationContext context, ICryptPassword crypt, IP
             nextSequence++; // Incrementa o número para o próximo protocolo
         }
 
-        // 5. Adicione todos os protocolos de uma vez e salve as mudanças
+        // 11. Adiciona todos os protocolos ao contexto e os salva
         _context.Protocols.AddRange(protocolEntities);
         await _context.SaveChangesAsync();
 
+        // Retorna uma mensagem de sucesso
         return Ok("Seed importado com sucesso!");
     }
 }

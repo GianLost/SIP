@@ -1,15 +1,15 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using SIP.API.Domain.DTOs.Sectors;
-using SIP.API.Domain.DTOs.Sectors.Default;
-using SIP.API.Domain.DTOs.Sectors.Pagination;
-using SIP.API.Domain.DTOs.Sectors.Responses;
-using SIP.API.Domain.DTOs.Users.Default;
-using SIP.API.Domain.Entities.Sectors;
-using SIP.API.Domain.Helpers.KeysHelper;
-using SIP.API.Domain.Helpers.PhoneHelper;
-using SIP.API.Domain.Interfaces.Sectors;
 using SIP.API.Infrastructure.Caching;
 using SIP.API.Infrastructure.Database;
+using SIP.API.Domain.Interfaces.Sectors;
+using SIP.API.Domain.Entities.Sectors;
+using SIP.API.Domain.DTOs.Sectors;
+using SIP.API.Domain.DTOs.Default.Pagination;
+using SIP.API.Domain.DTOs.Sectors.Pagination;
+using SIP.API.Domain.DTOs.Sectors.Responses;
+using SIP.API.Domain.DTOs.Users.Responses;
+using SIP.API.Domain.Helpers.KeysHelper;
+using SIP.API.Domain.Helpers.PhoneHelper;
 
 namespace SIP.API.Domain.Services.Sectors;
 
@@ -37,79 +37,108 @@ public class SectorService(ApplicationContext context, EntityCacheManager cache)
         await _context.Sectors.AddAsync(entity);
         await _context.SaveChangesAsync();
 
-        ClearTotalSectorsCountCache();
+        ClearTotalCountCache();
 
         return entity;
     }
 
     /// <inheritdoc/>
-    public async Task<SectorResponseDTO?> GetByIdAsync(Guid id) =>
-        await _context.Sectors
-        .AsNoTracking()
-        .OrderBy(s => s.CreatedAt)
-        .Where(s => s.Id == id)
-        .Select(s => new SectorResponseDTO
-        {
-            Id = s.Id,
-            Name = s.Name,
-            Acronym = s.Acronym,
-            Phone = s.Phone,
-            CreatedAt = s.CreatedAt,
-            UpdatedAt = s.UpdatedAt
-        })
-        .FirstOrDefaultAsync();
+    public async Task<PagedResultDTO<SectorResponseDTO>> GetByIdAsync(Guid id)
+    {
+        IQueryable<Sector> query = 
+            _context.Sectors.AsNoTracking();
 
-    /// <inheritdoc/>
-    public async Task<SectorDefaultDTO?> GetByIdDefaultAsync(Guid id) =>
-        await _context.Sectors
-        .AsNoTracking()
-        .OrderBy(s => s.CreatedAt)
-        .Where(s => s.Id == id)
-        .Select(s => new SectorDefaultDTO
-        {
-            Id = s.Id,
-            Name = s.Name,
-            Acronym = s.Acronym,
-            Users = s.Users
-                .Select(u => new UserDefaultDTO
+        string cacheKey = $"{CacheKeys.SectorsTotalCount}";
+        int totalCount = await _cache.GetOrSetCountAsync(cacheKey, () => query.CountAsync(), EntityType);
+
+        ICollection<SectorResponseDTO> items = await query
+            .OrderBy(s => s.CreatedAt)
+            .Where(s => s.Id == id)
+                .Select(s => new SectorResponseDTO
                 {
-                    Id = u.Id,
-                    Masp = u.Masp,
-                    Name = u.Name,
-                    Login = u.Login,
-                    Email = u.Email,
-                    Status = u.IsActive,
-                }).ToList()
-        })
-        .FirstOrDefaultAsync();
+                    Id = s.Id,
+                    Name = s.Name,
+                    Acronym = s.Acronym,
+                    Phone = s.Phone,
+                    CreatedAt = s.CreatedAt,
+                    UpdatedAt = s.UpdatedAt,
+                    Users = s.Users
+                        .Select(u => new UserDefaultResponseDTO
+                        {
+                            Id = u.Id,
+                            Masp = u.Masp,
+                            Name = u.Name,
+                            Login = u.Login,
+                            Email = u.Email,
+                            Status = u.IsActive ? "Ativo" : "Inativo",
+                        }).ToList()
+                })
+                .ToListAsync();
 
-    /// <inheritdoc/>
-    public async Task<ICollection<SectorDefaultDTO>> GetAllSectorsAsync() =>
-    /* TODO: Otimizar consulta para o uso em componente MudSelect no front-end */
-    await _context.Sectors
-        .AsNoTracking()
-        .OrderBy(s => s.CreatedAt)
-        .Select(s => new SectorDefaultDTO
+        return new PagedResultDTO<SectorResponseDTO>
         {
-            Id = s.Id,
-            Name = s.Name,
-            Acronym = s.Acronym,
-            Phone = s.Phone,
-            Users = s.Users
-                .Select(u => new UserDefaultDTO
-                {
-                    Id = u.Id,
-                    Masp = u.Masp,
-                    Name = u.Name,
-                    Login = u.Login,
-                    Email = u.Email,
-                    Status = u.IsActive
-                }).ToList()
-        })
-        .ToListAsync();
+            Items = items,
+            TotalCount = totalCount
+        };
+    }
 
     /// <inheritdoc/>
-    public async Task<SectorPagedResultDTO> GetPagedAsync(
+    public async Task<PagedResultDTO<SectorDefaultResponseDTO>> GetByIdDefaultAsync(Guid id)
+    {
+        IQueryable<Sector> query = _context.Sectors.AsNoTracking();
+
+        string cacheKey = $"{CacheKeys.SectorsTotalCount}";
+        int totalCount = await _cache.GetOrSetCountAsync(cacheKey, () => query.CountAsync(), EntityType);
+
+        ICollection<SectorDefaultResponseDTO> items = await query
+            .OrderBy(s => s.CreatedAt)
+            .Where(s => s.Id == id)
+                .Select(s => new SectorDefaultResponseDTO
+                {
+                    Id = s.Id,
+                    Name = s.Name,
+                    Acronym = s.Acronym
+                })
+                .ToListAsync();
+
+        return new PagedResultDTO<SectorDefaultResponseDTO>
+        {
+            Items = items,
+            TotalCount = totalCount       
+        };
+    }
+
+    /// <inheritdoc/>
+    public async Task<PagedResultDTO<SectorDefaultResponseDTO>> GetAllAsync()
+    {
+        /* TODO: Otimizar consulta para o uso em componente MudSelect no front-end */
+
+        IQueryable<Sector> query = _context.Sectors.AsNoTracking();
+
+        string cacheKey = $"{CacheKeys.SectorsTotalCount}";
+        int totalCount = await _cache.GetOrSetCountAsync(cacheKey, () => query.CountAsync(), EntityType);
+
+        ICollection<SectorDefaultResponseDTO> items = await query
+           .OrderBy(s => s.CreatedAt)
+           .Select(s => new SectorDefaultResponseDTO
+           {
+               Id = s.Id,
+               Name = s.Name,
+               Acronym = s.Acronym,
+               Phone = s.Phone
+           })
+           .ToListAsync();
+
+      return new PagedResultDTO<SectorDefaultResponseDTO>
+      {
+          Items = items,
+          TotalCount = totalCount
+      };
+
+    }
+
+    /// <inheritdoc/>
+    public async Task<PagedResultDTO<SectorListItemDTO>> GetPagedAsync(
     int pageNumber,
     int pageSize,
     string? sortLabel,
@@ -118,7 +147,8 @@ public class SectorService(ApplicationContext context, EntityCacheManager cache)
     {
         pageSize = Math.Min(pageSize, MaxPageSize);
 
-        IQueryable<Sector> query = _context.Sectors.AsNoTracking();
+        IQueryable<Sector> query = 
+            _context.Sectors.AsNoTracking();
 
         if (!string.IsNullOrWhiteSpace(searchString))
         {
@@ -128,14 +158,8 @@ public class SectorService(ApplicationContext context, EntityCacheManager cache)
                 s.Phone.Contains(searchString));
         }
 
-        // Cache do count
-        int? totalCount = _cache.Get<int?>($"{CacheKeys.SectorsTotalCount}{searchString ?? "NoSearch"}");
-
-        if (!totalCount.HasValue)
-        {
-            totalCount = await query.CountAsync();
-            _cache.Set($"{CacheKeys.SectorsTotalCount}{searchString ?? "NoSearch"}", totalCount.Value, EntityType);
-        }
+        string cacheKey = $"{CacheKeys.SectorsTotalCount}{searchString ?? "NoSearch"}";
+        int totalCount = await _cache.GetOrSetCountAsync(cacheKey, () => query.CountAsync(), EntityType);
 
         // Ordenação
         bool asc = sortDirection?.Trim().Equals("asc", StringComparison.CurrentCultureIgnoreCase) ?? true;
@@ -147,25 +171,34 @@ public class SectorService(ApplicationContext context, EntityCacheManager cache)
         };
 
         // Paginação + projeção
-        var items = await query
+        ICollection<SectorListItemDTO> items = await query
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
-            .Select(u => new SectorListItemDTO
-            {
-                Id = u.Id,
-                Name = u.Name,
-                Acronym = u.Acronym,
-                Phone = u.Phone
-            })
-            .ToListAsync();
+                .Select(u => new SectorListItemDTO
+                {
+                    Id = u.Id,
+                    Name = u.Name,
+                    Acronym = u.Acronym,
+                    Phone = u.Phone,
+                    Users = u.Users
+                        .Select(user => new UserDefaultResponseDTO
+                        {
+                            Id = user.Id,
+                            Masp = user.Masp,
+                            Name = user.Name,
+                            Login = user.Login,
+                            Email = user.Email,
+                            Status = user.IsActive ? "Ativo" : "Inativo",
+                        }).ToList()
+                })
+                .ToListAsync();
 
-        return new SectorPagedResultDTO
+        return new PagedResultDTO<SectorListItemDTO>
         {
             Items = items,
-            TotalCount = totalCount.Value
+            TotalCount = totalCount
         };
     }
-
 
     /// <inheritdoc/>
     public async Task<Sector?> UpdateAsync(Guid id, SectorUpdateDTO dto)
@@ -184,7 +217,7 @@ public class SectorService(ApplicationContext context, EntityCacheManager cache)
         _context.Sectors.Update(entity);
         await _context.SaveChangesAsync();
 
-        ClearTotalSectorsCountCache();
+        ClearTotalCountCache();
 
         return entity;
     }
@@ -192,37 +225,56 @@ public class SectorService(ApplicationContext context, EntityCacheManager cache)
     /// <inheritdoc/>
     public async Task<bool> DeleteAsync(Guid id)
     {
-        SectorDefaultDTO? dto = 
-            await GetByIdDefaultAsync(id);
+        // 1) Verifica existência simples antes de executar outras checagens
+        bool exists = 
+            await _context.Sectors
+                .AsNoTracking()
+                .AnyAsync(s => s.Id == id);
 
-        if (dto == null)
+        if (!exists)
             return false;
 
-        if (dto.Users.Count > 0)
+        // 2) Checa usuários vinculados
+        bool hasUsers = 
+            await _context.Users
+                .AsNoTracking()
+                .AnyAsync(u => u.SectorId == id);
+
+        if (hasUsers)
             throw new InvalidOperationException("Não é possível excluir uma secretaria que possua um ou mais usuários vinculados.");
 
+        // 3) Checa protocolos vinculados (origem ou destino)
         bool hasProtocols = 
-            await _context.Protocols.AnyAsync(p => p.OriginSectorId == id);
+            await _context.Protocols
+                .AsNoTracking()
+                .AnyAsync(p => p.OriginSectorId == id || p.DestinationSectorId == id);
 
         if (hasProtocols)
             throw new InvalidOperationException("Não é possível excluir um setor que possua um ou mais protocolos vinculados.");
 
-        // Agora busca a entidade real para exclusão
-        Sector? entity = await _context.Sectors.FindAsync(id);
+        // 4) Efetua a exclusão
+        try
+        {
+            int affected = await _context.Sectors
+                .Where(s => s.Id == id)
+                .ExecuteDeleteAsync();
 
-        if (entity == null)
+            if (affected > 0)
+            {
+                ClearTotalCountCache();
+                return true;
+            }
+
             return false;
-
-        _context.Sectors.Remove(entity);
-        await _context.SaveChangesAsync();
-
-        ClearTotalSectorsCountCache();
-
-        return true;
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new InvalidOperationException("Falha ao excluir o setor devido a restrições no banco de dados.", ex);
+        }
     }
 
     /// <inheritdoc/>
-    public async Task<int> GetTotalSectorsCountAsync(string? searchString)
+    public async Task<int> GetTotalCountAsync(string? searchString)
     {
         IQueryable<Sector> query = _context.Sectors;
 
@@ -235,19 +287,10 @@ public class SectorService(ApplicationContext context, EntityCacheManager cache)
         }
 
         string cacheKey = $"{CacheKeys.SectorsTotalCount}{searchString ?? "NoSearch"}";
-        int? totalCount = _cache.Get<int?>(cacheKey);
-
-        if (!totalCount.HasValue)
-        {
-            totalCount = await query.CountAsync();
-            _cache.Set(cacheKey, totalCount.Value, EntityType);
-        }
-
-        return totalCount.Value;
+        return await _cache.GetOrSetCountAsync(cacheKey, () => query.CountAsync(), EntityType);
     }
 
     /// <inheritdoc/>
-    public void ClearTotalSectorsCountCache() =>
+    public void ClearTotalCountCache() =>
         _cache.Invalidate(EntityType);
-    
 }

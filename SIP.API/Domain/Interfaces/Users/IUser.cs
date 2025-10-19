@@ -1,98 +1,19 @@
 ﻿using SIP.API.Domain.DTOs.Users;
-using SIP.API.Domain.DTOs.Users.Default;
 using SIP.API.Domain.DTOs.Users.Pagination;
 using SIP.API.Domain.DTOs.Users.Responses;
 using SIP.API.Domain.Entities.Users;
+using SIP.API.Domain.Interfaces.Default;
 
 namespace SIP.API.Domain.Interfaces.Users;
 
 /// <summary>
-/// Provides an abstraction for CRUD operations on user entities.
+/// Defines a specialized entity manager for user-related operations,
+/// extending the generic <see cref="IEntityManager{TEntity, TCreateDTO, TUpdateDTO, TListItemDTO, TDefaultResponse, TResponseDTO}"/>.
 /// </summary>
-public interface IUser
-{
-    /// <summary>
-    /// Asynchronously creates a new user in the database.
-    /// </summary>
-    /// <param name="dto">A data transfer object containing the user's information.</param>
-    /// <returns>
-    /// A task that represents the asynchronous operation. The task result contains the created <see cref="User"/> entity.
-    /// </returns>
-    Task<User> CreateAsync(UserCreateDTO dto);
-
-    /// <summary>
-    /// Asynchronously retrieves a user by its unique identifier.
-    /// </summary>
-    /// <param name="id">The unique identifier of the user.</param>
-    /// <returns>
-    /// A task that represents the asynchronous operation. The task result contains the <see cref="User"/> entity if found; otherwise, <c>null</c>.
-    /// </returns>
-    Task<UserResponseDTO?> GetByIdAsync(Guid id);
-
-    /// <summary>
-    /// Asynchronously retrieves a user by its unique identifier.
-    /// </summary>
-    /// <param name="id">The unique identifier of the user.</param>
-    /// <returns>
-    /// A task that represents the asynchronous operation. The task result contains the <see cref="User"/> entity if found; otherwise, <c>null</c>.
-    /// </returns>
-    Task<UserResponseDTO?> GetByIdDefaultAsync(Guid id);
-
-    /// <summary>
-    /// Retrieves all users records.
-    /// </summary>
-    /// <returns>
-    /// A task that represents the asynchronous operation. The task result contains a list with all <see cref="User"/> entities
-    /// </returns>
-    Task<ICollection<UserDefaultDTO>> GetAllAsync();
-
-    /// <summary>
-    /// Retorna usuários paginados, com filtro, ordenação e total de registros.
-    /// </summary>
-    /// <param name="pageNumber">Número da página (iniciando em 1).</param>
-    /// <param name="pageSize">Quantidade de registros por página.</param>
-    /// <param name="sortLabel">Campo para ordenação.</param>
-    /// <param name="sortDirection">Direção da ordenação ("asc" ou "desc").</param>
-    /// <param name="searchString">Texto para filtro de pesquisa.</param>
-    /// <returns>Objeto UserPagedResultDTO.</returns>
-    Task<UserPagedResultDTO> GetPagedAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection, string? searchString);
-
-    /// <summary>
-    /// Asynchronously updates an existing user in the database.
-    /// </summary>
-    /// <param name="id">The unique identifier of the user to update.</param>
-    /// <param name="dto">A data transfer object containing the updated user values.</param>
-    /// <returns>
-    /// A task that represents the asynchronous operation. The task result contains the updated <see cref="User"/> entity if found; otherwise, <c>null</c>.
-    /// </returns>
-    Task<User?> UpdateAsync(Guid id, UserUpdateDTO dto);
-
-    /// <summary>
-    /// Asynchronously deletes a user by its unique identifier.
-    /// </summary>
-    /// <param name="id">The unique identifier of the user to delete.</param>
-    /// <returns>
-    /// A task that represents the asynchronous operation. The task result is <c>true</c> if the user was deleted; otherwise, <c>false</c>.
-    /// </returns>
-    Task<bool> DeleteAsync(Guid id);
-    
-    /// <summary>
-    /// Asynchronously retrieves the total number of users that match the given search criteria.
-    /// </summary>
-    /// <param name="searchString">
-    /// A keyword used to filter the users by name or other relevant fields. If <c>null</c> or empty, all users are counted.
-    /// </param>
-    /// <returns>
-    /// A task that represents the asynchronous operation. The task result contains the total number of matching users as an integer.
-    /// </returns>
-    Task<int> GetTotalUsersCountAsync(string? searchString);
-
-    /// <summary>
-    /// Invalidates the cache that stores the total number of users.
-    /// </summary>
-    /// <remarks>
-    /// This method should be called whenever a user is created, updated, or deleted
-    /// to ensure the total count is recalculated on the next request.
-    /// </remarks>
-    void ClearTotalUsersCountCache();
-}
+/// <remarks>
+/// This interface encapsulates all CRUD, pagination, and management operations
+/// for <see cref="User"/> entities within the system.  
+/// Additional domain-specific operations (e.g., authentication, password management)
+/// can be added here in the future.
+/// </remarks>
+public interface IUser : IEntityManager<User, UserCreateDTO, UserUpdateDTO, UserListItemDTO, UserDefaultResponseDTO, UserResponseDTO> { }

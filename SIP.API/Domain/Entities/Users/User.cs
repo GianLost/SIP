@@ -1,10 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using SIP.API.Domain.Models.Users;
 using SIP.API.Domain.Entities.Protocols;
 using SIP.API.Domain.Entities.Sectors;
 using SIP.API.Domain.Enums;
-using SIP.API.Domain.Models.Users;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SIP.API.Domain.Entities.Users;
 

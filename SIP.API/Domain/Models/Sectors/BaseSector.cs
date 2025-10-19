@@ -1,5 +1,5 @@
-﻿using SIP.API.Domain.Helpers.RegExpressionHelper;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using SIP.API.Domain.Helpers.RegExpressionHelper;
 
 namespace SIP.API.Domain.Models.Sectors;
 

@@ -1,7 +1,7 @@
-﻿using SIP.API.Domain.Enums;
-using SIP.API.Domain.Helpers.RegExpressionHelper;
+﻿using System.ComponentModel.DataAnnotations;
 using SIP.API.Domain.Models.Users;
-using System.ComponentModel.DataAnnotations;
+using SIP.API.Domain.Helpers.RegExpressionHelper;
+using SIP.API.Domain.Enums;
 
 namespace SIP.API.Domain.DTOs.Users;
 

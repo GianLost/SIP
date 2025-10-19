@@ -1,8 +1,8 @@
-﻿using SIP.API.Domain.Entities.Users;
-using SIP.API.Domain.Models.Sectors;
+﻿using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
+using SIP.API.Domain.Models.Sectors;
+using SIP.API.Domain.Entities.Users;
 
 namespace SIP.API.Domain.Entities.Sectors;
 

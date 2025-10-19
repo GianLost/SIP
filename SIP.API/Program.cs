@@ -1,7 +1,15 @@
 using Microsoft.EntityFrameworkCore;
 using Serilog;
-using SIP.API.Infrastructure.Caching;
-using SIP.API.Infrastructure.Database;
+using SIP.API.Domain.DTOs.Sectors;
+using SIP.API.Domain.DTOs.Sectors.Pagination;
+using SIP.API.Domain.DTOs.Sectors.Responses;
+using SIP.API.Domain.DTOs.Users;
+using SIP.API.Domain.DTOs.Users.Pagination;
+using SIP.API.Domain.DTOs.Users.Responses;
+using SIP.API.Domain.Entities.Sectors;
+using SIP.API.Domain.Entities.Users;
+using SIP.API.Domain.Helpers.ApplicationHelper;
+using SIP.API.Domain.Interfaces.Default;
 using SIP.API.Domain.Interfaces.Hashes.Passwords;
 using SIP.API.Domain.Interfaces.Protocols;
 using SIP.API.Domain.Interfaces.Sectors;
@@ -12,9 +20,10 @@ using SIP.API.Domain.Services.Protocols;
 using SIP.API.Domain.Services.Sectors;
 using SIP.API.Domain.Services.Users;
 using SIP.API.Domain.Services.Users.Configurations;
+using SIP.API.Infrastructure.Caching;
+using SIP.API.Infrastructure.Database;
 using System.Globalization;
 using System.Reflection;
-using SIP.API.Domain.Helpers.ApplicationHelper;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -112,17 +121,14 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog();
 
-
 builder.Services.AddSingleton<EntityCacheManager>();
 
-builder.Services.AddScoped<ICryptPassword, CryptPassword>();
-
-
 builder.Services.AddScoped<IUser, UserService>();
-builder.Services.AddScoped<IUserConfiguration, UserConfigurationService>();
-
 builder.Services.AddScoped<ISector, SectorService>();
 builder.Services.AddScoped<IProtocol, ProtocolService>();
+
+builder.Services.AddScoped<ICryptPassword, CryptPassword>();
+builder.Services.AddScoped<IUserConfiguration, UserConfigurationService>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>

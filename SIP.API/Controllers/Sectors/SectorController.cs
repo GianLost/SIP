@@ -1,16 +1,16 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using SIP.API.Domain.Entities.Sectors;
+using SIP.API.Controllers.Errors;
 using SIP.API.Domain.Interfaces.Sectors;
+using SIP.API.Domain.Entities.Sectors;
 using SIP.API.Domain.DTOs.Sectors;
-using SIP.API.Domain.DTOs.Sectors.Default;
 using SIP.API.Domain.DTOs.Sectors.Pagination;
+using SIP.API.Domain.DTOs.Default.Pagination;
 using SIP.API.Domain.DTOs.Sectors.Responses;
 using SIP.API.Domain.Helpers.Messages.LogMessages.Info;
 using SIP.API.Domain.Helpers.Messages.LogMessages.Success;
 using SIP.API.Domain.Helpers.Messages.LogMessages.Warning;
 using SIP.API.Domain.Helpers.Messages.LogMessages.Error;
 using SIP.API.Domain.Helpers.Extensions;
-using SIP.API.Controllers.Errors;
 
 namespace SIP.API.Controllers.Sectors;
 
@@ -44,10 +44,10 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
     /// - Retorna 500 (Internal Server Error) em caso de falha inesperada.  
     /// </remarks>
     [HttpPost]
-    [ProducesResponseType(typeof(SectorResponseDTO), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(SectorDefaultResponseDTO), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<SectorResponseDTO>> CreateAsync([FromBody] SectorCreateDTO sectorDTO)
+    public async Task<ActionResult<SectorDefaultResponseDTO>> CreateAsync([FromBody] SectorCreateDTO sectorDTO)
     {
         _logger.LogInformation<Sector>(
             message: LogInfoMessages.CreateRequest, 
@@ -116,7 +116,7 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
     [ProducesResponseType(typeof(SectorResponseDTO), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<SectorResponseDTO>> GetByIdAsync(Guid id)
+    public async Task<ActionResult<PagedResultDTO<SectorResponseDTO>>> GetByIdAsync(Guid id)
     {
         _logger.LogInformation<Sector>(
             message: LogInfoMessages.GetByIdRequest,
@@ -124,7 +124,7 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
 
         try
         {
-            SectorResponseDTO? response =
+            PagedResultDTO<SectorResponseDTO> response =
                 await sector.GetByIdAsync(id);
 
             if (sector == null)
@@ -172,31 +172,31 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
     /// - Retorna 500 (Internal Server Error) em caso de falha inesperada.  
     /// </remarks>
     [HttpGet]
-    [ProducesResponseType(typeof(IEnumerable<SectorDefaultDTO>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<PagedResultDTO<SectorDefaultResponseDTO>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<IEnumerable<SectorDefaultDTO>>> GetAllAsync()
+    public async Task<ActionResult<IEnumerable<PagedResultDTO<SectorDefaultResponseDTO>>>> GetAllAsync()
     {
         _logger.LogInformation<Sector>(
             message: LogInfoMessages.GetAllRequest);
 
         try
         {
-            ICollection<SectorDefaultDTO> sectors = 
-                await sector.GetAllSectorsAsync();
+            PagedResultDTO<SectorDefaultResponseDTO> result = 
+                await sector.GetAllAsync();
 
-            if (sectors == null || sectors.Count == 0)
+            if (result.Items == null || result.Items.Count == 0)
             {
                 _logger.LogWarning<Sector>(
                     message: LogWarningMessages.Empty);
 
-                return Ok(Enumerable.Empty<SectorDefaultDTO>());
+                return Ok(Enumerable.Empty<SectorDefaultResponseDTO>());
             }
 
             _logger.LogInformation<Sector>(
                 message: LogSuccessMessages.FoundAll,
-                args: sectors.Count);
+                args: result.Items.Count);
 
-            return Ok(sectors);
+            return Ok(result);
         }
         catch (Exception ex)
         {
@@ -231,9 +231,9 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
     /// - Retorna 500 (Internal Server Error) em caso de falha inesperada.  
     /// </remarks>
     [HttpGet("paged")]
-    [ProducesResponseType(typeof(SectorPagedResultDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PagedResultDTO<SectorListItemDTO>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<SectorPagedResultDTO>> GetPagedAsync(
+    public async Task<ActionResult<PagedResultDTO<SectorListItemDTO>>> GetPagedAsync(
     [FromQuery] int pageNumber = 1,
     [FromQuery] int pageSize = 15,
     [FromQuery] string? sortLabel = null,
@@ -253,7 +253,7 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
 
         try
         {
-            SectorPagedResultDTO result =
+            PagedResultDTO<SectorListItemDTO> result =
                 await sector.GetPagedAsync(
                     pageNumber,
                     pageSize,
@@ -329,7 +329,7 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
         try
         {
             int total = 
-                await sector.GetTotalSectorsCountAsync(searchString);
+                await sector.GetTotalCountAsync(searchString);
 
             _logger.LogInformation<Sector>(
                 message: LogSuccessMessages.Counted,
@@ -372,10 +372,10 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
     /// - Retorna 500 (Internal Server Error) em caso de falha inesperada.  
     /// </remarks>
     [HttpPatch("{id}")]
-    [ProducesResponseType(typeof(SectorResponseDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(SectorDefaultResponseDTO), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<SectorResponseDTO>> UpdateAsync(Guid id, [FromBody] SectorUpdateDTO sectorDTO)
+    public async Task<ActionResult<SectorDefaultResponseDTO>> UpdateAsync(Guid id, [FromBody] SectorUpdateDTO sectorDTO)
     {
         _logger.LogInformation<Sector>(
             message: LogInfoMessages.UpdateRequest,
@@ -513,11 +513,11 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
     }
 
     /// <summary>
-    /// Converte uma entidade <see cref="Sector"/> em um objeto de resposta padronizado <see cref="SectorResponseDTO"/>.
+    /// Converte uma entidade <see cref="Sector"/> em um objeto de resposta padronizado <see cref="SectorDefaultResponseDTO"/>.
     /// </summary>
     /// <param name="entity">Entidade <see cref="Sector"/> obtida da camada de domínio.</param>
     /// <returns>
-    /// Retorna um objeto <see cref="SectorResponseDTO"/> contendo os dados essenciais do setor
+    /// Retorna um objeto <see cref="SectorDefaultResponseDTO"/> contendo os dados essenciais do setor
     /// que serão expostos pela API.
     /// </returns>
     /// <remarks>
@@ -532,13 +532,11 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
     /// - <c>CreatedAt</c> → Data de criação do registro.  
     /// - <c>UpdatedAt</c> → Data da última atualização do registro (se houver).  
     /// </remarks>
-    private static SectorResponseDTO ToResponse(Sector entity) => new()
+    private static SectorDefaultResponseDTO ToResponse(Sector entity) => new()
     {
         Id = entity.Id,
         Name = entity.Name,
         Acronym = entity.Acronym,
-        Phone = entity.Phone,
-        CreatedAt = entity.CreatedAt,
-        UpdatedAt = entity.UpdatedAt
+        Phone = entity.Phone
     };
 }

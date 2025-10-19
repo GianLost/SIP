@@ -1,12 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using SIP.API.Domain.DTOs.Default.Pagination;
 using SIP.API.Domain.DTOs.Users;
-using SIP.API.Domain.DTOs.Users.Default;
 using SIP.API.Domain.DTOs.Users.Pagination;
 using SIP.API.Domain.DTOs.Users.Responses;
 using SIP.API.Domain.Entities.Users;
 using SIP.API.Domain.Helpers.KeysHelper;
-using SIP.API.Domain.Interfaces.Hashes.Passwords;
 using SIP.API.Domain.Interfaces.Users;
+using SIP.API.Domain.Interfaces.Hashes.Passwords;
 using SIP.API.Infrastructure.Caching;
 using SIP.API.Infrastructure.Database;
 using System.Linq.Expressions;
@@ -24,7 +24,6 @@ public class UserService(ICryptPassword cryp, ApplicationContext context, Entity
     private readonly EntityCacheManager _cache = cache;
 
     private const string EntityType = nameof(User);
-
     private const int MaxPageSize = 100;
 
     /// <inheritdoc/>
@@ -45,77 +44,111 @@ public class UserService(ICryptPassword cryp, ApplicationContext context, Entity
         await _context.Users.AddAsync(entity);
         await _context.SaveChangesAsync();
 
-        ClearTotalUsersCountCache();
+        ClearTotalCountCache();
 
         return entity;
     }
 
     /// <inheritdoc/>
-    public async Task<UserResponseDTO?> GetByIdAsync(Guid id)
+    public async Task<PagedResultDTO<UserResponseDTO>> GetByIdAsync(Guid id)
     {
-        return await _context.Users
-            .AsNoTracking()
+        IQueryable<User> query = 
+            _context.Users.AsNoTracking();
+
+        string cacheKey = $"{CacheKeys.UsersTotalCount}";
+        int totalCount = await _cache.GetOrSetCountAsync(cacheKey, () => query.CountAsync(), EntityType);
+
+        ICollection<UserResponseDTO> items = await query
             .OrderBy(u => u.CreatedAt)
             .Where(u => u.Id == id)
-            .Select(u => new UserResponseDTO
-            {
-                Id = u.Id,
-                Name = u.Name,
-                Login = u.Login,
-                Masp = u.Masp,
-                Email = u.Email,
-                Status = u.IsActive ? "Ativo" : "Inativo",
-                CreatedAt = u.CreatedAt,
-                UpdatedAt = u.UpdatedAt,
-                Role = u.Role
-            }).FirstOrDefaultAsync();
+                .Select(u => new UserResponseDTO
+                {
+                    Id = u.Id,
+                    Status = u.IsActive ? "Ativo" : "Inativo",
+                    Masp = u.Masp,
+                    Name = u.Name,
+                    Login = u.Login,
+                    Email = u.Email,
+                    Role = u.Role,
+                    SectorAcronym = u.Sector!.Acronym,
+                    CreatedAt = u.CreatedAt,
+                    UpdatedAt = u.UpdatedAt
+                }).ToListAsync();
+        
+        return new PagedResultDTO<UserResponseDTO>
+        {
+            Items = items,
+            TotalCount = totalCount
+        };
     }
 
-    public async Task<UserResponseDTO?> GetByIdDefaultAsync(Guid id)
+    public async Task<PagedResultDTO<UserDefaultResponseDTO>> GetByIdDefaultAsync(Guid id)
     {
-        return await _context.Users
-            .AsNoTracking()
+        IQueryable<User> query =
+            _context.Users.AsNoTracking();
+
+        string cacheKey = $"{CacheKeys.UsersTotalCount}";
+        int totalCount = await _cache.GetOrSetCountAsync(cacheKey, () => query.CountAsync(), EntityType);
+
+        ICollection<UserDefaultResponseDTO> items = await query
             .OrderBy(u => u.CreatedAt)
             .Where(u => u.Id == id)
-            .Select(u => new UserResponseDTO
-            {
-                Id = u.Id,
-                Name = u.Name,
-                Login = u.Login,
-                Masp = u.Masp,
-                Email = u.Email,
-                Status = u.IsActive ? "Ativo" : "Inativo",
-                CreatedAt = u.CreatedAt,
-                UpdatedAt = u.UpdatedAt,
-                Role = u.Role
-            }).FirstOrDefaultAsync();
+                .Select(u => new UserDefaultResponseDTO
+                {
+                    Id = u.Id,
+                    Status = u.IsActive ? "Ativo" : "Inativo",
+                    Masp = u.Masp,
+                    Name = u.Name,
+                    Login = u.Login,
+                    Email = u.Email
+                }).ToListAsync();
+
+        return new PagedResultDTO<UserDefaultResponseDTO>
+        {
+            Items = items,
+            TotalCount = totalCount
+        };
     }
 
     /// <inheritdoc/>
-    public async Task<ICollection<UserDefaultDTO>> GetAllAsync() =>
-    /* TODO: Otimizar consulta para o uso em componente MudSelect no front-end */
-        await _context.Users
-            .AsNoTracking()
+    public async Task<PagedResultDTO<UserDefaultResponseDTO>> GetAllAsync()
+    {
+        /* TODO: Otimizar consulta para o uso em componente MudSelect no front-end */
+
+        IQueryable<User> query =
+            _context.Users.AsNoTracking();
+
+        string cacheKey = $"{CacheKeys.UsersTotalCount}";
+        int totalCount = await _cache.GetOrSetCountAsync(cacheKey, () => query.CountAsync(), EntityType);
+
+        ICollection<UserDefaultResponseDTO> items = await query
             .OrderBy(u => u.CreatedAt)
-            .Select(u => new UserDefaultDTO
+            .Select(u => new UserDefaultResponseDTO
             {
                 Id = u.Id,
+                Status = u.IsActive ? "Ativo" : "Inativo",
+                Masp = u.Masp,
                 Name = u.Name,
                 Login = u.Login,
-                Masp = u.Masp,
-                Email = u.Email,
-                Status = u.IsActive
+                Email = u.Email
             }).ToListAsync();
 
+        return new PagedResultDTO<UserDefaultResponseDTO>
+        {
+            Items = items,
+            TotalCount = totalCount
+        };
+    }
+        
     /// <inheritdoc/>
-    public async Task<UserPagedResultDTO> GetPagedAsync(
+    public async Task<PagedResultDTO<UserListItemDTO>> GetPagedAsync(
     int pageNumber,
     int pageSize,
     string? sortLabel,
     string? sortDirection,
     string? searchString)
     {
-        pageSize = Math.Min(pageSize, MaxPageSize); // Limite máximo
+        pageSize = Math.Min(pageSize, MaxPageSize);
 
         IQueryable<User> query = 
             _context.Users.AsNoTracking();
@@ -143,14 +176,8 @@ public class UserService(ICryptPassword cryp, ApplicationContext context, Entity
             }
         }
 
-        // Get total count (this will use or re-cache based on the token)
-        int? totalCount = _cache.Get<int?>($"{CacheKeys.UsersTotalCount}{searchString ?? "NoSearch"}");
-
-        if (!totalCount.HasValue)
-        {
-            totalCount = await query.CountAsync();
-            _cache.Set($"{CacheKeys.UsersTotalCount}{searchString ?? "NoSearch"}", totalCount.Value, EntityType);
-        }
+        string cacheKey = $"{CacheKeys.UsersTotalCount}";
+        int totalCount = await _cache.GetOrSetCountAsync(cacheKey, () => query.CountAsync(), EntityType);
 
         Expression<Func<User, object>> statusOrderExpr = u => u.IsActive ? 0 : 1;
 
@@ -192,26 +219,25 @@ public class UserService(ICryptPassword cryp, ApplicationContext context, Entity
         }
 
         IQueryable<UserListItemDTO> pagedDataQuery = query
-        .Skip((pageNumber - 1) * pageSize)
-        .Take(pageSize)
-        .Select(u => new UserListItemDTO
-        {
-            Id = u.Id,
-            Name = u.Name,
-            Login = u.Login,
-            Masp = u.Masp,
-            Email = u.Email,
-            Status = u.IsActive,
-            SectorAcronym = u.Sector!.Acronym
-        });
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+                .Select(u => new UserListItemDTO
+                {
+                    Id = u.Id,
+                    Status = u.IsActive,
+                    Masp = u.Masp,
+                    Name = u.Name,
+                    Login = u.Login,
+                    SectorAcronym = u.Sector!.Acronym
+                });
 
         ICollection<UserListItemDTO> items = 
             await pagedDataQuery.ToListAsync();
 
-        return new UserPagedResultDTO
+        return new PagedResultDTO<UserListItemDTO>
         {
             Items = items,
-            TotalCount = totalCount.Value
+            TotalCount = totalCount
         };
 
     }
@@ -236,7 +262,7 @@ public class UserService(ICryptPassword cryp, ApplicationContext context, Entity
         _context.Users.Update(user);
         await _context.SaveChangesAsync();
 
-        ClearTotalUsersCountCache();
+        ClearTotalCountCache();
 
         return user;
     }
@@ -244,34 +270,47 @@ public class UserService(ICryptPassword cryp, ApplicationContext context, Entity
     /// <inheritdoc/>
     public async Task<bool> DeleteAsync(Guid id)
     {
-        UserResponseDTO? user = 
-            await GetByIdDefaultAsync(id);
+        // 1) Verifica existência simples antes de executar outras checagens
+        bool exists =
+            await _context.Users
+                .AsNoTracking()
+                .AnyAsync(s => s.Id == id);
 
-        if (user == null)
+        if (!exists)
             return false;
 
-        bool userHasProtocols = await _context.Protocols
-            .AnyAsync(p => p.CreatedById == id || p.DestinationUserId == id);
+        // 2) Checa protocolos vinculados
+        bool hasProtocols =
+            await _context.Protocols
+                .AsNoTracking()
+                .AnyAsync(u => u.CreatedById == id || u.DestinationUserId == id);
 
-        if (userHasProtocols)
+        if (hasProtocols)
             throw new InvalidOperationException("Não é possível excluir um usuário que possua um ou mais protocolos vinculados.");
 
-        User? entity =
-            await _context.Users.FindAsync(id);
+        // 4) Efetua a exclusão
+        try
+        {
+            int affected = await _context.Users
+                .Where(s => s.Id == id)
+                .ExecuteDeleteAsync();
 
-        if (entity == null)
+            if (affected > 0)
+            {
+                ClearTotalCountCache();
+                return true;
+            }
+
             return false;
-
-        _context.Users.Remove(entity);
-        await _context.SaveChangesAsync();
-
-        ClearTotalUsersCountCache();
-
-        return true;
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new InvalidOperationException("Falha ao excluir o usuário devido a restrições no banco de dados.", ex);
+        }
     }
 
     /// <inheritdoc/>
-    public async Task<int> GetTotalUsersCountAsync(string? searchString)
+    public async Task<int> GetTotalCountAsync(string? searchString)
     {
         IQueryable<User> query = _context.Users;
 
@@ -284,18 +323,10 @@ public class UserService(ICryptPassword cryp, ApplicationContext context, Entity
         }
 
         string cacheKey = $"{CacheKeys.UsersTotalCount}{searchString ?? "NoSearch"}";
-        int? totalCount = _cache.Get<int?>(cacheKey);
-
-        if (!totalCount.HasValue)
-        {
-            totalCount = await query.CountAsync();
-            _cache.Set(cacheKey, totalCount.Value, EntityType);
-        }
-
-        return totalCount.Value;
+        return await _cache.GetOrSetCountAsync(cacheKey, () => query.CountAsync(), EntityType);
     }
 
     /// <inheritdoc/>
-    public void ClearTotalUsersCountCache() =>
+    public void ClearTotalCountCache() =>
         _cache.Invalidate(EntityType);
 }

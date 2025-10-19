@@ -1,18 +1,18 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using SIP.API.Controllers.Errors;
+using SIP.API.Domain.Interfaces.Users;
+using SIP.API.Domain.Interfaces.Users.Configurations;
+using SIP.API.Domain.Entities.Users;
 using SIP.API.Domain.DTOs.Users;
 using SIP.API.Domain.DTOs.Users.Configurations;
-using SIP.API.Domain.DTOs.Users.Default;
-using SIP.API.Domain.DTOs.Users.Pagination;
 using SIP.API.Domain.DTOs.Users.Responses;
-using SIP.API.Domain.Entities.Users;
 using SIP.API.Domain.Helpers.Extensions;
 using SIP.API.Domain.Helpers.Messages.LogMessages.Error;
 using SIP.API.Domain.Helpers.Messages.LogMessages.Info;
 using SIP.API.Domain.Helpers.Messages.LogMessages.Success;
 using SIP.API.Domain.Helpers.Messages.LogMessages.Warning;
-using SIP.API.Domain.Interfaces.Users;
-using SIP.API.Domain.Interfaces.Users.Configurations;
-using SIP.API.Controllers.Errors;
+using SIP.API.Domain.DTOs.Default.Pagination;
+using SIP.API.Domain.DTOs.Users.Pagination;
 
 namespace SIP.API.Controllers.Users;
 
@@ -47,10 +47,10 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
     /// - Retorna 500 (Internal Server Error) em caso de falha inesperada.  
     /// </remarks>
     [HttpPost]
-    [ProducesResponseType(typeof(UserResponseDTO), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(UserDefaultResponseDTO), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<UserResponseDTO>> CreateAsync([FromBody] UserCreateDTO userDTO)
+    public async Task<ActionResult<UserDefaultResponseDTO>> CreateAsync([FromBody] UserCreateDTO userDTO)
     {
         _logger.LogInformation<User>(
             message: LogInfoMessages.CreateRequest, 
@@ -119,14 +119,14 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
     [ProducesResponseType(typeof(UserResponseDTO), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<UserResponseDTO>> GetByIdAsync(Guid id)
+    public async Task<ActionResult<PagedResultDTO<UserResponseDTO>>> GetByIdAsync(Guid id)
     {
         _logger.LogInformation<User>(
             message: LogInfoMessages.GetByIdRequest,
             args: id);
         try
         {
-            UserResponseDTO? response =
+            PagedResultDTO<UserResponseDTO> response =
                 await user.GetByIdAsync(id);
 
             if (response == null)
@@ -174,31 +174,31 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
     /// - Retorna 500 (Internal Server Error) em caso de falha inesperada.  
     /// </remarks>
     [HttpGet]
-    [ProducesResponseType(typeof(IEnumerable<UserDefaultDTO>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<PagedResultDTO<UserDefaultResponseDTO>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<IEnumerable<UserDefaultDTO>>> GetAllAsync()
+    public async Task<ActionResult<IEnumerable<PagedResultDTO<UserDefaultResponseDTO>>>> GetAllAsync()
     {
         _logger.LogInformation<User>(
             message: LogInfoMessages.GetAllRequest);
 
         try
         {
-            ICollection<UserDefaultDTO> users = 
+            PagedResultDTO<UserDefaultResponseDTO> result = 
                 await user.GetAllAsync();
 
-            if(users == null || users.Count == 0)
+            if(result.Items == null || result.Items.Count == 0)
             {
                 _logger.LogWarning<User>(
                     message: LogWarningMessages.Empty);
 
-                return Ok(Enumerable.Empty<UserDefaultDTO>());
+                return Ok(Enumerable.Empty<UserDefaultResponseDTO>());
             }
 
             _logger.LogInformation<User>(
                 message: LogSuccessMessages.FoundAll,
-                args: users.Count);
+                args: result.Items.Count);
 
-            return Ok(users);
+            return Ok(result);
         }
         catch (Exception ex)
         {
@@ -236,9 +236,9 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
     /// - Retorna 500 (Internal Server Error) em caso de falha inesperada.  
     /// </remarks>
     [HttpGet("paged")]
-    [ProducesResponseType(typeof(UserPagedResultDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PagedResultDTO<UserListItemDTO>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<UserPagedResultDTO>> GetPagedAsync(
+    public async Task<ActionResult<PagedResultDTO<UserListItemDTO>>> GetPagedAsync(
     [FromQuery] int pageNumber = 1, 
     [FromQuery] int pageSize = 15, 
     [FromQuery] string? sortLabel = null, 
@@ -258,7 +258,7 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
 
         try
         {
-            UserPagedResultDTO result =
+            PagedResultDTO<UserListItemDTO> result =
                 await user.GetPagedAsync(
                     pageNumber,
                     pageSize,
@@ -336,7 +336,7 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
         try
         {
             int total =
-                await user.GetTotalUsersCountAsync(searchString);
+                await user.GetTotalCountAsync(searchString);
 
             _logger.LogInformation<User>(
                 message: LogSuccessMessages.Counted,
@@ -381,10 +381,10 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
     /// - Retorna 500 (Internal Server Error) em caso de falha inesperada.  
     /// </remarks>
     [HttpPatch("{id}")]
-    [ProducesResponseType(typeof(UserResponseDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(UserDefaultResponseDTO), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<UserResponseDTO>> UpdateAsync(Guid id, [FromBody] UserUpdateDTO userDTO)
+    public async Task<ActionResult<UserDefaultResponseDTO>> UpdateAsync(Guid id, [FromBody] UserUpdateDTO userDTO)
     {
         _logger.LogInformation<User>(
             message: LogInfoMessages.UpdateRequest,
@@ -631,16 +631,13 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
     /// - <c>UpdatedAt</c> → Data da última atualização do registro (se houver).  
     /// - <c>SectorId</c> → Identificador (chave estrangeira) que faz referência ao setor do usuário.  
     /// </remarks>
-    private static UserResponseDTO ToResponse(User entity) => new()
+    private static UserDefaultResponseDTO ToResponse(User entity) => new()
     {
         Id = entity.Id,
+        Status = entity.IsActive == true ? "Active" : "Inactive",
         Masp = entity.Masp,
         Name = entity.Name,
         Login = entity.Login,
-        Email = entity.Email,
-        Status = entity.IsActive == true ? "Active" : "Inactive",
-        Role = entity.Role,
-        CreatedAt = entity.CreatedAt,
-        UpdatedAt = entity.UpdatedAt
+        Email = entity.Email
     };
 }
