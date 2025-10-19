@@ -1,15 +1,9 @@
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
+using System.Reflection;
 using Serilog;
-using SIP.API.Domain.DTOs.Sectors;
-using SIP.API.Domain.DTOs.Sectors.Pagination;
-using SIP.API.Domain.DTOs.Sectors.Responses;
-using SIP.API.Domain.DTOs.Users;
-using SIP.API.Domain.DTOs.Users.Pagination;
-using SIP.API.Domain.DTOs.Users.Responses;
-using SIP.API.Domain.Entities.Sectors;
-using SIP.API.Domain.Entities.Users;
-using SIP.API.Domain.Helpers.ApplicationHelper;
-using SIP.API.Domain.Interfaces.Default;
+using SIP.API.Infrastructure.Caching;
+using SIP.API.Infrastructure.Database;
 using SIP.API.Domain.Interfaces.Hashes.Passwords;
 using SIP.API.Domain.Interfaces.Protocols;
 using SIP.API.Domain.Interfaces.Sectors;
@@ -20,10 +14,7 @@ using SIP.API.Domain.Services.Protocols;
 using SIP.API.Domain.Services.Sectors;
 using SIP.API.Domain.Services.Users;
 using SIP.API.Domain.Services.Users.Configurations;
-using SIP.API.Infrastructure.Caching;
-using SIP.API.Infrastructure.Database;
-using System.Globalization;
-using System.Reflection;
+using SIP.API.Domain.Helpers.ApplicationHelper;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -154,7 +145,6 @@ builder.Services.AddSwaggerGen(s =>
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
     s.IncludeXmlComments(xmlPath);
 });
-
 
 // Configuração do DbContext com MySQL passando string de conexão através do arquivo appsettings.Development.json
 builder.Services.AddDbContext<ApplicationContext>(options =>

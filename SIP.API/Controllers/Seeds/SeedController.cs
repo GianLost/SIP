@@ -37,7 +37,7 @@ public class SeedController(ApplicationContext context, ICryptPassword crypt, IP
     private readonly ICryptPassword _crypt = crypt;
     private readonly IProtocol _protocolService = protocolService;
 
-    // Add this static readonly field to cache the JsonSerializerOptions instance
+    // Adiciona opções de desserialização para ignorar diferenças de maiúsculas/minúsculas
     private static readonly JsonSerializerOptions _jsonOptions = new() { PropertyNameCaseInsensitive = true };
 
     /// <summary>

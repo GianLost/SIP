@@ -1,7 +1,6 @@
 ﻿using SIP.API.Domain.DTOs.Users.Configurations;
 using SIP.API.Domain.Entities.Users;
 using SIP.API.Domain.Interfaces.Hashes.Passwords;
-using SIP.API.Domain.Interfaces.Users;
 using SIP.API.Domain.Interfaces.Users.Configurations;
 using SIP.API.Infrastructure.Database;
 

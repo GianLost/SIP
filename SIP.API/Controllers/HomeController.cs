@@ -1,11 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MySqlConnector;
-using SIP.API.Domain.Helpers.ApplicationHelper;
+using SIP.API.Domain.ModelView.Health;
+using SIP.API.Domain.ModelView.Home;
 using SIP.API.Domain.Helpers.Messages.HomeMessages.Error;
 using SIP.API.Domain.Helpers.Messages.HomeMessages.info;
 using SIP.API.Domain.Helpers.Messages.HomeMessages.Success;
-using SIP.API.Domain.ModelView.Health;
-using SIP.API.Domain.ModelView.Home;
 
 namespace SIP.API.Controllers;
 
