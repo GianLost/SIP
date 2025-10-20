@@ -1,5 +1,7 @@
 ﻿@using MudBlazor
-@using SIP.UI.Domain.DTOs.Sectors.Default
+@using SIP.UI.Domain.DTOs.Default.Pagination
+@using SIP.UI.Domain.DTOs.Sectors.Request
+@using SIP.UI.Domain.DTOs.Users.Request
 @using SIP.UI.Domain.DTOs.Users
 @using SIP.UI.Domain.Services.Sectors
 @using SIP.UI.Domain.Enums
@@ -75,7 +77,7 @@
                 @* Caixa de seleção para selecionar o setor do usuário *@
                 <MudItem xs="12" sm="6">
                     <MudAutocomplete 
-                            T="SectorDefaultDTO" 
+                            T="SectorDefaultRequestDTO" 
                             Label="Setor"
                             @bind-Value="selectedSector" 
                             SearchFunc="SearchSectors"
@@ -142,7 +144,7 @@
     /// É carregada pelo serviço de setores e passada pelo componente pai.
     /// </summary>
     [Parameter]
-    public ICollection<SectorDefaultDTO>? _allSectors { get; set; }
+    public ICollection<SectorDefaultRequestDTO>? _allSectors { get; set; }
 
     /// <summary>
     /// Referência para o formulário do MudBlazor.
@@ -159,7 +161,7 @@
     /// <summary>
     /// Armazena o setor selecionado pelo usuário no formulário.
     /// </summary>
-    private SectorDefaultDTO? selectedSector;
+    private SectorDefaultRequestDTO? selectedSector;
 
     /// <summary>
     /// Flag que controla a visibilidade do campo "Nova Senha".
@@ -184,8 +186,10 @@
     /// </summary>
     protected override async Task OnInitializedAsync()
     {
+        PagedResultDTO<SectorDefaultRequestDTO>? result = await _sectorServices.GetAllAsync();
+
         if (_sectorServices is not null)
-            _allSectors = await _sectorServices.GetAllAsync() ?? new List<SectorDefaultDTO>();
+            _allSectors = result?.Items?.ToList() ?? new List<SectorDefaultRequestDTO>();
 
         if (_allSectors != null && !_allSectors.Any())
         {
@@ -265,10 +269,10 @@
     /// Função de pesquisa para o autocomplete de setores.
     /// Filtra a lista de setores com base no valor de pesquisa do usuário.
     /// </summary>
-    private Task<IEnumerable<SectorDefaultDTO>> SearchSectors(string value, CancellationToken cancellationToken)
+    private Task<IEnumerable<SectorDefaultRequestDTO>> SearchSectors(string value, CancellationToken cancellationToken)
     {
         if (string.IsNullOrEmpty(value))
-            return Task.FromResult<IEnumerable<SectorDefaultDTO>>(_allSectors!);
+            return Task.FromResult<IEnumerable<SectorDefaultRequestDTO>>(_allSectors!);
 
         return Task.FromResult(_allSectors!.Where(s => s.Name.Contains(value, StringComparison.OrdinalIgnoreCase) || s.Acronym.Contains(value, StringComparison.OrdinalIgnoreCase)));
     }
@@ -292,8 +296,6 @@
         if (isValid && selectedSector != null)
         {
             User.SectorId = selectedSector.Id;
-
-            User.Sector = selectedSector;
 
             MudDialog.Close(DialogResult.Ok(User));
         }

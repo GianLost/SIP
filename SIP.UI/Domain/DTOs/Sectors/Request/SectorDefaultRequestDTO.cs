@@ -1,13 +1,13 @@
 ﻿using SIP.UI.Models.Sectors;
 
-namespace SIP.UI.Domain.DTOs.Sectors;
+namespace SIP.UI.Domain.DTOs.Sectors.Request;
 
 /// <summary>
-/// Represents the data transfer object (DTO) used to create a new sector.
-/// Inherits base sector properties.
+/// DTO for paginated sectors result.
 /// </summary>
-public class SectorCreateDTO : BaseSector
+public class SectorDefaultRequestDTO : BaseSector
 {
+    public Guid Id { get; set; }
     public override string Name { get; set; } = string.Empty;
     public override string Acronym { get; set; } = string.Empty;
     public override string Phone { get; set; } = string.Empty;

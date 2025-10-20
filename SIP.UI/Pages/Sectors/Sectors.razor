@@ -3,9 +3,11 @@
 @using MudBlazor
 @using MudBlazor.Utilities
 @using SIP.UI.Components.Dialogs.Sectors
+@using SIP.UI.Domain.DTOs.Default.Pagination
 @using SIP.UI.Domain.DTOs.Sectors
 @using SIP.UI.Domain.DTOs.Sectors.Pagination
-@using SIP.UI.Domain.DTOs.Users.Default;
+@using SIP.UI.Domain.DTOs.Sectors.Request
+@using SIP.UI.Domain.DTOs.Users.Request
 @using SIP.UI.Domain.Helpers.DataFormatting.Strings
 @using SIP.UI.Domain.Services.Sectors
 @using SIP.UI.Models.Sectors
@@ -150,7 +152,7 @@
                                 <MudCardContent Class="pa-0">
 
                                     @* Sub-componente de tabela contendo os dados relacionais de usuários *@
-                                    <MudTable T="UserDefaultDTO" Items="sectorDetail.Users" Bordered="false" Hover="true" Elevation="0">
+                                    <MudTable T="UserDefaultRequestDTO" Items="sectorDetail.Users" Bordered="false" Hover="true" Elevation="0">
 
                                         <HeaderContent>
                                             <MudTh Style="font-weight: bold;">Status</MudTh>
@@ -275,7 +277,7 @@
 
         try
         {
-            SectorPagedResultDTO sectors = await _sectorService.GetPagedAsync(
+            PagedResultDTO<SectorListItemDTO>? sectors = await _sectorService.GetPagedAsync(
                 state.Page + 1,
                 state.PageSize,
                 sortLabel,
@@ -284,7 +286,7 @@
 
             return new TableData<SectorListItemDTO>
             {
-                Items = sectors.Items,
+                Items = sectors!.Items,
                 TotalItems = sectors.TotalCount
             };
         }

@@ -4,11 +4,14 @@ using System.ComponentModel.DataAnnotations;
 
 namespace SIP.UI.Models.Users;
 
+/// <summary>
+/// Provides base properties for user data transfer objects (DTOs).
+/// </summary>
 public abstract class BaseUser
 {
     [Required(ErrorMessage = "O MASP é obrigatório.")]
     [Range(1, int.MaxValue, ErrorMessage = "O MASP deve ser um número positivo.")]
-    public virtual string Masp { get; set; } = string.Empty;
+    public virtual int Masp { get; set; }
 
     [Required(ErrorMessage = "O nome é obrigatório.")]
     [StringLength(150, MinimumLength = 3, ErrorMessage = "O nome deve ter entre 3 e 150 caracteres.")]

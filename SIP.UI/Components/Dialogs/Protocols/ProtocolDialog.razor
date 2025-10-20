@@ -1,7 +1,8 @@
 ﻿@using MudBlazor
 @using SIP.UI.Domain.DTOs.Protocols
-@using SIP.UI.Domain.DTOs.Sectors.Default
-@using SIP.UI.Domain.DTOs.Users.Default
+@using SIP.UI.Domain.DTOs.Sectors.Request;
+@using SIP.UI.Domain.DTOs.Users.Request;
+@using SIP.UI.Domain.DTOs.Protocols.Default;
 @using SIP.UI.Domain.Services.Sectors
 @using SIP.UI.Domain.Services.Users
 @using SIP.UI.Domain.Enums
@@ -39,7 +40,7 @@
 
                 <!-- Usuário de origem -->
                 <MudItem xs="12" sm="6">
-                    <MudAutocomplete T="UserDefaultDTO"
+                    <MudAutocomplete T="UserDefaultRequestDTO"
                                      @bind-Value="SelectedCreator"
                                      Label="Criado Por"
                                      SearchFunc="SearchUsers"
@@ -64,7 +65,7 @@
 
                 <!-- Usuário de destino -->
                 <MudItem xs="12" sm="6">
-                    <MudAutocomplete T="UserDefaultDTO"
+                    <MudAutocomplete T="UserDefaultRequestDTO"
                                      @bind-Value="SelectedDestinationUser"
                                      Label="Destinado a"
                                      SearchFunc="SearchUsers"
@@ -81,10 +82,10 @@
                 <!-- Setor de destino (bloqueado) -->
                 <MudItem xs="12" sm="6">
                     <MudTextField Value="@(SelectedDestinationSector?.Name ?? string.Empty)"
-                  Label="Setor de Destino"
-                  Disabled="true"
-                  Variant="Variant.Outlined"
-                  Margin="Margin.Normal" />
+                                  Label="Setor de Destino"
+                                  Disabled="true"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Normal" />
                 </MudItem>
 
                 <!-- Status -->
@@ -149,15 +150,15 @@
     private MudForm? form;
     private bool isValid;
 
-    private List<UserDefaultDTO> AllUsers = new();
-    private List<SectorDefaultDTO> Sectors = new();
+    private List<UserDefaultRequestDTO> AllUsers = new();
+    private List<SectorDefaultRequestDTO> Sectors = new();
 
-    private UserDefaultDTO? _selectedCreator;
-    private UserDefaultDTO? _selectedDestinationUser;
-    private SectorDefaultDTO? SelectedOriginSector;
-    private SectorDefaultDTO? SelectedDestinationSector;
+    private UserDefaultRequestDTO? _selectedCreator;
+    private UserDefaultRequestDTO? _selectedDestinationUser;
+    private SectorDefaultRequestDTO? SelectedOriginSector;
+    private SectorDefaultRequestDTO? SelectedDestinationSector;
 
-    private UserDefaultDTO? SelectedCreator
+    private UserDefaultRequestDTO? SelectedCreator
     {
         get => _selectedCreator;
         set
@@ -170,7 +171,7 @@
         }
     }
 
-    private UserDefaultDTO? SelectedDestinationUser
+    private UserDefaultRequestDTO? SelectedDestinationUser
     {
         get => _selectedDestinationUser;
         set
@@ -185,8 +186,17 @@
 
     protected override async Task OnInitializedAsync()
     {
-        Sectors = (await SectorService.GetAllAsync())?.ToList() ?? [];
-        AllUsers = (await UserService.GetAllUsersToDropdownAsync())?.ToList() ?? [];
+        var sectorsResult =
+            await SectorService.GetAllAsync();
+
+        Sectors = sectorsResult?.Items?.
+            ToList() ?? new List<SectorDefaultRequestDTO>();
+
+        var usersResult =
+            await UserService.GetAllAsync();
+
+        AllUsers = usersResult?.Items?
+            .ToList() ?? new List<UserDefaultRequestDTO>();
 
         if (Protocol.CreatedById != Guid.Empty)
         {
@@ -203,9 +213,9 @@
         StateHasChanged();
     }
 
-    private Task<IEnumerable<UserDefaultDTO>> SearchUsers(string value, CancellationToken cancellationToken)
+    private Task<IEnumerable<UserDefaultRequestDTO>> SearchUsers(string value, CancellationToken cancellationToken)
     {
-        IEnumerable<UserDefaultDTO> users = AllUsers;
+        IEnumerable<UserDefaultRequestDTO> users = AllUsers;
 
         if (!string.IsNullOrWhiteSpace(value))
         {

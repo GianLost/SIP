@@ -70,7 +70,7 @@ public class SectorService(ApplicationContext context, EntityCacheManager cache)
                             Name = u.Name,
                             Login = u.Login,
                             Email = u.Email,
-                            Status = u.IsActive ? "Ativo" : "Inativo",
+                            Status = u.IsActive,
                         }).ToList()
                 })
                 .ToListAsync();
@@ -188,7 +188,7 @@ public class SectorService(ApplicationContext context, EntityCacheManager cache)
                             Name = user.Name,
                             Login = user.Login,
                             Email = user.Email,
-                            Status = user.IsActive ? "Ativo" : "Inativo",
+                            Status = user.IsActive,
                         }).ToList()
                 })
                 .ToListAsync();

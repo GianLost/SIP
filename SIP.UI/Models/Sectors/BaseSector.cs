@@ -3,6 +3,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace SIP.UI.Models.Sectors;
 
+/// <summary>
+/// Provides base properties for sector data transfer objects (DTOs).
+/// </summary>
 public abstract class BaseSector
 {
     [Required(ErrorMessage = "O nome do setor é obrigatório.")]

@@ -1,11 +1,13 @@
-﻿using SIP.UI.Domain.DTOs.Users;
+﻿using SIP.UI.Domain.DTOs.Default.Pagination;
+using SIP.UI.Domain.DTOs.Users;
 using SIP.UI.Domain.DTOs.Users.Configurations;
-using SIP.UI.Domain.DTOs.Users.Default;
 using SIP.UI.Domain.DTOs.Users.Pagination;
+using SIP.UI.Domain.DTOs.Users.Request;
 using SIP.UI.Domain.Helpers.Endpoints;
 using SIP.UI.Models.Errors;
 using SIP.UI.Models.Users;
 using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace SIP.UI.Domain.Services.Users;
 
@@ -13,16 +15,25 @@ public class UserService(HttpClient http)
 {
     private readonly HttpClient _http = http;
 
-    /// <summary>
-    /// Gets a user by its unique identifier from the API.
-    /// </summary>
-    /// <param name="id">The unique identifier of the user.</param>
-    /// <returns>The user entity if found; otherwise, null.</returns>
-    public async Task<User?> GetByIdAsync(Guid id)
+    public async Task CreateAsync(UserCreateDTO user)
+    {
+        HttpResponseMessage response = 
+            await _http.PostAsJsonAsync(
+                requestUri: BaseEndpoints<User>._create, 
+                value: user);
+
+        response.EnsureSuccessStatusCode();
+
+        await InvalidateCacheAsync();
+    }
+
+    public async Task<PagedResultDTO<UserRequestDTO>?> GetByIdAsync(Guid id)
     {
         try
         {
-            return await _http.GetFromJsonAsync<User>($"{BaseEndpoints<User>._getById}{id}");
+            return 
+                await _http.GetFromJsonAsync<PagedResultDTO<UserRequestDTO>>(
+                    requestUri: $"{BaseEndpoints<User>._getById}{id}");
         }
         catch
         {
@@ -31,39 +42,17 @@ public class UserService(HttpClient http)
 
     }
 
-    /// <summary>
-    /// Gets a paginated result of users from the API, including total count. Use in-memory caching and limit the number of records per page to avoid multiple requests for the same data.
-    /// </summary>
-    /// <param name="pageNumber">The page number (starting from 1).</param>
-    /// <param name="pageSize">The number of records per page (limited to 100).</param>
-    /// <param name="sortLabel">The property name to sort by.</param>
-    /// <param name="sortDirection">The sort direction ("asc" or "desc").</param>
-    /// <param name="searchString">Optional search string to filter sectors.</param>
-    /// <returns>A paged result DTO containing the users and total count.</returns>
-    public async Task<UserPagedResultDTO> GetPagedAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection, string? searchString)
-    {
-        pageSize = Math.Min(pageSize, 100);
-
-        string url = $"{BaseEndpoints<User>._getPaged}pageNumber={pageNumber}&pageSize={pageSize}&sortLabel={sortLabel}&sortDirection={sortDirection}&searchString={searchString}";
-
-        UserPagedResultDTO? response = await _http.GetFromJsonAsync<UserPagedResultDTO>(url);
-
-        return response ?? new UserPagedResultDTO();
-    }
-
-    /// <summary>
-    /// Busca TODOS os usuários da API para usar em dropdowns e seletores.
-    /// </summary>
-    /// <returns>Uma lista completa de todos os usuários.</returns>
-    public async Task<ICollection<UserDefaultDTO>?> GetAllUsersToDropdownAsync()
+    public async Task<PagedResultDTO<UserDefaultRequestDTO>?> GetAllAsync()
     {
         try
         {
             string endpoint = BaseEndpoints<User>._getAll;
 
-            ICollection<UserDefaultDTO>? users = await _http.GetFromJsonAsync<ICollection<UserDefaultDTO>>(endpoint);
+            var request =
+                await _http.GetFromJsonAsync<PagedResultDTO<UserDefaultRequestDTO>>(
+                    requestUri: endpoint);
 
-            return users ?? [];
+            return request;
         }
         catch (HttpRequestException ex)
         {
@@ -72,75 +61,68 @@ public class UserService(HttpClient http)
         }
     }
 
-    /// <summary>
-    /// Creates a new User via the API.
-    /// </summary>
-    /// <param name="user">The user entity to create.</param>
-    public async Task CreateAsync(UserCreateDTO user)
+    public async Task<PagedResultDTO<UserListItemDTO>?> GetPagedAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection, string? searchString)
     {
-        HttpResponseMessage response = await _http.PostAsJsonAsync(BaseEndpoints<User>._create, user);
-        response.EnsureSuccessStatusCode();
+        pageSize = Math.Min(pageSize, 100);
 
-        await InvalidateCacheAsync();
+        string url = $"{BaseEndpoints<User>._getPaged}pageNumber={pageNumber}&pageSize={pageSize}&sortLabel={sortLabel}&sortDirection={sortDirection}&searchString={searchString}";
+
+        var request = 
+            await _http.GetFromJsonAsync<PagedResultDTO<UserListItemDTO>>(
+                requestUri: url);
+
+        return request ?? new PagedResultDTO<UserListItemDTO>();
     }
 
-    /// <summary>
-    /// Updates an existing user via the API.
-    /// </summary>
-    /// <param name="user">The user entity to update.</param>
     public async Task UpdateAsync(UserUpdateDTO user)
     {
-        HttpResponseMessage response = await _http.PatchAsJsonAsync($"{BaseEndpoints<User>._update}{user.Id}", user);
+        HttpResponseMessage response = 
+            await _http.PatchAsJsonAsync(
+                requestUri: $"{BaseEndpoints<User>._update}{user.Id}", 
+                value: user);
+
         response.EnsureSuccessStatusCode();
+
         await InvalidateCacheAsync();
     }
 
-    /// <summary>
-    /// Deletes a user by its unique identifier via the API.
-    /// </summary>
-    /// <param name="id">The unique identifier of the user to delete.</param>
-    /// <exception cref="InvalidOperationException">Thrown if the user cannot be deleted due to business rules.</exception>
-    /// <exception cref="HttpRequestException">Thrown if the request fails.</exception>
     public async Task DeleteAsync(Guid id)
     {
-        HttpResponseMessage response = await _http.DeleteAsync($"{BaseEndpoints<User>._delete}{id}");
+        HttpResponseMessage request = 
+            await _http.DeleteAsync(
+                requestUri: $"{BaseEndpoints<User>._delete}{id}");
 
-        if (!response.IsSuccessStatusCode)
+        if (!request.IsSuccessStatusCode)
         {
-            string errorContent = await response.Content.ReadAsStringAsync();
+            string errorContent = await request.Content.ReadAsStringAsync();
 
-            if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
+            if (request.StatusCode == System.Net.HttpStatusCode.Conflict)
             {
                 try
                 {
-                    ErrorResponse? errorObject = System.Text.Json.JsonSerializer.Deserialize<ErrorResponse>(errorContent);
+                    ErrorResponse? errorObject = 
+                        JsonSerializer.Deserialize<ErrorResponse>(errorContent);
 
                     throw new InvalidOperationException(errorObject?.Error ?? "Erro desconhecido ao excluir usuário.");
                 }
-                catch (System.Text.Json.JsonException)
+                catch (JsonException)
                 {
                     throw new InvalidOperationException($"Erro de formato ao excluir usuário: {errorContent}");
                 }
             }
-            else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            else if (request.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
                 throw new InvalidOperationException("usuário não encontrado.");
             }
             else
             {
-                throw new HttpRequestException($"Erro na requisição: {response.StatusCode} - {errorContent}");
+                throw new HttpRequestException($"Erro na requisição: {request.StatusCode} - {errorContent}");
             }
         }
 
         await InvalidateCacheAsync();
     }
 
-    /// <summary>
-    /// Altera a senha de um usuário através da API.
-    /// </summary>
-    /// <param name="userId">O ID do usuário cuja senha será alterada.</param>
-    /// <param name="newPassword">A nova senha.</param>
-    /// <returns>True se a senha foi alterada com sucesso, caso contrário, false.</returns>
     public async Task<bool> DefaultChangePasswordAsync(Guid userId, string newPassword)
     {
         try
@@ -151,9 +133,12 @@ public class UserService(HttpClient http)
                 Password = newPassword
             };
 
-            HttpResponseMessage response = await _http.PatchAsJsonAsync(BaseEndpoints<User>._password, changePasswordDto);
+            HttpResponseMessage request = 
+                await _http.PatchAsJsonAsync(
+                    requestUri: BaseEndpoints<User>._password, 
+                    value: changePasswordDto);
 
-            response.EnsureSuccessStatusCode();
+            request.EnsureSuccessStatusCode();
 
             return true;
         }
@@ -167,7 +152,12 @@ public class UserService(HttpClient http)
     private async Task InvalidateCacheAsync()
     {
         string url = CacheEndpoints._invalidateUserCount;
-        HttpResponseMessage response = await _http.PostAsync(url, null);
+
+        HttpResponseMessage response = 
+            await _http.PostAsync(
+                requestUri: url, 
+                content: null);
+
         response.EnsureSuccessStatusCode();
     }
 }

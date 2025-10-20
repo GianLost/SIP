@@ -2,6 +2,7 @@
 using SIP.API.Domain.DTOs.Users.Responses;
 
 namespace SIP.API.Domain.DTOs.Sectors.Pagination;
+
 public class SectorListItemDTO : BaseSector
 {
     public Guid Id { get; set; }

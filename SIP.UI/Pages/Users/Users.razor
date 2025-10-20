@@ -3,9 +3,12 @@
 @using MudBlazor
 @using MudBlazor.Utilities
 @using SIP.UI.Components.Dialogs.Users
+@using SIP.UI.Domain.DTOs.Default.Pagination
 @using SIP.UI.Domain.DTOs.Users
 @using SIP.UI.Domain.DTOs.Users.Configurations
 @using SIP.UI.Domain.DTOs.Users.Pagination
+@using SIP.UI.Domain.DTOs.Users.Request
+@using SIP.UI.Domain.DTOs.Protocols.Default;
 @using SIP.UI.Domain.Enums
 @using SIP.UI.Domain.Helpers.DataFormatting.DateTimes
 @using SIP.UI.Domain.Helpers.DataFormatting.Strings
@@ -130,7 +133,7 @@
 
             <RowTemplate Context="user">
 
-                @if(user.Protocols.Count < 1)
+                @if(user.ProtocolsCreated.Count < 1)
                 {
                     <MudTd Style="text-align: center;">
                         <MudTooltip Text="Este usuário não possui protocolos cadastrados..." Arrow="true" Placement="Placement.Bottom">
@@ -190,7 +193,7 @@
                                     </CardHeaderContent>
                                 </MudCardHeader>
                                 <MudCardContent Class="pa-0">
-                                    <MudTable T="Protocol" Items="userDetail.Protocols" Bordered="false" Hover="true" Dense="true" Elevation="0">
+                                    <MudTable T="ProtocolDefaultDTO" Items="userDetail.ProtocolsCreated" Bordered="false" Hover="true" Dense="true" Elevation="0">
                                         <HeaderContent>
                                             <MudTh Style="font-weight: bold;">Status</MudTh>
                                             <MudTh Style="font-weight: bold;">Número</MudTh>
@@ -201,7 +204,6 @@
                                             <MudTd DataLabel="Status">@GetStatusChip(protocol.Status)</MudTd>
                                             <MudTd DataLabel="Número">@protocol.Number</MudTd>
                                             <MudTd DataLabel="Assunto">@protocol.Subject.ToUppercase()</MudTd>
-                                            <MudTd DataLabel="Data de Criação">@protocol.CreatedAt.ToBrasiliaTimeFormat()</MudTd>
                                         </RowTemplate>
                                         <NoRecordsContent>
                                             <MudText Class="pa-4">Nenhum protocolo vinculado a este usuário.</MudText>
@@ -280,7 +282,7 @@
 
         try
         {
-            UserPagedResultDTO users = await _userService.GetPagedAsync(
+            PagedResultDTO<UserListItemDTO>? users = await _userService.GetPagedAsync(
                 state.Page + 1,
                 state.PageSize,
                 sortLabel,
@@ -289,7 +291,7 @@
 
             return new TableData<UserListItemDTO>
                 {
-                    Items = users.Items,
+                    Items = users!.Items,
                     TotalItems = users.TotalCount
                 };
         }

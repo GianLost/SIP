@@ -96,7 +96,7 @@ public class UserService(ICryptPassword cryp, ApplicationContext context, Entity
                 .Select(u => new UserDefaultResponseDTO
                 {
                     Id = u.Id,
-                    Status = u.IsActive ? "Ativo" : "Inativo",
+                    Status = u.IsActive,
                     Masp = u.Masp,
                     Name = u.Name,
                     Login = u.Login,
@@ -126,7 +126,7 @@ public class UserService(ICryptPassword cryp, ApplicationContext context, Entity
             .Select(u => new UserDefaultResponseDTO
             {
                 Id = u.Id,
-                Status = u.IsActive ? "Ativo" : "Inativo",
+                Status = u.IsActive,
                 Masp = u.Masp,
                 Name = u.Name,
                 Login = u.Login,
@@ -228,6 +228,8 @@ public class UserService(ICryptPassword cryp, ApplicationContext context, Entity
                     Masp = u.Masp,
                     Name = u.Name,
                     Login = u.Login,
+                    Email = u.Email,
+                    Role = u.Role,
                     SectorAcronym = u.Sector!.Acronym
                 });
 
@@ -259,7 +261,6 @@ public class UserService(ICryptPassword cryp, ApplicationContext context, Entity
         user.IsActive = dto.Status;
         user.UpdatedAt = DateTime.UtcNow;
 
-        _context.Users.Update(user);
         await _context.SaveChangesAsync();
 
         ClearTotalCountCache();

@@ -634,7 +634,7 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
     private static UserDefaultResponseDTO ToResponse(User entity) => new()
     {
         Id = entity.Id,
-        Status = entity.IsActive == true ? "Active" : "Inactive",
+        Status = entity.IsActive,
         Masp = entity.Masp,
         Name = entity.Name,
         Login = entity.Login,

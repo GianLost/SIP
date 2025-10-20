@@ -1,22 +1,23 @@
-﻿using SIP.UI.Domain.Enums;
-using SIP.UI.Domain.Helpers.RegExpressions;
+﻿using System.ComponentModel.DataAnnotations;
 using SIP.UI.Models.Users;
-using System.ComponentModel.DataAnnotations;
+using SIP.UI.Domain.Enums;
 
 namespace SIP.UI.Domain.DTOs.Users;
 
+/// <summary>
+/// Represents the data transfer object (DTO) used to update an existing user.
+/// Inherits base user properties.
+/// </summary>
 public class UserUpdateDTO : BaseUser
 {
     public Guid Id { get; set; }
-
-    public override string Masp { get; set; } = string.Empty;
+    public override int Masp { get; set; }
     public override string Name { get; set; } = string.Empty;
     public override string Login { get; set; } = string.Empty;
     public override string Email { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "O papel do usuário é obrigatório.")]
     public override RoleEnum Role { get; set; }
 
-    /// <summary>
-    /// Representação mais amigável para o front-end se o usuário está ativo ou inativo
-    /// </summary>
     public bool Status { get; set; }
 }

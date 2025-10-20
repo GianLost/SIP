@@ -1,4 +1,4 @@
-﻿@using SIP.UI.Domain.DTOs.Sectors.Default
+﻿@using SIP.UI.Domain.DTOs.Sectors.Request
 @using SIP.UI.Domain.Services.Sectors
 @using SIP.UI.Models.Sectors
 @using SIP.UI.Models.Users
@@ -14,7 +14,7 @@
 
         <MudForm @ref="form" @bind-IsValid="isValid">
 
-            <MudSelect T="SectorDefaultDTO" Label="Setor" @bind-Value="selectedSector" Required="true" Dense="true" RequiredError="Selecione um setor!" Variant="Variant.Outlined" Margin="Margin.Normal" Class="mb-3">
+            <MudSelect T="SectorDefaultRequestDTO" Label="Setor" @bind-Value="selectedSector" Required="true" Dense="true" RequiredError="Selecione um setor!" Variant="Variant.Outlined" Margin="Margin.Normal" Class="mb-3">
                 @if (_allSectors != null)
                 {
                     @foreach (var sector in _allSectors)
@@ -50,19 +50,22 @@
 
     [Parameter] public User Users { get; set; } = new();
 
-    private SectorDefaultDTO selectedSector = new();
+    private SectorDefaultRequestDTO selectedSector = new();
 
-    private IEnumerable<SectorDefaultDTO>? _allSectors = [];
+    private IEnumerable<SectorDefaultRequestDTO>? _allSectors = [];
 
     protected override async Task OnInitializedAsync()
     {
-        _allSectors = await _sectorServices.GetAllAsync();
+        var result = 
+            await _sectorServices.GetAllAsync();
+
+        _allSectors = result?.Items?.ToList() ?? new List<SectorDefaultRequestDTO>();
 
         if (_allSectors is not null && selectedSector != null)
-            selectedSector = _allSectors.FirstOrDefault(s => s.Id == selectedSector.Id) ?? new SectorDefaultDTO();
+            selectedSector = _allSectors.FirstOrDefault(s => s.Id == selectedSector.Id) ?? new SectorDefaultRequestDTO();
 
         else if (_allSectors is not null && Users.SectorId != default(Guid))
-            selectedSector = _allSectors.FirstOrDefault(s => s.Id == Users.SectorId) ?? new SectorDefaultDTO();
+            selectedSector = _allSectors.FirstOrDefault(s => s.Id == Users.SectorId) ?? new SectorDefaultRequestDTO();
     }
 
     private void Submit()
