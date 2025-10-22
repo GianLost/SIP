@@ -16,9 +16,11 @@ public class SectorService(HttpClient http)
 
     public async Task CreateAsync(SectorCreateDTO setor)
     {
+        string uri = BaseEndpoints<Sector>._create;
+
         HttpResponseMessage request = 
             await _http.PostAsJsonAsync(
-                requestUri: BaseEndpoints<Sector>._create, 
+                requestUri: uri,
                 value: setor);
 
         request.EnsureSuccessStatusCode();
@@ -26,13 +28,15 @@ public class SectorService(HttpClient http)
         await InvalidateCacheAsync();
     }
 
-    public async Task<PagedResultDTO<SectorRequestDTO>?> GetByIdAsync(Guid id)
+    public async Task<PagedResultDTO<SectorListItemDTO>?> GetByIdAsync(Guid id)
     {
         try
         {
+            string uri = $"{BaseEndpoints<Sector>._getById}{id}";
+
             return 
-                await _http.GetFromJsonAsync<PagedResultDTO<SectorRequestDTO>>(
-                    requestUri: $"{BaseEndpoints<Sector>._getById}{id}");
+                await _http.GetFromJsonAsync<PagedResultDTO<SectorListItemDTO>>(
+                    requestUri: uri);
         }
         catch
         {
@@ -40,15 +44,15 @@ public class SectorService(HttpClient http)
         }
     }
 
-    public async Task<PagedResultDTO<SectorDefaultRequestDTO>?> GetAllAsync()
+    public async Task<PagedResultDTO<SectorRequestDTO>?> GetAllAsync()
     {
         try
         {
-            string endpoint = BaseEndpoints<Sector>._getAll;
+            string uri = BaseEndpoints<Sector>._getAll;
 
             var request = 
-                await _http.GetFromJsonAsync<PagedResultDTO<SectorDefaultRequestDTO>>(
-                    requestUri: endpoint);
+                await _http.GetFromJsonAsync<PagedResultDTO<SectorRequestDTO>>(
+                    requestUri: uri);
 
             return request;
         }
@@ -63,20 +67,21 @@ public class SectorService(HttpClient http)
     {
         pageSize = Math.Min(pageSize, 100);
 
-        string url = $"{BaseEndpoints<Sector>._getPaged}pageNumber={pageNumber}&pageSize={pageSize}&sortLabel={sortLabel}&sortDirection={sortDirection}&searchString={searchString}";
+        string uri = $"{BaseEndpoints<Sector>._getPaged}pageNumber={pageNumber}&pageSize={pageSize}&sortLabel={sortLabel}&sortDirection={sortDirection}&searchString={searchString}";
 
         var request = 
             await _http.GetFromJsonAsync<PagedResultDTO<SectorListItemDTO>>(
-                requestUri: url);
+                requestUri: uri);
 
         return request ?? new PagedResultDTO<SectorListItemDTO>();
     }
 
     public async Task UpdateAsync(SectorUpdateDTO setor)
     {
+        string uri = $"{BaseEndpoints<Sector>._update}{setor.Id}";
         HttpResponseMessage request = 
             await _http.PatchAsJsonAsync(
-                requestUri: $"{BaseEndpoints<Sector>._update}{setor.Id}", 
+                requestUri: uri, 
                 value: setor);
 
         request.EnsureSuccessStatusCode();
@@ -86,9 +91,11 @@ public class SectorService(HttpClient http)
 
     public async Task DeleteAsync(Guid id)
     {
+        string uri = $"{BaseEndpoints<Sector>._delete}{id}";
+
         HttpResponseMessage request = 
             await _http.DeleteAsync(
-                requestUri: $"{BaseEndpoints<Sector>._delete}{id}");
+                requestUri: uri);
 
         if (!request.IsSuccessStatusCode)
         {
@@ -123,12 +130,12 @@ public class SectorService(HttpClient http)
 
     private async Task InvalidateCacheAsync()
     {
-        string url = CacheEndpoints._invalidateSectorCount;
+        string uri = CacheEndpoints._invalidateSectorCount;
 
         HttpResponseMessage request = 
             await 
             _http.PostAsync(
-                requestUri: url,content: null);
+                requestUri: uri,content: null);
 
         request.EnsureSuccessStatusCode();
     }

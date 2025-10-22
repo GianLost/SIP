@@ -27,12 +27,12 @@ public class UserService(HttpClient http)
         await InvalidateCacheAsync();
     }
 
-    public async Task<PagedResultDTO<UserRequestDTO>?> GetByIdAsync(Guid id)
+    public async Task<PagedResultDTO<UserListItemDTO>?> GetByIdAsync(Guid id)
     {
         try
         {
             return 
-                await _http.GetFromJsonAsync<PagedResultDTO<UserRequestDTO>>(
+                await _http.GetFromJsonAsync<PagedResultDTO<UserListItemDTO>>(
                     requestUri: $"{BaseEndpoints<User>._getById}{id}");
         }
         catch
@@ -42,14 +42,14 @@ public class UserService(HttpClient http)
 
     }
 
-    public async Task<PagedResultDTO<UserDefaultRequestDTO>?> GetAllAsync()
+    public async Task<PagedResultDTO<UserRequestDTO>?> GetAllAsync()
     {
         try
         {
             string endpoint = BaseEndpoints<User>._getAll;
 
             var request =
-                await _http.GetFromJsonAsync<PagedResultDTO<UserDefaultRequestDTO>>(
+                await _http.GetFromJsonAsync<PagedResultDTO<UserRequestDTO>>(
                     requestUri: endpoint);
 
             return request;

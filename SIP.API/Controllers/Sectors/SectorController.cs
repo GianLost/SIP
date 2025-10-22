@@ -44,10 +44,10 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
     /// - Retorna 500 (Internal Server Error) em caso de falha inesperada.  
     /// </remarks>
     [HttpPost]
-    [ProducesResponseType(typeof(SectorDefaultResponseDTO), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(SectorResponseDTO), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<SectorDefaultResponseDTO>> CreateAsync([FromBody] SectorCreateDTO sectorDTO)
+    public async Task<ActionResult<SectorResponseDTO>> CreateAsync([FromBody] SectorCreateDTO sectorDTO)
     {
         _logger.LogInformation<Sector>(
             message: LogInfoMessages.CreateRequest, 
@@ -113,10 +113,10 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
     /// - Retorna 500 (Internal Server Error) em caso de falha inesperada.  
     /// </remarks>
     [HttpGet("{id}", Name = "GetSectorByIdAsync")]
-    [ProducesResponseType(typeof(SectorResponseDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(SectorListItemDTO), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<PagedResultDTO<SectorResponseDTO>>> GetByIdAsync(Guid id)
+    public async Task<ActionResult<PagedResultDTO<SectorListItemDTO>>> GetByIdAsync(Guid id)
     {
         _logger.LogInformation<Sector>(
             message: LogInfoMessages.GetByIdRequest,
@@ -124,7 +124,7 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
 
         try
         {
-            PagedResultDTO<SectorResponseDTO> response =
+            PagedResultDTO<SectorListItemDTO> response =
                 await sector.GetByIdAsync(id);
 
             if (sector == null)
@@ -172,16 +172,16 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
     /// - Retorna 500 (Internal Server Error) em caso de falha inesperada.  
     /// </remarks>
     [HttpGet]
-    [ProducesResponseType(typeof(IEnumerable<PagedResultDTO<SectorDefaultResponseDTO>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<PagedResultDTO<SectorResponseDTO>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<IEnumerable<PagedResultDTO<SectorDefaultResponseDTO>>>> GetAllAsync()
+    public async Task<ActionResult<IEnumerable<PagedResultDTO<SectorResponseDTO>>>> GetAllAsync()
     {
         _logger.LogInformation<Sector>(
             message: LogInfoMessages.GetAllRequest);
 
         try
         {
-            PagedResultDTO<SectorDefaultResponseDTO> result = 
+            PagedResultDTO<SectorResponseDTO> result = 
                 await sector.GetAllAsync();
 
             if (result.Items == null || result.Items.Count == 0)
@@ -189,7 +189,7 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
                 _logger.LogWarning<Sector>(
                     message: LogWarningMessages.Empty);
 
-                return Ok(Enumerable.Empty<SectorDefaultResponseDTO>());
+                return Ok(Enumerable.Empty<SectorResponseDTO>());
             }
 
             _logger.LogInformation<Sector>(
@@ -372,10 +372,10 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
     /// - Retorna 500 (Internal Server Error) em caso de falha inesperada.  
     /// </remarks>
     [HttpPatch("{id}")]
-    [ProducesResponseType(typeof(SectorDefaultResponseDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(SectorResponseDTO), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<SectorDefaultResponseDTO>> UpdateAsync(Guid id, [FromBody] SectorUpdateDTO sectorDTO)
+    public async Task<ActionResult<SectorResponseDTO>> UpdateAsync(Guid id, [FromBody] SectorUpdateDTO sectorDTO)
     {
         _logger.LogInformation<Sector>(
             message: LogInfoMessages.UpdateRequest,
@@ -513,11 +513,11 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
     }
 
     /// <summary>
-    /// Converte uma entidade <see cref="Sector"/> em um objeto de resposta padronizado <see cref="SectorDefaultResponseDTO"/>.
+    /// Converte uma entidade <see cref="Sector"/> em um objeto de resposta padronizado <see cref="SectorResponseDTO"/>.
     /// </summary>
     /// <param name="entity">Entidade <see cref="Sector"/> obtida da camada de domínio.</param>
     /// <returns>
-    /// Retorna um objeto <see cref="SectorDefaultResponseDTO"/> contendo os dados essenciais do setor
+    /// Retorna um objeto <see cref="SectorResponseDTO"/> contendo os dados essenciais do setor
     /// que serão expostos pela API.
     /// </returns>
     /// <remarks>
@@ -532,7 +532,7 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
     /// - <c>CreatedAt</c> → Data de criação do registro.  
     /// - <c>UpdatedAt</c> → Data da última atualização do registro (se houver).  
     /// </remarks>
-    private static SectorDefaultResponseDTO ToResponse(Sector entity) => new()
+    private static SectorResponseDTO ToResponse(Sector entity) => new()
     {
         Id = entity.Id,
         Name = entity.Name,

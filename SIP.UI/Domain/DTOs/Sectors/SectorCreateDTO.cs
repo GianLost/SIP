@@ -2,10 +2,6 @@
 
 namespace SIP.UI.Domain.DTOs.Sectors;
 
-/// <summary>
-/// Represents the data transfer object (DTO) used to create a new sector.
-/// Inherits base sector properties.
-/// </summary>
 public class SectorCreateDTO : BaseSector
 {
     public override string Name { get; set; } = string.Empty;

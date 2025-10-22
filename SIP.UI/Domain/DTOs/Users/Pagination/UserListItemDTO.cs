@@ -1,23 +1,23 @@
 ﻿using SIP.UI.Domain.DTOs.Protocols.Default;
 using SIP.UI.Domain.Enums;
+using SIP.UI.Models.Users;
 
 namespace SIP.UI.Domain.DTOs.Users.Pagination;
 
-public class UserListItemDTO
+public class UserListItemDTO : BaseUser
 {
     public Guid Id { get; set; }
 
     public bool Status { get; set; }
 
-    public int Masp { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string Login { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
+    public override int Masp { get; set; }
+    public override string Name { get; set; } = string.Empty;
+    public override string Login { get; set; } = string.Empty;
+    public override string Email { get; set; } = string.Empty;
 
-    public RoleEnum Role { get; set; }
+    public string SectorAcronym { get; set; } = string.Empty;
 
     public bool ShowProtocols { get; set; }
-    public string SectorAcronym { get; set; } = string.Empty;
 
     public ICollection<ProtocolDefaultDTO> ProtocolsCreated { get; set; } = [];
     public ICollection<ProtocolDefaultDTO> ProtocolsReceived { get; set; } = [];

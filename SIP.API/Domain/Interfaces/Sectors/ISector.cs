@@ -8,7 +8,7 @@ namespace SIP.API.Domain.Interfaces.Sectors;
 
 /// <summary>
 /// Defines a specialized entity manager for sector-related operations,
-/// extending the generic <see cref="IEntityManager{TEntity, TCreateDTO, TUpdateDTO, TListItemDTO, TDefaultResponse, TResponseDTO}"/>.
+/// extending the generic <see cref="IEntityManager{TEntity, TCreateDTO, TUpdateDTO, TListItemDTO, TResponseDTO}"/>.
 /// </summary>
 /// <remarks>
 /// This interface provides CRUD, pagination, and data retrieval operations
@@ -16,4 +16,4 @@ namespace SIP.API.Domain.Interfaces.Sectors;
 /// It enables separation of concerns by isolating domain-specific logic
 /// from the generic data access layer.
 /// </remarks>
-public interface ISector : IEntityManager<Sector, SectorCreateDTO, SectorUpdateDTO, SectorListItemDTO, SectorDefaultResponseDTO, SectorResponseDTO> { }
+public interface ISector : IEntityManager<Sector, SectorCreateDTO, SectorUpdateDTO, SectorListItemDTO, SectorResponseDTO> { }

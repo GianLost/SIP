@@ -40,7 +40,7 @@
 
                 <!-- Usuário de origem -->
                 <MudItem xs="12" sm="6">
-                    <MudAutocomplete T="UserDefaultRequestDTO"
+                    <MudAutocomplete T="UserRequestDTO"
                                      @bind-Value="SelectedCreator"
                                      Label="Criado Por"
                                      SearchFunc="SearchUsers"
@@ -65,7 +65,7 @@
 
                 <!-- Usuário de destino -->
                 <MudItem xs="12" sm="6">
-                    <MudAutocomplete T="UserDefaultRequestDTO"
+                    <MudAutocomplete T="UserRequestDTO"
                                      @bind-Value="SelectedDestinationUser"
                                      Label="Destinado a"
                                      SearchFunc="SearchUsers"
@@ -150,15 +150,15 @@
     private MudForm? form;
     private bool isValid;
 
-    private List<UserDefaultRequestDTO> AllUsers = new();
-    private List<SectorDefaultRequestDTO> Sectors = new();
+    private List<UserRequestDTO> AllUsers = new();
+    private List<SectorRequestDTO> Sectors = new();
 
-    private UserDefaultRequestDTO? _selectedCreator;
-    private UserDefaultRequestDTO? _selectedDestinationUser;
-    private SectorDefaultRequestDTO? SelectedOriginSector;
-    private SectorDefaultRequestDTO? SelectedDestinationSector;
+    private UserRequestDTO? _selectedCreator;
+    private UserRequestDTO? _selectedDestinationUser;
+    private SectorRequestDTO? SelectedOriginSector;
+    private SectorRequestDTO? SelectedDestinationSector;
 
-    private UserDefaultRequestDTO? SelectedCreator
+    private UserRequestDTO? SelectedCreator
     {
         get => _selectedCreator;
         set
@@ -171,7 +171,7 @@
         }
     }
 
-    private UserDefaultRequestDTO? SelectedDestinationUser
+    private UserRequestDTO? SelectedDestinationUser
     {
         get => _selectedDestinationUser;
         set
@@ -190,13 +190,13 @@
             await SectorService.GetAllAsync();
 
         Sectors = sectorsResult?.Items?.
-            ToList() ?? new List<SectorDefaultRequestDTO>();
+            ToList() ?? new List<SectorRequestDTO>();
 
         var usersResult =
             await UserService.GetAllAsync();
 
         AllUsers = usersResult?.Items?
-            .ToList() ?? new List<UserDefaultRequestDTO>();
+            .ToList() ?? new List<UserRequestDTO>();
 
         if (Protocol.CreatedById != Guid.Empty)
         {
@@ -213,9 +213,9 @@
         StateHasChanged();
     }
 
-    private Task<IEnumerable<UserDefaultRequestDTO>> SearchUsers(string value, CancellationToken cancellationToken)
+    private Task<IEnumerable<UserRequestDTO>> SearchUsers(string value, CancellationToken cancellationToken)
     {
-        IEnumerable<UserDefaultRequestDTO> users = AllUsers;
+        IEnumerable<UserRequestDTO> users = AllUsers;
 
         if (!string.IsNullOrWhiteSpace(value))
         {

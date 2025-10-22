@@ -7,9 +7,9 @@ using SIP.API.Domain.DTOs.Sectors;
 using SIP.API.Domain.DTOs.Default.Pagination;
 using SIP.API.Domain.DTOs.Sectors.Pagination;
 using SIP.API.Domain.DTOs.Sectors.Responses;
-using SIP.API.Domain.DTOs.Users.Responses;
 using SIP.API.Domain.Helpers.KeysHelper;
 using SIP.API.Domain.Helpers.PhoneHelper;
+using SIP.API.Domain.DTOs.Users.Pagination;
 
 namespace SIP.API.Domain.Services.Sectors;
 
@@ -43,10 +43,47 @@ public class SectorService(ApplicationContext context, EntityCacheManager cache)
     }
 
     /// <inheritdoc/>
-    public async Task<PagedResultDTO<SectorResponseDTO>> GetByIdAsync(Guid id)
+    public async Task<PagedResultDTO<SectorListItemDTO>> GetByIdAsync(Guid id)
     {
         IQueryable<Sector> query = 
             _context.Sectors.AsNoTracking();
+
+        string cacheKey = $"{CacheKeys.SectorsTotalCount}";
+        int totalCount = await _cache.GetOrSetCountAsync(cacheKey, () => query.CountAsync(), EntityType);
+
+        ICollection<SectorListItemDTO> items = await query
+            .OrderBy(s => s.CreatedAt)
+            .Where(s => s.Id == id)
+                .Select(s => new SectorListItemDTO
+                {
+                    Id = s.Id,
+                    Name = s.Name,
+                    Acronym = s.Acronym,
+                    Phone = s.Phone,
+                    Users = s.Users
+                        .Select(u => new UserListItemDTO
+                        {
+                            Id = u.Id,
+                            Status = u.IsActive,
+                            Masp = u.Masp,
+                            Name = u.Name,
+                            Login = u.Login,
+                            SectorAcronym = u.Sector!.Acronym,
+                        }).ToList()
+                })
+                .ToListAsync();
+
+        return new PagedResultDTO<SectorListItemDTO>
+        {
+            Items = items,
+            TotalCount = totalCount
+        };
+    }
+
+    /// <inheritdoc/>
+    public async Task<PagedResultDTO<SectorResponseDTO>> GetByIdDefaultAsync(Guid id)
+    {
+        IQueryable<Sector> query = _context.Sectors.AsNoTracking();
 
         string cacheKey = $"{CacheKeys.SectorsTotalCount}";
         int totalCount = await _cache.GetOrSetCountAsync(cacheKey, () => query.CountAsync(), EntityType);
@@ -59,49 +96,11 @@ public class SectorService(ApplicationContext context, EntityCacheManager cache)
                     Id = s.Id,
                     Name = s.Name,
                     Acronym = s.Acronym,
-                    Phone = s.Phone,
-                    CreatedAt = s.CreatedAt,
-                    UpdatedAt = s.UpdatedAt,
-                    Users = s.Users
-                        .Select(u => new UserDefaultResponseDTO
-                        {
-                            Id = u.Id,
-                            Masp = u.Masp,
-                            Name = u.Name,
-                            Login = u.Login,
-                            Email = u.Email,
-                            Status = u.IsActive,
-                        }).ToList()
+                    Phone = s.Phone
                 })
                 .ToListAsync();
 
         return new PagedResultDTO<SectorResponseDTO>
-        {
-            Items = items,
-            TotalCount = totalCount
-        };
-    }
-
-    /// <inheritdoc/>
-    public async Task<PagedResultDTO<SectorDefaultResponseDTO>> GetByIdDefaultAsync(Guid id)
-    {
-        IQueryable<Sector> query = _context.Sectors.AsNoTracking();
-
-        string cacheKey = $"{CacheKeys.SectorsTotalCount}";
-        int totalCount = await _cache.GetOrSetCountAsync(cacheKey, () => query.CountAsync(), EntityType);
-
-        ICollection<SectorDefaultResponseDTO> items = await query
-            .OrderBy(s => s.CreatedAt)
-            .Where(s => s.Id == id)
-                .Select(s => new SectorDefaultResponseDTO
-                {
-                    Id = s.Id,
-                    Name = s.Name,
-                    Acronym = s.Acronym
-                })
-                .ToListAsync();
-
-        return new PagedResultDTO<SectorDefaultResponseDTO>
         {
             Items = items,
             TotalCount = totalCount       
@@ -109,7 +108,7 @@ public class SectorService(ApplicationContext context, EntityCacheManager cache)
     }
 
     /// <inheritdoc/>
-    public async Task<PagedResultDTO<SectorDefaultResponseDTO>> GetAllAsync()
+    public async Task<PagedResultDTO<SectorResponseDTO>> GetAllAsync()
     {
         /* TODO: Otimizar consulta para o uso em componente MudSelect no front-end */
 
@@ -118,9 +117,9 @@ public class SectorService(ApplicationContext context, EntityCacheManager cache)
         string cacheKey = $"{CacheKeys.SectorsTotalCount}";
         int totalCount = await _cache.GetOrSetCountAsync(cacheKey, () => query.CountAsync(), EntityType);
 
-        ICollection<SectorDefaultResponseDTO> items = await query
+        ICollection<SectorResponseDTO> items = await query
            .OrderBy(s => s.CreatedAt)
-           .Select(s => new SectorDefaultResponseDTO
+           .Select(s => new SectorResponseDTO
            {
                Id = s.Id,
                Name = s.Name,
@@ -129,7 +128,7 @@ public class SectorService(ApplicationContext context, EntityCacheManager cache)
            })
            .ToListAsync();
 
-      return new PagedResultDTO<SectorDefaultResponseDTO>
+      return new PagedResultDTO<SectorResponseDTO>
       {
           Items = items,
           TotalCount = totalCount
@@ -181,14 +180,14 @@ public class SectorService(ApplicationContext context, EntityCacheManager cache)
                     Acronym = u.Acronym,
                     Phone = u.Phone,
                     Users = u.Users
-                        .Select(user => new UserDefaultResponseDTO
+                        .Select(user => new UserListItemDTO
                         {
                             Id = user.Id,
+                            Status = user.IsActive,
                             Masp = user.Masp,
                             Name = user.Name,
                             Login = user.Login,
-                            Email = user.Email,
-                            Status = user.IsActive,
+                            SectorAcronym = user.Sector!.Acronym,
                         }).ToList()
                 })
                 .ToListAsync();

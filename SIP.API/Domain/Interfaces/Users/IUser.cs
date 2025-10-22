@@ -8,7 +8,7 @@ namespace SIP.API.Domain.Interfaces.Users;
 
 /// <summary>
 /// Defines a specialized entity manager for user-related operations,
-/// extending the generic <see cref="IEntityManager{TEntity, TCreateDTO, TUpdateDTO, TListItemDTO, TDefaultResponse, TResponseDTO}"/>.
+/// extending the generic <see cref="IEntityManager{TEntity, TCreateDTO, TUpdateDTO, TListItemDTO, TResponseDTO}"/>.
 /// </summary>
 /// <remarks>
 /// This interface encapsulates all CRUD, pagination, and management operations
@@ -16,4 +16,4 @@ namespace SIP.API.Domain.Interfaces.Users;
 /// Additional domain-specific operations (e.g., authentication, password management)
 /// can be added here in the future.
 /// </remarks>
-public interface IUser : IEntityManager<User, UserCreateDTO, UserUpdateDTO, UserListItemDTO, UserDefaultResponseDTO, UserResponseDTO> { }
+public interface IUser : IEntityManager<User, UserCreateDTO, UserUpdateDTO, UserListItemDTO, UserResponseDTO> { }

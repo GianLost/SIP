@@ -47,10 +47,10 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
     /// - Retorna 500 (Internal Server Error) em caso de falha inesperada.  
     /// </remarks>
     [HttpPost]
-    [ProducesResponseType(typeof(UserDefaultResponseDTO), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(UserResponseDTO), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<UserDefaultResponseDTO>> CreateAsync([FromBody] UserCreateDTO userDTO)
+    public async Task<ActionResult<UserResponseDTO>> CreateAsync([FromBody] UserCreateDTO userDTO)
     {
         _logger.LogInformation<User>(
             message: LogInfoMessages.CreateRequest, 
@@ -126,7 +126,7 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
             args: id);
         try
         {
-            PagedResultDTO<UserResponseDTO> response =
+            PagedResultDTO<UserListItemDTO> response =
                 await user.GetByIdAsync(id);
 
             if (response == null)
@@ -174,16 +174,16 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
     /// - Retorna 500 (Internal Server Error) em caso de falha inesperada.  
     /// </remarks>
     [HttpGet]
-    [ProducesResponseType(typeof(IEnumerable<PagedResultDTO<UserDefaultResponseDTO>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<PagedResultDTO<UserResponseDTO>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<IEnumerable<PagedResultDTO<UserDefaultResponseDTO>>>> GetAllAsync()
+    public async Task<ActionResult<IEnumerable<PagedResultDTO<UserResponseDTO>>>> GetAllAsync()
     {
         _logger.LogInformation<User>(
             message: LogInfoMessages.GetAllRequest);
 
         try
         {
-            PagedResultDTO<UserDefaultResponseDTO> result = 
+            PagedResultDTO<UserResponseDTO> result = 
                 await user.GetAllAsync();
 
             if(result.Items == null || result.Items.Count == 0)
@@ -191,7 +191,7 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
                 _logger.LogWarning<User>(
                     message: LogWarningMessages.Empty);
 
-                return Ok(Enumerable.Empty<UserDefaultResponseDTO>());
+                return Ok(Enumerable.Empty<UserResponseDTO>());
             }
 
             _logger.LogInformation<User>(
@@ -381,10 +381,10 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
     /// - Retorna 500 (Internal Server Error) em caso de falha inesperada.  
     /// </remarks>
     [HttpPatch("{id}")]
-    [ProducesResponseType(typeof(UserDefaultResponseDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(UserResponseDTO), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<UserDefaultResponseDTO>> UpdateAsync(Guid id, [FromBody] UserUpdateDTO userDTO)
+    public async Task<ActionResult<UserResponseDTO>> UpdateAsync(Guid id, [FromBody] UserUpdateDTO userDTO)
     {
         _logger.LogInformation<User>(
             message: LogInfoMessages.UpdateRequest,
@@ -631,7 +631,7 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
     /// - <c>UpdatedAt</c> → Data da última atualização do registro (se houver).  
     /// - <c>SectorId</c> → Identificador (chave estrangeira) que faz referência ao setor do usuário.  
     /// </remarks>
-    private static UserDefaultResponseDTO ToResponse(User entity) => new()
+    private static UserResponseDTO ToResponse(User entity) => new()
     {
         Id = entity.Id,
         Status = entity.IsActive,

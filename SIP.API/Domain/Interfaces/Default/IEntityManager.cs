@@ -11,14 +11,12 @@ namespace SIP.API.Domain.Interfaces.Default;
 /// <typeparam name="TCreateDTO">The DTO used to create new entity instances.</typeparam>
 /// <typeparam name="TUpdateDTO">The DTO used to update existing entity instances.</typeparam>
 /// <typeparam name="TListItemDTO">The DTO used to represent lightweight entity data in list or table views.</typeparam>
-/// <typeparam name="TDefaultResponse">The DTO used for simplified entity responses, typically in related entities or dropdowns.</typeparam>
 /// <typeparam name="TResponseDTO">The DTO used for detailed responses that represent the complete entity data.</typeparam>
-public interface IEntityManager<TEntity, TCreateDTO, TUpdateDTO, TListItemDTO, TDefaultResponse, TResponseDTO>
+public interface IEntityManager<TEntity, TCreateDTO, TUpdateDTO, TListItemDTO, TResponseDTO>
     where TEntity : class
     where TCreateDTO : class
     where TUpdateDTO : class
     where TListItemDTO : class
-    where TDefaultResponse : class
     where TResponseDTO : class
 {
     /// <summary>
@@ -37,35 +35,35 @@ public interface IEntityManager<TEntity, TCreateDTO, TUpdateDTO, TListItemDTO, T
     /// </summary>
     /// <param name="id">The unique identifier of the entity.</param>
     /// <returns>
-    /// A paged result containing the detailed DTO representation (<typeparamref name="TResponseDTO"/>).
+    /// A paged result containing the detailed DTO representation (<typeparamref name="TListItemDTO"/>).
     /// </returns>
     /// <remarks>
     /// Typically used for detailed entity views or inspection screens.
     /// </remarks>
-    Task<PagedResultDTO<TResponseDTO>> GetByIdAsync(Guid id);
+    Task<PagedResultDTO<TListItemDTO>> GetByIdAsync(Guid id);
 
     /// <summary>
     /// Retrieves a specific entity by its unique identifier, returning a simplified representation.
     /// </summary>
     /// <param name="id">The unique identifier of the entity.</param>
     /// <returns>
-    /// A paged result containing a simplified DTO representation (<typeparamref name="TDefaultResponse"/>).
+    /// A paged result containing a simplified DTO representation (<typeparamref name="TResponseDTO"/>).
     /// </returns>
     /// <remarks>
     /// Often used in dropdowns or nested data structures where a full representation is unnecessary.
     /// </remarks>
-    Task<PagedResultDTO<TDefaultResponse>> GetByIdDefaultAsync(Guid id);
+    Task<PagedResultDTO<TResponseDTO>> GetByIdDefaultAsync(Guid id);
 
     /// <summary>
     /// Retrieves all entities in the dataset, returning simplified representations.
     /// </summary>
     /// <returns>
-    /// A paged result containing a list of simplified DTOs (<typeparamref name="TDefaultResponse"/>).
+    /// A paged result containing a list of simplified DTOs (<typeparamref name="TResponseDTO"/>).
     /// </returns>
     /// <remarks>
     /// This method may include caching mechanisms for better performance on frequently accessed datasets.
     /// </remarks>
-    Task<PagedResultDTO<TDefaultResponse>> GetAllAsync();
+    Task<PagedResultDTO<TResponseDTO>> GetAllAsync();
 
     /// <summary>
     /// Retrieves a paginated and optionally filtered collection of entities.
@@ -83,6 +81,7 @@ public interface IEntityManager<TEntity, TCreateDTO, TUpdateDTO, TListItemDTO, T
     /// This method supports advanced data grid scenarios and UI pagination components.
     /// </remarks>
     Task<PagedResultDTO<TListItemDTO>> GetPagedAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection, string? searchString);
+
 
     /// <summary>
     /// Updates an existing entity identified by the specified ID using the provided data.

@@ -10,6 +10,7 @@ using SIP.API.Domain.Interfaces.Hashes.Passwords;
 using SIP.API.Infrastructure.Caching;
 using SIP.API.Infrastructure.Database;
 using System.Linq.Expressions;
+using SIP.API.Domain.DTOs.Protocols.Default;
 
 namespace SIP.API.Domain.Services.Users;
 
@@ -50,9 +51,37 @@ public class UserService(ICryptPassword cryp, ApplicationContext context, Entity
     }
 
     /// <inheritdoc/>
-    public async Task<PagedResultDTO<UserResponseDTO>> GetByIdAsync(Guid id)
+    public async Task<PagedResultDTO<UserListItemDTO>> GetByIdAsync(Guid id)
     {
         IQueryable<User> query = 
+            _context.Users.AsNoTracking();
+
+        string cacheKey = $"{CacheKeys.UsersTotalCount}";
+        int totalCount = await _cache.GetOrSetCountAsync(cacheKey, () => query.CountAsync(), EntityType);
+
+        ICollection<UserListItemDTO> items = await query
+            .OrderBy(u => u.CreatedAt)
+            .Where(u => u.Id == id)
+                .Select(u => new UserListItemDTO
+                {
+                    Id = u.Id,
+                    Status = u.IsActive,
+                    Masp = u.Masp,
+                    Name = u.Name,
+                    Login = u.Login,
+                    SectorAcronym = u.Sector!.Acronym
+                }).ToListAsync();
+        
+        return new PagedResultDTO<UserListItemDTO>
+        {
+            Items = items,
+            TotalCount = totalCount
+        };
+    }
+
+    public async Task<PagedResultDTO<UserResponseDTO>> GetByIdDefaultAsync(Guid id)
+    {
+        IQueryable<User> query =
             _context.Users.AsNoTracking();
 
         string cacheKey = $"{CacheKeys.UsersTotalCount}";
@@ -64,38 +93,6 @@ public class UserService(ICryptPassword cryp, ApplicationContext context, Entity
                 .Select(u => new UserResponseDTO
                 {
                     Id = u.Id,
-                    Status = u.IsActive ? "Ativo" : "Inativo",
-                    Masp = u.Masp,
-                    Name = u.Name,
-                    Login = u.Login,
-                    Email = u.Email,
-                    Role = u.Role,
-                    SectorAcronym = u.Sector!.Acronym,
-                    CreatedAt = u.CreatedAt,
-                    UpdatedAt = u.UpdatedAt
-                }).ToListAsync();
-        
-        return new PagedResultDTO<UserResponseDTO>
-        {
-            Items = items,
-            TotalCount = totalCount
-        };
-    }
-
-    public async Task<PagedResultDTO<UserDefaultResponseDTO>> GetByIdDefaultAsync(Guid id)
-    {
-        IQueryable<User> query =
-            _context.Users.AsNoTracking();
-
-        string cacheKey = $"{CacheKeys.UsersTotalCount}";
-        int totalCount = await _cache.GetOrSetCountAsync(cacheKey, () => query.CountAsync(), EntityType);
-
-        ICollection<UserDefaultResponseDTO> items = await query
-            .OrderBy(u => u.CreatedAt)
-            .Where(u => u.Id == id)
-                .Select(u => new UserDefaultResponseDTO
-                {
-                    Id = u.Id,
                     Status = u.IsActive,
                     Masp = u.Masp,
                     Name = u.Name,
@@ -103,7 +100,7 @@ public class UserService(ICryptPassword cryp, ApplicationContext context, Entity
                     Email = u.Email
                 }).ToListAsync();
 
-        return new PagedResultDTO<UserDefaultResponseDTO>
+        return new PagedResultDTO<UserResponseDTO>
         {
             Items = items,
             TotalCount = totalCount
@@ -111,7 +108,7 @@ public class UserService(ICryptPassword cryp, ApplicationContext context, Entity
     }
 
     /// <inheritdoc/>
-    public async Task<PagedResultDTO<UserDefaultResponseDTO>> GetAllAsync()
+    public async Task<PagedResultDTO<UserResponseDTO>> GetAllAsync()
     {
         /* TODO: Otimizar consulta para o uso em componente MudSelect no front-end */
 
@@ -121,9 +118,9 @@ public class UserService(ICryptPassword cryp, ApplicationContext context, Entity
         string cacheKey = $"{CacheKeys.UsersTotalCount}";
         int totalCount = await _cache.GetOrSetCountAsync(cacheKey, () => query.CountAsync(), EntityType);
 
-        ICollection<UserDefaultResponseDTO> items = await query
+        ICollection<UserResponseDTO> items = await query
             .OrderBy(u => u.CreatedAt)
-            .Select(u => new UserDefaultResponseDTO
+            .Select(u => new UserResponseDTO
             {
                 Id = u.Id,
                 Status = u.IsActive,
@@ -133,7 +130,7 @@ public class UserService(ICryptPassword cryp, ApplicationContext context, Entity
                 Email = u.Email
             }).ToListAsync();
 
-        return new PagedResultDTO<UserDefaultResponseDTO>
+        return new PagedResultDTO<UserResponseDTO>
         {
             Items = items,
             TotalCount = totalCount
@@ -229,8 +226,15 @@ public class UserService(ICryptPassword cryp, ApplicationContext context, Entity
                     Name = u.Name,
                     Login = u.Login,
                     Email = u.Email,
-                    Role = u.Role,
-                    SectorAcronym = u.Sector!.Acronym
+                    SectorAcronym = u.Sector!.Acronym,
+                    ProtocolsCreated = u.ProtocolsCreated
+                        .Select(p => new ProtocolDefaultDTO
+                        {
+                            Id = p.Id,
+                            Status = p.Status,
+                            Number = p.Number,
+                            Subject = p.Subject
+                        }).ToList(),
                 });
 
         ICollection<UserListItemDTO> items = 

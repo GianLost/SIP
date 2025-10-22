@@ -152,14 +152,13 @@
                                 <MudCardContent Class="pa-0">
 
                                     @* Sub-componente de tabela contendo os dados relacionais de usuários *@
-                                    <MudTable T="UserDefaultRequestDTO" Items="sectorDetail.Users" Bordered="false" Hover="true" Elevation="0">
+                                    <MudTable T="UserRequestDTO" Items="sectorDetail.Users" Bordered="false" Hover="true" Elevation="0">
 
                                         <HeaderContent>
                                             <MudTh Style="font-weight: bold;">Status</MudTh>
                                             <MudTh Style="font-weight: bold;">MASP</MudTh>
                                             <MudTh Style="font-weight: bold;">Nome</MudTh>
                                             <MudTh Style="font-weight: bold;">Login</MudTh>
-                                            <MudTh Style="font-weight: bold;">Email</MudTh>
                                         </HeaderContent>
 
                                         <RowTemplate Context="user">
@@ -174,7 +173,6 @@
                                             <MudTd DataLabel="MASP">@user.Masp</MudTd>
                                             <MudTd DataLabel="Nome">@user.Name.ToUppercase()</MudTd>
                                             <MudTd DataLabel="Login">@user.Login</MudTd>
-                                            <MudTd DataLabel="Email">@user.Email</MudTd>
                                         </RowTemplate>
 
                                         <NoRecordsContent>
