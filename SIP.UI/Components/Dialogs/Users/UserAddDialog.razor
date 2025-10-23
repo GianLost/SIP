@@ -23,7 +23,16 @@
 
                 @* Campo MASP *@
                 <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="User.Masp" Label="Masp" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.ConfirmationNumber" Required="true" RequiredError="O MASP é obrigatório!" Variant="Variant.Outlined" Margin="Margin.Normal" />
+                    <MudTextField @bind-Value="maspString"
+                                  Label="Masp"
+                                  Adornment="Adornment.Start"
+                                  AdornmentIcon="@Icons.Material.Filled.ConfirmationNumber"
+                                  Required="true"
+                                  RequiredError="O MASP é obrigatório!"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Normal"
+                                  Immediate="true"
+                                  OnBlur="SyncMaspToModel" />
                 </MudItem>
 
                 @* Campo nome completo *@
@@ -180,6 +189,8 @@
     /// </summary>
     private string ConfirmPassword { get; set; } = string.Empty;
 
+    private string? maspString;
+
     /// <summary>
     /// Executado ao inicializar o componente.
     /// Responsável por carregar os setores e preparar o formulário.
@@ -275,6 +286,17 @@
             return Task.FromResult<IEnumerable<SectorRequestDTO>>(_allSectors!);
 
         return Task.FromResult(_allSectors!.Where(s => s.Name.Contains(value, StringComparison.OrdinalIgnoreCase) || s.Acronym.Contains(value, StringComparison.OrdinalIgnoreCase)));
+    }
+
+    protected override void OnInitialized() => 
+        maspString = User.Masp == 0 ? string.Empty : User.Masp.ToString();
+
+    private void SyncMaspToModel()
+    {
+        if (int.TryParse(maspString, out int parsed))
+            User.Masp = parsed;
+        else
+            User.Masp = 0; // ou deixar sem alterar
     }
 
     /// <summary>

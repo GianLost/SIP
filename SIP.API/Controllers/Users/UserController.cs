@@ -53,12 +53,12 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
     public async Task<ActionResult<UserResponseDTO>> CreateAsync([FromBody] UserCreateDTO userDTO)
     {
         _logger.LogInformation<User>(
-            message: LogInfoMessages.CreateRequest, 
+            message: LogInfoMessages.CreateRequest,
             args: userDTO);
 
         try
         {
-            User entity = 
+            User entity =
                 await user.CreateAsync(userDTO);
 
             _logger.LogInformation<User>(
@@ -71,8 +71,8 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
             ]);
 
             return CreatedAtRoute(
-                routeName: "GetUserByIdAsync", 
-                routeValues: new { id = entity.Id }, 
+                routeName: "GetUserByIdAsync",
+                routeValues: new { id = entity.Id },
                 value: ToResponse(entity));
         }
         catch (ArgumentException ex)
@@ -83,7 +83,8 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
                 args: userDTO);
 
             return BadRequest(
-                error: new ErrorResponse("Invalid data: " + ex.Message));
+                error: new ErrorResponse(
+                    error: "Invalid data: " + ex.Message));
         }
         catch (Exception ex)
         {
@@ -93,8 +94,9 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
                 args: userDTO);
 
             return StatusCode(
-                statusCode: StatusCodes.Status500InternalServerError, 
-                value: new ErrorResponse("Ocorreu um erro inesperado."));
+                statusCode: StatusCodes.Status500InternalServerError,
+                value: new ErrorResponse(
+                    error: "Ocorreu um erro inesperado."));
         }
     }
 
@@ -136,7 +138,8 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
                     args: id);
 
                 return NotFound(
-                    value: new ErrorResponse($"Nenhum usuário encontrado para o ID {id}"));
+                    value: new ErrorResponse(
+                        error: $"Nenhum usuário encontrado para o ID {id}"));
             }
 
             _logger.LogInformation<User>(
@@ -154,7 +157,8 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
 
             return StatusCode(
                statusCode: StatusCodes.Status500InternalServerError,
-               value: new ErrorResponse("Ocorreu um erro inesperado ao consultar o usuário pelo ID.")
+               value: new ErrorResponse(
+                   error: "Ocorreu um erro inesperado ao consultar o usuário pelo ID.")
             );
         }
     }
@@ -183,10 +187,10 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
 
         try
         {
-            PagedResultDTO<UserResponseDTO> result = 
+            PagedResultDTO<UserResponseDTO> result =
                 await user.GetAllAsync();
 
-            if(result.Items == null || result.Items.Count == 0)
+            if (result.Items == null || result.Items.Count == 0)
             {
                 _logger.LogWarning<User>(
                     message: LogWarningMessages.Empty);
@@ -208,11 +212,12 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
 
             return StatusCode(
                statusCode: StatusCodes.Status500InternalServerError,
-               value: new ErrorResponse("Ocorreu um erro inesperado ao buscar todos os usuários.")
+               value: new ErrorResponse(
+                   error: "Ocorreu um erro inesperado ao buscar todos os usuários.")
             );
         }
 
-        
+
     }
 
     /// <summary>
@@ -239,20 +244,20 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
     [ProducesResponseType(typeof(PagedResultDTO<UserListItemDTO>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<PagedResultDTO<UserListItemDTO>>> GetPagedAsync(
-    [FromQuery] int pageNumber = 1, 
-    [FromQuery] int pageSize = 15, 
-    [FromQuery] string? sortLabel = null, 
-    [FromQuery] string? sortDirection = null, 
+    [FromQuery] int pageNumber = 1,
+    [FromQuery] int pageSize = 15,
+    [FromQuery] string? sortLabel = null,
+    [FromQuery] string? sortDirection = null,
     [FromQuery] string? searchString = null)
     {
         _logger.LogInformation<User>(
             message: LogInfoMessages.PaginationRequest,
-            args: 
+            args:
             [
-                pageNumber, 
-                pageSize, 
-                sortLabel, 
-                sortDirection, 
+                pageNumber,
+                pageSize,
+                sortLabel,
+                sortDirection,
                 searchString
             ]);
 
@@ -271,7 +276,7 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
             {
                 _logger.LogWarning<User>(
                     message: LogWarningMessages.EmptyPagination,
-                    args: 
+                    args:
                     [
                         pageNumber,
                         pageSize,
@@ -306,7 +311,8 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
 
             return StatusCode(
                statusCode: StatusCodes.Status500InternalServerError,
-               value: new ErrorResponse("Ocorreu um erro inesperado ao buscar usuários paginados.")
+               value: new ErrorResponse(
+                   error: "Ocorreu um erro inesperado ao buscar usuários paginados.")
             );
         }
     }
@@ -340,7 +346,7 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
 
             _logger.LogInformation<User>(
                 message: LogSuccessMessages.Counted,
-                args: 
+                args:
                 [
                     total,
                     searchString
@@ -357,7 +363,8 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
 
             return StatusCode(
                statusCode: StatusCodes.Status500InternalServerError,
-               value: new ErrorResponse("Ocorreu um erro inesperado ao contar os usuários.")
+               value: new ErrorResponse(
+                   error: "Ocorreu um erro inesperado ao contar os usuários.")
             );
         }
     }
@@ -406,7 +413,8 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
                     args: id);
 
                 return NotFound(
-                    value: new ErrorResponse($"Nenhum usuário encontrado para o ID {id}."));
+                    value: new ErrorResponse(
+                        error: $"Nenhum usuário encontrado para o ID {id}."));
             }
 
             _logger.LogInformation<User>(
@@ -427,7 +435,8 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
                 ]);
 
             return BadRequest(
-                error: new ErrorResponse("Invalid data: " + ex.Message));
+                error: new ErrorResponse(
+                    error: "Invalid data: " + ex.Message));
         }
         catch (Exception ex)
         {
@@ -442,17 +451,97 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
 
             return StatusCode(
                statusCode: StatusCodes.Status500InternalServerError,
-               value: new ErrorResponse("Ocorreu um erro inesperado ao atualizar o usuário.")
+               value: new ErrorResponse(
+                   error: "Ocorreu um erro inesperado ao atualizar o usuário.")
             );
+        }
+    }
+
+    /// <summary>
+    /// Atualiza o setor vinculado a um usuário existente (fluxo administrativo).
+    /// </summary>
+    /// <param name="id">Identificador único do usuário cujo setor será atualizado.</param>
+    /// <param name="dto">
+    /// Objeto <see cref="UserResponseDTO"/> contendo o identificador do novo se(<c>SectorId</c>).
+    /// </param>
+    /// <returns>
+    /// Retorna:
+    /// - <see cref="OkObjectResult"/> com uma mensagem de confirmação casoosetorsejaatualizado com sucesso.  
+    /// - <see cref="BadRequestObjectResult"/> se os dados fornecidos forem inválidos.  
+    /// - <see cref="NotFoundObjectResult"/> se o usuário ou o setorinformadonãoforemencontrados.  
+    /// - <see cref="ObjectResult"/> (500) em caso de erro inesperado.  
+    /// </returns>
+    /// <exception cref="ArgumentException">
+    /// Lançada quando o identificador do usuário ou do setor é inválido.
+    /// </exception>
+    /// <exception cref="Exception">
+    /// Lançada em caso de erro inesperado durante o processo de atualização.
+    /// </exception>
+    /// <remarks>
+    /// <b>Ação:</b> Atualizar setor do usuário (fluxo administrativo).  
+    /// 
+    /// Este endpoint permite que um **administrador** altere o setor vinculado a um usuário específico, 
+    /// de acordo com movimentações internas ou ajustes administrativos.  
+    /// 
+    /// ⚙️ Comportamento:
+    /// - Verifica a existência do usuário e do setor antes da atualização.  
+    /// - Atualiza o campo <c>UpdatedAt</c> automaticamente.  
+    /// 
+    /// 🔄 Retornos possíveis:
+    /// - <b>200 (OK)</b> → Setor atualizado com sucesso.  
+    /// - <b>400 (Bad Request)</b> → Dados inválidos.  
+    /// - <b>404 (Not Found)</b> → Usuário ou setor não encontrados.  
+    /// - <b>500 (Internal Server Error)</b> → Erro inesperado.  
+    /// </remarks>
+    [HttpPatch("{id:guid}/sector")]
+    [ProducesResponseType(typeof(UserResponseDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> ChangeUserSectorAsync(Guid id, [FromBody] UserChangeSectorDTO dto)
+    {
+        _logger.LogInformation<User>(
+            message: LogInfoMessages.UpdateRequest,
+            args: dto.UserId);
+
+        try
+        {
+            User? updated = await _userConfigurationService.ReassignUserSectorAsync(id, dto);
+
+            if (updated == null)
+                return NotFound(new ErrorResponse(
+                    error: $"Usuário não encontrado para o ID {dto.UserId}."));
+
+            _logger.LogInformation<User>(
+                message: LogSuccessMessages.Updated,
+                args: updated.Id);
+
+            return Ok(ToResponse(updated));
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning<User>(ex, LogWarningMessages.InvalidUpdate, dto);
+            return BadRequest(new ErrorResponse(
+                error: "Dados inválidos: " + ex.Message));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError<User>(ex, LogErrorMessages.UpdateError, dto);
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new ErrorResponse(
+                    error: "Ocorreu um erro inesperado ao alterar o setor do usuário."));
         }
     }
 
     /// <summary>
     /// Altera a senha de um usuário utilizando o fluxo administrativo.
     /// </summary>
+    /// <param name="id">
+    /// Identificador único (<see cref="Guid"/>) do usuário cuja senha será redefinida.
+    /// </param>
     /// <param name="dto">
-    /// Objeto <see cref="UserDefaultChangePasswordDTO"/> contendo o identificador do usuário (<c>Id</c>) 
-    /// e a nova senha (<c>Password</c>).
+    /// Objeto <see cref="AdminResetPasswordDTO"/> contendo a nova senha (<c>Password</c>) 
+    /// e sua confirmação (<c>ConfirmPassword</c>).
     /// </param>
     /// <returns>
     /// Retorna:
@@ -461,51 +550,63 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
     /// - <see cref="NotFoundObjectResult"/> se o usuário não for encontrado.  
     /// - <see cref="ObjectResult"/> (500) em caso de erro inesperado.  
     /// </returns>
-    /// <exception cref="ArgumentException">Lançada quando os dados fornecidos são inválidos (ex: senha não fornecida).</exception>
-    /// <exception cref="Exception">Erro inesperado durante o processo de alteração da senha.</exception>
+    /// <exception cref="ArgumentException">
+    /// Lançada quando a nova senha não é fornecida ou os dados do DTO são inválidos.
+    /// </exception>
+    /// <exception cref="Exception">
+    /// Lançada em caso de erro inesperado durante o processo de redefinição da senha.
+    /// </exception>
     /// <remarks>
-    /// Ação: <b>Alterar senha do usuário (fluxo administrativo)</b>.  
-    /// - Este endpoint permite que um administrador altere a senha de um usuário sem precisar da senha atual.  
-    /// - A nova senha será devidamente criptografada antes de ser armazenada.  
-    /// - Retorna 200 (OK) com mensagem de sucesso.  
-    /// - Retorna 400 (Bad Request) quando a requisição é inválida.  
-    /// - Retorna 404 (Not Found) se o usuário não existir.  
-    /// - Retorna 500 (Internal Server Error) em caso de falha inesperada.  
+    /// <b>Ação:</b> Alterar senha de um usuário (fluxo administrativo).  
+    /// 
+    /// Este endpoint permite que um **administrador** altere a senha de qualquer usuário, 
+    /// sem a necessidade de informar a senha atual.  
+    /// 
+    /// ⚙️ Comportamento:
+    /// - A nova senha será criptografada antes de ser persistida no banco de dados.  
+    /// - Atualiza o campo <c>UpdatedAt</c> do usuário.  
+    /// 
+    /// 🔄 Retornos possíveis:
+    /// - <b>200 (OK)</b> → Senha alterada com sucesso.  
+    /// - <b>400 (Bad Request)</b> → Dados inválidos ou senha não informada.  
+    /// - <b>404 (Not Found)</b> → Usuário não encontrado.  
+    /// - <b>500 (Internal Server Error)</b> → Erro inesperado.  
     /// </remarks>
-    [HttpPatch("password")]
+    [HttpPatch("password/{id:guid}")]
     [ProducesResponseType(typeof(ChangedPasswordResponseDTO), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> DefaultChangePasswordAsync([FromBody] UserDefaultChangePasswordDTO dto)
+    public async Task<IActionResult> ResetPasswordByAdminAsync(
+        Guid id,
+        [FromBody] AdminResetPasswordDTO dto)
     {
         _logger.LogInformation<User>(
             message: LogInfoMessages.DefaultChangePasswordRequest,
-            args: dto.Id);
+            args: id);
 
         try
         {
             User? updated =
-                await _userConfigurationService.DefaultChangePasswordAsync(dto);
+                await _userConfigurationService.ResetPasswordByAdminAsync(id, dto);
 
             if (updated == null)
             {
                 _logger.LogWarning<User>(
                     message: LogWarningMessages.NotFound,
-                    args: dto.Id);
+                    args: id);
 
                 return NotFound(
-                    value: new ErrorResponse($"Nenhum usuário encontrado para o ID {dto.Id}."));
+                    value: new ErrorResponse(
+                        error: $"Nenhum usuário encontrado para o ID {id}."));
             }
 
             _logger.LogInformation<User>(
                 message: LogSuccessMessages.PasswordChanged,
                 args: updated.Id);
 
-            ChangedPasswordResponseDTO response =
-                new($"Senha alterada com sucesso para o usuário {updated.Login}.");
-
-            return Ok(response);
+            return Ok(new ChangedPasswordResponseDTO(
+                message: $"Senha redefinida com sucesso para o usuário {updated.Login}."));
         }
         catch (ArgumentException ex)
         {
@@ -526,7 +627,88 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
 
             return StatusCode(
                 statusCode: StatusCodes.Status500InternalServerError,
-                value: new ErrorResponse("Ocorreu um erro inesperado ao alterar a senha do usuário."));
+                value: new ErrorResponse(
+                    error: "Ocorreu um erro inesperado ao redefinir a senha do usuário."));
+        }
+    }
+
+    /// <summary>
+    /// Permite que o próprio usuário altere sua senha, mediante validação da senha atual.
+    /// </summary>
+    /// <param name="dto">
+    /// Objeto <see cref="UserChangePasswordDTO"/> contendo a senha atual (<c>CurrentPassword</c>), 
+    /// a nova senha (<c>NewPassword</c>) e a confirmação da nova senha (<c>ConfirmPassword</c>).
+    /// </param>
+    /// <returns>
+    /// Retorna:
+    /// - <see cref="OkObjectResult"/> com uma mensagem de confirmação caso a senha seja alterada com sucesso.  
+    /// - <see cref="BadRequestObjectResult"/> se as senhas não coincidirem ou se os dados forem inválidos.  
+    /// - <see cref="NotFoundObjectResult"/> se o usuário não for encontrado.  
+    /// - <see cref="UnauthorizedObjectResult"/> se a senha atual estiver incorreta.  
+    /// - <see cref="ObjectResult"/> (500) em caso de erro inesperado.  
+    /// </returns>
+    /// <exception cref="ArgumentException">
+    /// Lançada quando os dados de entrada estão ausentes ou inconsistentes.
+    /// </exception>
+    /// <exception cref="Exception">
+    /// Lançada em caso de erro inesperado durante o processo de alteração da senha.
+    /// </exception>
+    /// <remarks>
+    /// <b>Ação:</b> Alterar senha pessoal (fluxo de usuário comum).  
+    /// 
+    /// Este endpoint permite que o **usuário autenticado** altere sua própria senha, 
+    /// desde que informe corretamente a senha atual.  
+    /// 
+    /// ⚙️ Comportamento:
+    /// - A senha atual é validada com base no hash armazenado.  
+    /// - A nova senha é criptografada e substitui a anterior.  
+    /// - Atualiza o campo <c>UpdatedAt</c> do usuário.  
+    /// 
+    /// 🔄 Retornos possíveis:
+    /// - <b>200 (OK)</b> → Senha alterada com sucesso.  
+    /// - <b>400 (Bad Request)</b> → Dados inválidos ou senha nova não informada.  
+    /// - <b>401 (Unauthorized)</b> → Senha atual incorreta.  
+    /// - <b>404 (Not Found)</b> → Usuário não encontrado.  
+    /// - <b>500 (Internal Server Error)</b> → Erro inesperado.  
+    /// </remarks>
+    [HttpPatch("password")]
+    [ProducesResponseType(typeof(ChangedPasswordResponseDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> ChangeOwnPasswordAsync([FromBody] UserChangePasswordDTO dto)
+    {
+        _logger.LogInformation<User>(
+            message: LogInfoMessages.UpdateRequest,
+            args: dto.Id);
+
+        try
+        {
+            User? updated = await _userConfigurationService.ChangeOwnPasswordAsync(dto);
+
+            if (updated == null)
+                return BadRequest(new ErrorResponse(
+                    error: "Senha atual incorreta ou dados inválidos."));
+
+            _logger.LogInformation<User>(
+                message: LogSuccessMessages.PasswordChanged,
+                args: updated.Id);
+
+            return Ok(new ChangedPasswordResponseDTO(
+                message: "Senha alterada com sucesso."));
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning<User>(ex, LogWarningMessages.InvalidUpdate, dto);
+            return BadRequest(new ErrorResponse(
+                error: "Dados inválidos: " + ex.Message));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError<User>(ex, LogErrorMessages.UpdateError, dto);
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new ErrorResponse(
+                    error: "Ocorreu um erro inesperado ao alterar a senha do usuário."));
         }
     }
 
@@ -564,7 +746,7 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
 
         try
         {
-            bool deleted = 
+            bool deleted =
                 await user.DeleteAsync(id);
 
             if (!deleted)
@@ -574,7 +756,8 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
                     args: id);
 
                 return NotFound(
-                    value: new ErrorResponse($"Nenhum usuário encontrado para o ID {id}."));
+                    value: new ErrorResponse(
+                        error: $"Nenhum usuário encontrado para o ID {id}."));
             }
 
             _logger.LogInformation<User>(
@@ -602,7 +785,8 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
 
             return StatusCode(
                statusCode: StatusCodes.Status500InternalServerError,
-               value: new ErrorResponse("Ocorreu um erro inesperado ao excluir o usuário.")
+               value: new ErrorResponse(
+                   error: "Ocorreu um erro inesperado ao excluir o usuário.")
             );
         }
 
@@ -638,6 +822,7 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
         Masp = entity.Masp,
         Name = entity.Name,
         Login = entity.Login,
-        Email = entity.Email
+        Email = entity.Email,
+        SectorId = entity.SectorId
     };
 }

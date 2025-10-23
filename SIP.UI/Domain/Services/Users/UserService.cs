@@ -17,12 +17,12 @@ public class UserService(HttpClient http)
 
     public async Task CreateAsync(UserCreateDTO user)
     {
-        HttpResponseMessage response = 
+        HttpResponseMessage request = 
             await _http.PostAsJsonAsync(
                 requestUri: BaseEndpoints<User>._create, 
                 value: user);
 
-        response.EnsureSuccessStatusCode();
+        request.EnsureSuccessStatusCode();
 
         await InvalidateCacheAsync();
     }
@@ -76,12 +76,12 @@ public class UserService(HttpClient http)
 
     public async Task UpdateAsync(UserUpdateDTO user)
     {
-        HttpResponseMessage response = 
+        HttpResponseMessage request = 
             await _http.PatchAsJsonAsync(
                 requestUri: $"{BaseEndpoints<User>._update}{user.Id}", 
                 value: user);
 
-        response.EnsureSuccessStatusCode();
+        request.EnsureSuccessStatusCode();
 
         await InvalidateCacheAsync();
     }
@@ -94,7 +94,8 @@ public class UserService(HttpClient http)
 
         if (!request.IsSuccessStatusCode)
         {
-            string errorContent = await request.Content.ReadAsStringAsync();
+            string errorContent = 
+                await request.Content.ReadAsStringAsync();
 
             if (request.StatusCode == System.Net.HttpStatusCode.Conflict)
             {

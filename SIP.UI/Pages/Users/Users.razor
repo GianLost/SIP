@@ -204,6 +204,7 @@
                                             <MudTd DataLabel="Status">@GetStatusChip(protocol.Status)</MudTd>
                                             <MudTd DataLabel="Número">@protocol.Number</MudTd>
                                             <MudTd DataLabel="Assunto">@protocol.Subject.ToUppercase()</MudTd>
+                                            <MudTd DataLabel="CriadoEm">@protocol.CreatedAt.ToBrasiliaTimeFormat()</MudTd>
                                         </RowTemplate>
                                         <NoRecordsContent>
                                             <MudText Class="pa-4">Nenhum protocolo vinculado a este usuário.</MudText>

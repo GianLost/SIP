@@ -118,7 +118,7 @@ builder.Services.AddScoped<IUser, UserService>();
 builder.Services.AddScoped<ISector, SectorService>();
 builder.Services.AddScoped<IProtocol, ProtocolService>();
 
-builder.Services.AddScoped<ICryptPassword, CryptPassword>();
+builder.Services.AddScoped<ICrypt, CryptPassword>();
 builder.Services.AddScoped<IUserConfiguration, UserConfigurationService>();
 
 builder.Services.AddControllers()

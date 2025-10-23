@@ -10,4 +10,6 @@ public class ProtocolDefaultDTO
     public string Description { get; set; } = string.Empty;
     public ProtocolStatus Status { get; set; }
     public bool IsArchived { get; set; }
+
+    public DateTime CreatedAt { get; set; }
 }

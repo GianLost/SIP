@@ -13,5 +13,5 @@ public class UserResponseDTO : BaseUser
     public override string Login { get; set; } = string.Empty;
     public override string Email { get; set; } = string.Empty;
 
-    public string StatusDescription => Status ? "Ativo" : "Inativo";
+    public Guid SectorId { get; set; }
 }

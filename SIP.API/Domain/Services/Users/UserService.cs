@@ -17,9 +17,9 @@ namespace SIP.API.Domain.Services.Users;
 /// <summary>
 /// Service implementation for managing user entities in the database.
 /// </summary>
-public class UserService(ICryptPassword cryp, ApplicationContext context, EntityCacheManager cache) : IUser
+public class UserService(ICrypt cryp, ApplicationContext context, EntityCacheManager cache) : IUser
 {
-    private readonly ICryptPassword _crypt = cryp;
+    private readonly ICrypt _crypt = cryp;
 
     private readonly ApplicationContext _context = context;
     private readonly EntityCacheManager _cache = cache;
@@ -69,6 +69,7 @@ public class UserService(ICryptPassword cryp, ApplicationContext context, Entity
                     Masp = u.Masp,
                     Name = u.Name,
                     Login = u.Login,
+                    Email = u.Email,
                     SectorAcronym = u.Sector!.Acronym
                 }).ToListAsync();
         
@@ -79,6 +80,7 @@ public class UserService(ICryptPassword cryp, ApplicationContext context, Entity
         };
     }
 
+    /// <inheritdoc/>
     public async Task<PagedResultDTO<UserResponseDTO>> GetByIdDefaultAsync(Guid id)
     {
         IQueryable<User> query =
@@ -97,7 +99,8 @@ public class UserService(ICryptPassword cryp, ApplicationContext context, Entity
                     Masp = u.Masp,
                     Name = u.Name,
                     Login = u.Login,
-                    Email = u.Email
+                    Email = u.Email,
+                    SectorId = u.SectorId
                 }).ToListAsync();
 
         return new PagedResultDTO<UserResponseDTO>
@@ -110,8 +113,6 @@ public class UserService(ICryptPassword cryp, ApplicationContext context, Entity
     /// <inheritdoc/>
     public async Task<PagedResultDTO<UserResponseDTO>> GetAllAsync()
     {
-        /* TODO: Otimizar consulta para o uso em componente MudSelect no front-end */
-
         IQueryable<User> query =
             _context.Users.AsNoTracking();
 
@@ -127,7 +128,8 @@ public class UserService(ICryptPassword cryp, ApplicationContext context, Entity
                 Masp = u.Masp,
                 Name = u.Name,
                 Login = u.Login,
-                Email = u.Email
+                Email = u.Email,
+                SectorId = u.SectorId
             }).ToListAsync();
 
         return new PagedResultDTO<UserResponseDTO>
@@ -226,6 +228,7 @@ public class UserService(ICryptPassword cryp, ApplicationContext context, Entity
                     Name = u.Name,
                     Login = u.Login,
                     Email = u.Email,
+                    Role = u.Role,
                     SectorAcronym = u.Sector!.Acronym,
                     ProtocolsCreated = u.ProtocolsCreated
                         .Select(p => new ProtocolDefaultDTO
@@ -233,7 +236,8 @@ public class UserService(ICryptPassword cryp, ApplicationContext context, Entity
                             Id = p.Id,
                             Status = p.Status,
                             Number = p.Number,
-                            Subject = p.Subject
+                            Subject = p.Subject,
+                            CreatedAt = p.CreatedAt
                         }).ToList(),
                 });
 

@@ -11,4 +11,6 @@ public class ProtocolDefaultDTO : BaseProtocol
     public override string Description { get; set; } = string.Empty;
     public override ProtocolStatus Status { get; set; }
     public override bool IsArchived { get; set; }
+
+    public DateTime CreatedAt { get; set; }
 }

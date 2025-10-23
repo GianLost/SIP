@@ -4,9 +4,6 @@ using System.ComponentModel.DataAnnotations;
 
 namespace SIP.UI.Models.Users;
 
-/// <summary>
-/// Provides base properties for user data transfer objects (DTOs).
-/// </summary>
 public abstract class BaseUser
 {
     [Required(ErrorMessage = "O MASP é obrigatório.")]

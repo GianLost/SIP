@@ -30,11 +30,11 @@ namespace SIP.API.Controllers.Seeds;
 /// </remarks>
 [Route("sip_api/seeds")]
 [ApiController]
-public class SeedController(ApplicationContext context, ICryptPassword crypt, IProtocol protocolService) : ControllerBase
+public class SeedController(ApplicationContext context, ICrypt crypt, IProtocol protocolService) : ControllerBase
 {
     private readonly ApplicationContext _context = context;
 
-    private readonly ICryptPassword _crypt = crypt;
+    private readonly ICrypt _crypt = crypt;
     private readonly IProtocol _protocolService = protocolService;
 
     // Adiciona opções de desserialização para ignorar diferenças de maiúsculas/minúsculas

@@ -82,7 +82,6 @@ public interface IEntityManager<TEntity, TCreateDTO, TUpdateDTO, TListItemDTO, T
     /// </remarks>
     Task<PagedResultDTO<TListItemDTO>> GetPagedAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection, string? searchString);
 
-
     /// <summary>
     /// Updates an existing entity identified by the specified ID using the provided data.
     /// </summary>

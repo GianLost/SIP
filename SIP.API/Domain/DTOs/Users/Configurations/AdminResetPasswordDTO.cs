@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace SIP.API.Domain.DTOs.Users.Configurations;
 
-public class UserDefaultChangePasswordDTO
+public class AdminResetPasswordDTO
 {
     [Required]
     public Guid Id { get; set; }

@@ -14,6 +14,7 @@ public class UserListItemDTO : BaseUser
     public override string Name { get; set; } = string.Empty;
     public override string Login { get; set; } = string.Empty;
     public override string Email { get; set; } = string.Empty;
+    public override RoleEnum Role { get; set; }
 
     public string SectorAcronym { get; set; } = string.Empty;
 
