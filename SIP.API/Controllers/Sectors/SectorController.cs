@@ -1,16 +1,21 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SIP.API.Controllers.Errors;
-using SIP.API.Domain.Interfaces.Sectors;
-using SIP.API.Domain.Entities.Sectors;
+using SIP.API.Domain.DTOs.Default.Pagination;
 using SIP.API.Domain.DTOs.Sectors;
 using SIP.API.Domain.DTOs.Sectors.Pagination;
-using SIP.API.Domain.DTOs.Default.Pagination;
 using SIP.API.Domain.DTOs.Sectors.Responses;
-using SIP.API.Domain.Helpers.Messages.LogMessages.Info;
-using SIP.API.Domain.Helpers.Messages.LogMessages.Success;
-using SIP.API.Domain.Helpers.Messages.LogMessages.Warning;
-using SIP.API.Domain.Helpers.Messages.LogMessages.Error;
+using SIP.API.Domain.DTOs.Users.Pagination;
+using SIP.API.Domain.Entities.Sectors;
 using SIP.API.Domain.Helpers.Extensions;
+using SIP.API.Domain.Helpers.Messages.LogMessages.Default.Error;
+using SIP.API.Domain.Helpers.Messages.LogMessages.Default.Info;
+using SIP.API.Domain.Helpers.Messages.LogMessages.Default.Success;
+using SIP.API.Domain.Helpers.Messages.LogMessages.Default.Warning;
+using SIP.API.Domain.Helpers.Messages.LogMessages.Sector.Error;
+using SIP.API.Domain.Helpers.Messages.LogMessages.Sector.Info;
+using SIP.API.Domain.Helpers.Messages.LogMessages.Sector.Success;
+using SIP.API.Domain.Helpers.Messages.LogMessages.Sector.Warning;
+using SIP.API.Domain.Interfaces.Sectors;
 
 namespace SIP.API.Controllers.Sectors;
 
@@ -301,6 +306,75 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
             return StatusCode(
                 statusCode: StatusCodes.Status500InternalServerError,
                 value: new ErrorResponse("Ocorreu um erro inesperado ao buscar setores paginados."));
+        }
+    }
+
+    /// <summary>
+    /// Obtém todos os usuários associados a um setor específico.
+    /// </summary>
+    /// <param name="sectorId">Identificador único (GUID) do setor.</param>
+    /// <returns>
+    /// Retorna:
+    /// - <see cref="OkObjectResult"/> com a lista de usuários vinculados ao setor, se existirem.  
+    /// - <see cref="NotFoundObjectResult"/> caso o setor não exista ou não possua usuários associados.  
+    /// - <see cref="ObjectResult"/> (500) em caso de erro inesperado.  
+    /// </returns>
+    /// <exception cref="Exception">Erro inesperado ao consultar os usuários do setor.</exception>
+    /// <remarks>
+    /// Ação: <b>Consultar usuários por setor</b>.  
+    /// 
+    /// Este endpoint retorna todos os usuários pertencentes a um setor específico identificado por seu <c>sectorId</c>.  
+    /// É útil para exibir a composição de equipes ou departamentos dentro da organização.
+    /// 
+    /// - Retorna 200 (OK) com a lista de usuários do setor.  
+    /// - Retorna 404 (Not Found) se o setor não existir ou não tiver usuários vinculados.  
+    /// - Retorna 500 (Internal Server Error) em caso de falha inesperada durante a operação.  
+    /// </remarks>
+    [HttpGet("{sectorId}/users")]
+    [ProducesResponseType(typeof(List<UserBasicListDTO>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<List<UserBasicListDTO>>> GetUsersBySectorAsync(Guid sectorId)
+    {
+        _logger.LogInformation<Sector>(
+            message: SectorLogInfoMessages.GetUsersBySectorRequest,
+            args: sectorId);
+
+        try
+        {
+            List<UserBasicListDTO> users =
+                await sector.GetUsersBySectorAsync(sectorId);
+
+            if (users == null || users.Count == 0)
+            {
+                _logger.LogWarning<Sector>(
+                    message: SectorLogWarningMessages.NotFoundUsersInSector,
+                    args: sectorId);
+
+                return NotFound(
+                    value: new ErrorResponse($"Nenhum usuário encontrado para o setor de ID {sectorId}."));
+            }
+
+            _logger.LogInformation<Sector>(
+                message: SectorLogSuccessMessages.FoundUsersInSector,
+                args:
+                [
+                    sectorId,
+                    users.Count
+                ]);
+
+            return Ok(users);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError<Sector>(
+                exception: ex,
+                message: SectorLogErrorMessages.GetUsersBySectorError,
+                args: sectorId);
+
+            return StatusCode(
+                statusCode: StatusCodes.Status500InternalServerError,
+                value: new ErrorResponse("Ocorreu um erro inesperado ao consultar os usuários do setor."));
         }
     }
 

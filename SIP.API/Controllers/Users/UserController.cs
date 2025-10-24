@@ -7,12 +7,13 @@ using SIP.API.Domain.DTOs.Users;
 using SIP.API.Domain.DTOs.Users.Configurations;
 using SIP.API.Domain.DTOs.Users.Responses;
 using SIP.API.Domain.Helpers.Extensions;
-using SIP.API.Domain.Helpers.Messages.LogMessages.Error;
-using SIP.API.Domain.Helpers.Messages.LogMessages.Info;
-using SIP.API.Domain.Helpers.Messages.LogMessages.Success;
-using SIP.API.Domain.Helpers.Messages.LogMessages.Warning;
 using SIP.API.Domain.DTOs.Default.Pagination;
 using SIP.API.Domain.DTOs.Users.Pagination;
+using SIP.API.Domain.DTOs.Protocols.Default;
+using SIP.API.Domain.Helpers.Messages.LogMessages.Default.Error;
+using SIP.API.Domain.Helpers.Messages.LogMessages.Default.Warning;
+using SIP.API.Domain.Helpers.Messages.LogMessages.Default.Info;
+using SIP.API.Domain.Helpers.Messages.LogMessages.Default.Success;
 
 namespace SIP.API.Controllers.Users;
 
@@ -128,7 +129,7 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
             args: id);
         try
         {
-            PagedResultDTO<UserListItemDTO> response =
+            PagedResultDTO<UserBasicListDTO> response =
                 await user.GetByIdAsync(id);
 
             if (response == null)
@@ -263,7 +264,7 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
 
         try
         {
-            PagedResultDTO<UserListItemDTO> result =
+            PagedResultDTO<UserBasicListDTO> result =
                 await user.GetPagedAsync(
                     pageNumber,
                     pageSize,
@@ -314,6 +315,138 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
                value: new ErrorResponse(
                    error: "Ocorreu um erro inesperado ao buscar usuários paginados.")
             );
+        }
+    }
+
+    /// <summary>
+    /// Retorna a lista de protocolos criados por um usuário específico.
+    /// </summary>
+    /// <param name="userId">
+    /// Identificador único (<see cref="Guid"/>) do usuário cujos protocolos criados serão retornados.
+    /// </param>
+    /// <returns>
+    /// Retorna:
+    /// - <see cref="OkObjectResult"/> com a lista de protocolos criados pelo usuário.  
+    /// - <see cref="NotFoundObjectResult"/> se o usuário não possuir protocolos criados.  
+    /// - <see cref="ObjectResult"/> (500) em caso de erro inesperado.  
+    /// </returns>
+    /// <remarks>
+    /// <b>Ação:</b> Consultar protocolos criados por um usuário.  
+    /// 
+    /// Este endpoint retorna todos os protocolos cadastrados pelo usuário informado,
+    /// permitindo identificar sua autoria em fluxos administrativos e operacionais.  
+    /// 
+    /// 🔄 <b>Retornos possíveis:</b>
+    /// - <b>200 (OK)</b> → Lista de protocolos retornada com sucesso.  
+    /// - <b>404 (Not Found)</b> → Nenhum protocolo encontrado para o usuário.  
+    /// - <b>500 (Internal Server Error)</b> → Erro inesperado ao processar a solicitação.  
+    /// </remarks>
+    [HttpGet("{userId:guid}/protocols_created")]
+    [ProducesResponseType(typeof(List<ProtocolDefaultDTO>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<List<ProtocolDefaultDTO>>> GetCreatedProtocolsByUserAsync(Guid userId)
+    {
+        _logger.LogInformation<User>(
+        message: "Solicitação para buscar protocolos criados pelo usuário {UserId}.",
+        args: userId);
+
+        try
+        {
+            List<ProtocolDefaultDTO> protocols =
+                await user.GetCreatedProtocolsByUserAsync(userId);
+
+            if (protocols == null || protocols.Count == 0)
+            {
+                _logger.LogWarning<User>(
+                    message: "Nenhum protocolo encontrado para o usuário {UserId}.",
+                    args: userId);
+
+                return NotFound(new ErrorResponse(
+                    error: $"Nenhum protocolo encontrado para o usuário {userId}."));
+            }
+
+            _logger.LogInformation<User>(
+                message: "Protocolos criados pelo usuário {UserId} retornados com sucesso.",
+                args: userId);
+
+            return Ok(protocols);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError<User>(
+                exception: ex,
+                message: "Erro inesperado ao buscar protocolos criados pelo usuário {UserId}.",
+                args: userId);
+
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new ErrorResponse("Ocorreu um erro inesperado ao consultar os protocolos do usuário."));
+        }
+    }
+
+    /// <summary>
+    /// Retorna os detalhes completos de um usuário específico.
+    /// </summary>
+    /// <param name="id">
+    /// Identificador único (<see cref="Guid"/>) do usuário cujos detalhes serão consultados.
+    /// </param>
+    /// <returns>
+    /// Retorna:
+    /// - <see cref="OkObjectResult"/> com os detalhes do usuário, se encontrado.  
+    /// - <see cref="NotFoundObjectResult"/> se o usuário não for localizado.  
+    /// - <see cref="ObjectResult"/> (500) em caso de erro inesperado.  
+    /// </returns>
+    /// <remarks>
+    /// <b>Ação:</b> Consultar detalhes de um usuário.  
+    /// 
+    /// Este endpoint retorna as informações completas de um usuário específico,
+    /// incluindo dados cadastrais e metadados associados.  
+    /// 
+    /// 🔄 <b>Retornos possíveis:</b>
+    /// - <b>200 (OK)</b> → Detalhes do usuário retornados com sucesso.  
+    /// - <b>404 (Not Found)</b> → Usuário não encontrado.  
+    /// - <b>500 (Internal Server Error)</b> → Erro inesperado ao consultar os detalhes do usuário.  
+    /// </remarks>
+    [HttpGet("{id:guid}/details")]
+    [ProducesResponseType(typeof(PagedResultDTO<UserListItemDTO>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<PagedResultDTO<UserListItemDTO>>> GetDetailsAsync(Guid id)
+    {
+        _logger.LogInformation<User>(
+        message: "Solicitação para buscar detalhes do usuário {UserId}.",
+        args: id);
+
+        try
+        {
+            PagedResultDTO<UserListItemDTO> result =
+                await user.GetDetailsAsync(id);
+
+            if (result.Items == null || result.Items.Count == 0)
+            {
+                _logger.LogWarning<User>(
+                    message: "Nenhum detalhe encontrado para o usuário {UserId}.",
+                    args: id);
+
+                return NotFound(new ErrorResponse(
+                    error: $"Usuário não encontrado para o ID {id}."));
+            }
+
+            _logger.LogInformation<User>(
+                message: "Detalhes do usuário {UserId} retornados com sucesso.",
+                args: id);
+
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError<User>(
+                exception: ex,
+                message: "Erro inesperado ao buscar detalhes do usuário {UserId}.",
+                args: id);
+
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new ErrorResponse("Ocorreu um erro inesperado ao consultar os detalhes do usuário."));
         }
     }
 

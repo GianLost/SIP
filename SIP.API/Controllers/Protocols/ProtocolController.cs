@@ -6,10 +6,10 @@ using SIP.API.Domain.DTOs.Protocols.Pagination;
 using SIP.API.Domain.DTOs.Protocols.Responses;
 using SIP.API.Domain.Entities.Protocols;
 using SIP.API.Domain.Helpers.Extensions;
-using SIP.API.Domain.Helpers.Messages.LogMessages.Error;
-using SIP.API.Domain.Helpers.Messages.LogMessages.Info;
-using SIP.API.Domain.Helpers.Messages.LogMessages.Success;
-using SIP.API.Domain.Helpers.Messages.LogMessages.Warning;
+using SIP.API.Domain.Helpers.Messages.LogMessages.Default.Error;
+using SIP.API.Domain.Helpers.Messages.LogMessages.Default.Info;
+using SIP.API.Domain.Helpers.Messages.LogMessages.Default.Success;
+using SIP.API.Domain.Helpers.Messages.LogMessages.Default.Warning;
 using SIP.API.Domain.Interfaces.Protocols;
 
 namespace SIP.API.Controllers.Protocols;

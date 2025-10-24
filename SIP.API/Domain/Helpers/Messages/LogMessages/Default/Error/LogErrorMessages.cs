@@ -1,4 +1,4 @@
-﻿namespace SIP.API.Domain.Helpers.Messages.LogMessages.Error;
+﻿namespace SIP.API.Domain.Helpers.Messages.LogMessages.Default.Error;
 
 public readonly struct LogErrorMessages
 {

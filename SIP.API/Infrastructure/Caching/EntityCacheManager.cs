@@ -103,17 +103,6 @@ public class EntityCacheManager(IMemoryCache cache)
     }
 
     /// <summary>
-    /// Retrieves or creates a <see cref="CancellationTokenSource"/> for a given entity type.
-    /// </summary>
-    /// <param name="entityType">The entity type identifier.</param>
-    /// <returns>
-    /// A <see cref="CancellationTokenSource"/> used for invalidation of all
-    /// cache entries related to the given entity type.
-    /// </returns>
-    private CancellationTokenSource GetOrCreateTokenSource(string entityType) =>
-        _tokenSources.GetOrAdd(entityType, _ => new CancellationTokenSource());
-
-    /// <summary>
     /// Retrieves a cached value or executes an asynchronous factory function to populate the cache.
     /// </summary>
     /// <typeparam name="T">The type of value to retrieve or store.</typeparam>
@@ -187,4 +176,32 @@ public class EntityCacheManager(IMemoryCache cache)
         string entityType, 
         TimeSpan? expiration = null) =>
             GetOrSetAsync<int>(cacheKey, countFactory, entityType, expiration);
+
+    public static string BuildScopedCacheKey(
+        string baseKey, 
+        string? search = null, 
+        Guid? id = null)
+    {
+        if (string.IsNullOrWhiteSpace(baseKey))
+            throw new ArgumentException("baseKey é obrigatório.", nameof(baseKey));
+
+        if (id.HasValue)
+            return $"{baseKey}:id:{id.Value}";
+
+        if (!string.IsNullOrWhiteSpace(search))
+            return $"{baseKey}:search:{Uri.EscapeDataString(search.Trim().ToLowerInvariant())}";
+
+        return $"{baseKey}:all";
+    }
+
+    /// <summary>
+    /// Retrieves or creates a <see cref="CancellationTokenSource"/> for a given entity type.
+    /// </summary>
+    /// <param name="entityType">The entity type identifier.</param>
+    /// <returns>
+    /// A <see cref="CancellationTokenSource"/> used for invalidation of all
+    /// cache entries related to the given entity type.
+    /// </returns>
+    private CancellationTokenSource GetOrCreateTokenSource(string entityType) =>
+        _tokenSources.GetOrAdd(entityType, _ => new CancellationTokenSource());
 }

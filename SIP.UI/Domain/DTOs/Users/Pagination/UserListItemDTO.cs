@@ -1,5 +1,4 @@
-﻿using SIP.UI.Domain.DTOs.Protocols.Default;
-using SIP.UI.Domain.Enums;
+﻿using SIP.UI.Domain.Enums;
 using SIP.UI.Models.Users;
 
 namespace SIP.UI.Domain.DTOs.Users.Pagination;
@@ -16,10 +15,7 @@ public class UserListItemDTO : BaseUser
     public override string Email { get; set; } = string.Empty;
     public override RoleEnum Role { get; set; }
 
-    public string SectorAcronym { get; set; } = string.Empty;
+    public string Sector { get; set; } = string.Empty;
 
     public bool ShowProtocols { get; set; }
-
-    public ICollection<ProtocolDefaultDTO> ProtocolsCreated { get; set; } = [];
-    public ICollection<ProtocolDefaultDTO> ProtocolsReceived { get; set; } = [];
 }

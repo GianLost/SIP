@@ -1,4 +1,4 @@
-﻿namespace SIP.API.Domain.Helpers.Messages.LogMessages.Warning;
+﻿namespace SIP.API.Domain.Helpers.Messages.LogMessages.Default.Warning;
 
 public readonly struct LogWarningMessages
 {

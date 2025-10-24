@@ -7,6 +7,7 @@ using SIP.UI.Domain.DTOs.Default.Pagination;
 using SIP.UI.Domain.DTOs.Sectors.Pagination;
 using SIP.UI.Domain.DTOs.Sectors.Request;
 using SIP.UI.Domain.Helpers.Endpoints;
+using SIP.UI.Domain.DTOs.Users.Pagination;
 
 namespace SIP.UI.Domain.Services.Sectors;
 
@@ -74,6 +75,12 @@ public class SectorService(HttpClient http)
                 requestUri: uri);
 
         return request ?? new PagedResultDTO<SectorListItemDTO>();
+    }
+
+    public async Task<List<UserBasicListDTO>> GetUsersBySectorAsync(Guid sectorId)
+    {
+        string uri = $"{BaseEndpoints<Sector>._base}/{sectorId}/users";
+        return await _http.GetFromJsonAsync<List<UserBasicListDTO>>(uri) ?? [];
     }
 
     public async Task UpdateAsync(SectorUpdateDTO setor)

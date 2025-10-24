@@ -1,15 +1,15 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using SIP.API.Infrastructure.Caching;
-using SIP.API.Infrastructure.Database;
-using SIP.API.Domain.Interfaces.Sectors;
-using SIP.API.Domain.Entities.Sectors;
-using SIP.API.Domain.DTOs.Sectors;
 using SIP.API.Domain.DTOs.Default.Pagination;
+using SIP.API.Domain.DTOs.Sectors;
 using SIP.API.Domain.DTOs.Sectors.Pagination;
 using SIP.API.Domain.DTOs.Sectors.Responses;
+using SIP.API.Domain.DTOs.Users.Pagination;
+using SIP.API.Domain.Entities.Sectors;
 using SIP.API.Domain.Helpers.KeysHelper;
 using SIP.API.Domain.Helpers.PhoneHelper;
-using SIP.API.Domain.DTOs.Users.Pagination;
+using SIP.API.Domain.Interfaces.Sectors;
+using SIP.API.Infrastructure.Caching;
+using SIP.API.Infrastructure.Database;
 
 namespace SIP.API.Domain.Services.Sectors;
 
@@ -43,78 +43,36 @@ public class SectorService(ApplicationContext context, EntityCacheManager cache)
     }
 
     /// <inheritdoc/>
-    public async Task<PagedResultDTO<SectorListItemDTO>> GetByIdAsync(Guid id)
-    {
-        IQueryable<Sector> query = 
-            _context.Sectors.AsNoTracking();
-
-        string cacheKey = $"{CacheKeys.SectorsTotalCount}";
-        int totalCount = await _cache.GetOrSetCountAsync(cacheKey, () => query.CountAsync(), EntityType);
-
-        ICollection<SectorListItemDTO> items = await query
-            .OrderBy(s => s.CreatedAt)
-            .Where(s => s.Id == id)
-                .Select(s => new SectorListItemDTO
-                {
-                    Id = s.Id,
-                    Name = s.Name,
-                    Acronym = s.Acronym,
-                    Phone = s.Phone,
-                    Users = s.Users
-                        .Select(u => new UserListItemDTO
-                        {
-                            Id = u.Id,
-                            Status = u.IsActive,
-                            Masp = u.Masp,
-                            Name = u.Name,
-                            Login = u.Login,
-                            SectorAcronym = u.Sector!.Acronym,
-                        }).ToList()
-                })
-                .ToListAsync();
-
-        return new PagedResultDTO<SectorListItemDTO>
+    public async Task<PagedResultDTO<SectorListItemDTO>> GetByIdAsync(Guid id) =>
+        await GetByIdTemplateAsync(id, filtered => filtered
+        .OrderBy(s => s.CreatedAt)
+        .Select(s => new SectorListItemDTO
         {
-            Items = items,
-            TotalCount = totalCount
-        };
-    }
+            Id = s.Id,
+            Name = s.Name,
+            Acronym = s.Acronym,
+            Phone = s.Phone
+        }));
 
     /// <inheritdoc/>
-    public async Task<PagedResultDTO<SectorResponseDTO>> GetByIdDefaultAsync(Guid id)
-    {
-        IQueryable<Sector> query = _context.Sectors.AsNoTracking();
-
-        string cacheKey = $"{CacheKeys.SectorsTotalCount}";
-        int totalCount = await _cache.GetOrSetCountAsync(cacheKey, () => query.CountAsync(), EntityType);
-
-        ICollection<SectorResponseDTO> items = await query
+    public async Task<PagedResultDTO<SectorResponseDTO>> GetByIdDefaultAsync(Guid id) =>
+        await GetByIdTemplateAsync(id, filtered => filtered
             .OrderBy(s => s.CreatedAt)
-            .Where(s => s.Id == id)
-                .Select(s => new SectorResponseDTO
-                {
-                    Id = s.Id,
-                    Name = s.Name,
-                    Acronym = s.Acronym,
-                    Phone = s.Phone
-                })
-                .ToListAsync();
-
-        return new PagedResultDTO<SectorResponseDTO>
-        {
-            Items = items,
-            TotalCount = totalCount       
-        };
-    }
+            .Select(s => new SectorResponseDTO
+            {
+                Id = s.Id,
+                Name = s.Name,
+                Acronym = s.Acronym,
+                Phone = s.Phone
+            }));
 
     /// <inheritdoc/>
     public async Task<PagedResultDTO<SectorResponseDTO>> GetAllAsync()
     {
-        /* TODO: Otimizar consulta para o uso em componente MudSelect no front-end */
+        IQueryable<Sector> query = 
+            _context.Sectors.AsNoTracking();
 
-        IQueryable<Sector> query = _context.Sectors.AsNoTracking();
-
-        string cacheKey = $"{CacheKeys.SectorsTotalCount}";
+        string cacheKey = EntityCacheManager.BuildScopedCacheKey(CacheKeys.SectorsTotalCount, null, null);
         int totalCount = await _cache.GetOrSetCountAsync(cacheKey, () => query.CountAsync(), EntityType);
 
         ICollection<SectorResponseDTO> items = await query
@@ -157,7 +115,7 @@ public class SectorService(ApplicationContext context, EntityCacheManager cache)
                 s.Phone.Contains(searchString));
         }
 
-        string cacheKey = $"{CacheKeys.SectorsTotalCount}{searchString ?? "NoSearch"}";
+        string cacheKey = EntityCacheManager.BuildScopedCacheKey(CacheKeys.SectorsTotalCount, searchString, null);
         int totalCount = await _cache.GetOrSetCountAsync(cacheKey, () => query.CountAsync(), EntityType);
 
         // Ordenação
@@ -178,17 +136,7 @@ public class SectorService(ApplicationContext context, EntityCacheManager cache)
                     Id = u.Id,
                     Name = u.Name,
                     Acronym = u.Acronym,
-                    Phone = u.Phone,
-                    Users = u.Users
-                        .Select(user => new UserListItemDTO
-                        {
-                            Id = user.Id,
-                            Status = user.IsActive,
-                            Masp = user.Masp,
-                            Name = user.Name,
-                            Login = user.Login,
-                            SectorAcronym = user.Sector!.Acronym,
-                        }).ToList()
+                    Phone = u.Phone
                 })
                 .ToListAsync();
 
@@ -197,6 +145,24 @@ public class SectorService(ApplicationContext context, EntityCacheManager cache)
             Items = items,
             TotalCount = totalCount
         };
+    }
+
+    /// <inheritdoc/>
+    public async Task<List<UserBasicListDTO>> GetUsersBySectorAsync(Guid sectorId)
+    {
+        return await _context.Users
+            .AsNoTracking()
+            .Where(u => u.SectorId == sectorId)
+            .Select(u => new UserBasicListDTO
+            {
+                Id = u.Id,
+                Status = u.IsActive,
+                Masp = u.Masp,
+                Name = u.Name,
+                Login = u.Login,
+                Sector = u.Sector!.Acronym
+            })
+            .ToListAsync();
     }
 
     /// <inheritdoc/>
@@ -285,11 +251,78 @@ public class SectorService(ApplicationContext context, EntityCacheManager cache)
                 s.Phone.Contains(searchString));
         }
 
-        string cacheKey = $"{CacheKeys.SectorsTotalCount}{searchString ?? "NoSearch"}";
+        string cacheKey = EntityCacheManager.BuildScopedCacheKey(CacheKeys.SectorsTotalCount, searchString, null);
         return await _cache.GetOrSetCountAsync(cacheKey, () => query.CountAsync(), EntityType);
     }
 
     /// <inheritdoc/>
     public void ClearTotalCountCache() =>
         _cache.Invalidate(EntityType);
+
+    /// <summary>
+    /// Provides a generic helper for retrieving entities by their unique identifier,
+    /// applying a specified projection and leveraging caching for performance optimization.
+    /// </summary>
+    /// <typeparam name="TListDTO">
+    /// The DTO type representing the projected data structure returned by the query.
+    /// </typeparam>
+    /// <param name="id">
+    /// The unique identifier (<see cref="Guid"/>) of the entity to be retrieved.
+    /// </param>
+    /// <param name="projector">
+    /// A projection function defining how the base <see cref="Sector"/> query should be
+    /// transformed into the target DTO type (<typeparamref name="TListDTO"/>).
+    /// </param>
+    /// <returns>
+    /// A <see cref="PagedResultDTO{T}"/> containing the projected entity data and
+    /// the total count of matching records.
+    /// </returns>
+    /// <remarks>
+    /// <b>Purpose:</b><br/>
+    /// Centralizes and abstracts the repetitive logic used by multiple <c>GetByIdAsync</c>-style methods
+    /// within the <see cref="SectorService"/>, ensuring consistency and reusability.
+    ///
+    /// <b>Behavior:</b><br/>
+    /// • Executes a filtered query over <see cref="Sector"/> entities using the provided identifier.<br/>
+    /// • Applies the supplied projection expression (<paramref name="projector"/>) to map entities into DTOs.<br/>
+    /// • Computes and caches the total count of matching records using <see cref="EntityCacheManager"/>.<br/>
+    /// • Returns a <see cref="PagedResultDTO{T}"/> that encapsulates both the results and count, maintaining
+    /// uniformity across all service-layer responses.<br/>
+    ///
+    /// <b>Usage Example:</b><br/>
+    /// Used internally by:
+    /// <list type="bullet">
+    /// <item><see cref="GetByIdAsync(Guid)"/></item>
+    /// <item><see cref="GetByIdDefaultAsync(Guid)"/></item>
+    /// </list>
+    ///
+    /// <b>Visibility:</b><br/>
+    /// This method is intentionally <c>private</c> to restrict its scope to the <see cref="SectorService"/> implementation,
+    /// promoting encapsulation and domain service cohesion.
+    /// </remarks>
+    private async Task<PagedResultDTO<TListDTO>> GetByIdTemplateAsync<TListDTO>(Guid id, Func<IQueryable<Sector>, IQueryable<TListDTO>> projector)
+        where TListDTO : class
+    {
+        IQueryable<Sector> query =
+            _context.Sectors.AsNoTracking();
+
+        IQueryable<Sector> filtered =
+            query.Where(u => u.Id == id);
+
+        // chave de cache já considera o contexto (id)
+        string cacheKey = EntityCacheManager.BuildScopedCacheKey(CacheKeys.SectorsTotalCount, null, id);
+
+        // conta sobre a query filtrada (e cacheia esse count)
+        int totalCount = await _cache.GetOrSetCountAsync(cacheKey, () => filtered.CountAsync(), EntityType);
+
+        // aplica a projeção fornecida e materializa
+        ICollection<TListDTO> items =
+            await projector(filtered).ToListAsync();
+
+        return new PagedResultDTO<TListDTO>
+        {
+            Items = items,
+            TotalCount = totalCount
+        };
+    }
 }

@@ -7,6 +7,7 @@
 @using SIP.UI.Domain.DTOs.Sectors
 @using SIP.UI.Domain.DTOs.Sectors.Pagination
 @using SIP.UI.Domain.DTOs.Sectors.Request
+@using SIP.UI.Domain.DTOs.Users.Pagination
 @using SIP.UI.Domain.DTOs.Users.Request
 @using SIP.UI.Domain.Helpers.DataFormatting.Strings
 @using SIP.UI.Domain.Services.Sectors
@@ -107,23 +108,12 @@
             @* Componente de renderização dos registros da tabela *@
             <RowTemplate Context="sector">
 
-                @* Ícone de exibição dos usuários relacionados *@
-                @if(sector.Users.Count < 1)
-                {
-                    <MudTd>
-                        <MudTooltip Text="Esta secretaria não possui usuários cadastrados ..." Arrow="true" Placement="Placement.Left">
-                            <MudIconButton Icon="@Icons.Material.Filled.PeopleOutline" Color="Color.Primary" Size="Size.Small" Disabled="true"/>
-                        </MudTooltip>
-                    </MudTd>
-                }
-                else
-                {
-                    <MudTd>
-                        <MudTooltip Text="usuários vinculados ..." Arrow="true" Placement="Placement.Left">
-                            <MudIconButton Icon="@(sector.ShowUsers? Icons.Material.Filled.People : Icons.Material.Filled.PeopleOutline)" Color="Color.Primary" Size="Size.Small" OnClick="@(() => ToggleShowUsers(sector))" />
-                        </MudTooltip>
-                    </MudTd>
-                }
+                <MudTd>
+                    <MudTooltip Text="usuários vinculados ..." Arrow="true" Placement="Placement.Left">
+                        <MudIconButton Icon="@(sector.ShowUsers? Icons.Material.Filled.People : Icons.Material.Filled.PeopleOutline)" Color="Color.Primary" Size="Size.Small" OnClick="@(() => ToggleShowUsers(sector))" />
+                    </MudTooltip>
+                </MudTd>
+
                 <MudTd DataLabel="Nome">@sector.Name.ToUppercase()</MudTd>
                 <MudTd DataLabel="Sigla">@sector.Acronym.ToUppercase()</MudTd>
                 <MudTd DataLabel="Telefone">@FormatPhoneNumber(@sector.Phone)</MudTd>
@@ -134,6 +124,8 @@
             <ChildRowContent Context="sectorDetail">
                 @if (sectorDetail.ShowUsers)
                 {
+                    var users = sectorUsers.TryGetValue(sectorDetail.Id, out var u) ? u : new List<UserBasicListDTO>();
+
                     <MudTr>
                         <td colspan="5">
                             <MudCard Elevation="3">
@@ -152,7 +144,7 @@
                                 <MudCardContent Class="pa-0">
 
                                     @* Sub-componente de tabela contendo os dados relacionais de usuários *@
-                                    <MudTable T="UserRequestDTO" Items="sectorDetail.Users" Bordered="false" Hover="true" Elevation="0">
+                                    <MudTable T="UserBasicListDTO" Items="users" Bordered="false" Hover="true" Elevation="0">
 
                                         <HeaderContent>
                                             <MudTh Style="font-weight: bold;">Status</MudTh>
@@ -241,6 +233,9 @@
 
     private bool _isModalOpen = false;
 
+    // Dicionário para armazenar usuários carregados por setor
+    private Dictionary<Guid, List<UserBasicListDTO>> sectorUsers = new();
+
     private string GetButtonClass() =>
         $"mud-elevation-3 animated-fab-button-manual-icon {(_isModalOpen ? "force-expanded-button" : "")}";
 
@@ -304,8 +299,25 @@
     /// Toggles the visibility of related users for a sector.
     /// </summary>
     /// <param name="sector">The sector to toggle.</param>
-    private void ToggleShowUsers(SectorListItemDTO sector) =>
+    private async void ToggleShowUsers(SectorListItemDTO sector)
+    {
         sector.ShowUsers = !sector.ShowUsers;
+
+        if (sector.ShowUsers && !sectorUsers.ContainsKey(sector.Id))
+        {
+            // Chamada assíncrona para buscar usuários do setor
+            var users = 
+                await _sectorService.GetUsersBySectorAsync(sector.Id);
+
+            sectorUsers[sector.Id] = users;
+            StateHasChanged();
+        }
+        else if (!sector.ShowUsers)
+        {
+            // Opcional: Remover usuários do dicionário para liberar memória
+            sectorUsers.Remove(sector.Id);
+        }
+    }
 
     /// <summary>
     /// Updates the last used sort label.

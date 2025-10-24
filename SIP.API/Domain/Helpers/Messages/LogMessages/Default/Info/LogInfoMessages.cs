@@ -1,4 +1,4 @@
-﻿namespace SIP.API.Domain.Helpers.Messages.LogMessages.Info;
+﻿namespace SIP.API.Domain.Helpers.Messages.LogMessages.Default.Info;
 
 public readonly struct LogInfoMessages
 {

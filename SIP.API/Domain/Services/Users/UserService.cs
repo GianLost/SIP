@@ -51,64 +51,33 @@ public class UserService(ICrypt cryp, ApplicationContext context, EntityCacheMan
     }
 
     /// <inheritdoc/>
-    public async Task<PagedResultDTO<UserListItemDTO>> GetByIdAsync(Guid id)
-    {
-        IQueryable<User> query = 
-            _context.Users.AsNoTracking();
-
-        string cacheKey = $"{CacheKeys.UsersTotalCount}";
-        int totalCount = await _cache.GetOrSetCountAsync(cacheKey, () => query.CountAsync(), EntityType);
-
-        ICollection<UserListItemDTO> items = await query
-            .OrderBy(u => u.CreatedAt)
-            .Where(u => u.Id == id)
-                .Select(u => new UserListItemDTO
-                {
-                    Id = u.Id,
-                    Status = u.IsActive,
-                    Masp = u.Masp,
-                    Name = u.Name,
-                    Login = u.Login,
-                    Email = u.Email,
-                    SectorAcronym = u.Sector!.Acronym
-                }).ToListAsync();
-        
-        return new PagedResultDTO<UserListItemDTO>
+    public async Task<PagedResultDTO<UserBasicListDTO>> GetByIdAsync(Guid id) =>
+        await GetByIdTemplateAsync(id, filtered => filtered
+        .OrderBy(u => u.CreatedAt)
+        .Select(u => new UserBasicListDTO
         {
-            Items = items,
-            TotalCount = totalCount
-        };
-    }
+            Id = u.Id,
+            Status = u.IsActive,
+            Masp = u.Masp,
+            Name = u.Name,
+            Login = u.Login,
+            Sector = u.Sector!.Acronym
+        }));
 
     /// <inheritdoc/>
-    public async Task<PagedResultDTO<UserResponseDTO>> GetByIdDefaultAsync(Guid id)
-    {
-        IQueryable<User> query =
-            _context.Users.AsNoTracking();
-
-        string cacheKey = $"{CacheKeys.UsersTotalCount}";
-        int totalCount = await _cache.GetOrSetCountAsync(cacheKey, () => query.CountAsync(), EntityType);
-
-        ICollection<UserResponseDTO> items = await query
+    public async Task<PagedResultDTO<UserResponseDTO>> GetByIdDefaultAsync(Guid id) =>
+        await GetByIdTemplateAsync(id, filtered => filtered
             .OrderBy(u => u.CreatedAt)
-            .Where(u => u.Id == id)
-                .Select(u => new UserResponseDTO
-                {
-                    Id = u.Id,
-                    Status = u.IsActive,
-                    Masp = u.Masp,
-                    Name = u.Name,
-                    Login = u.Login,
-                    Email = u.Email,
-                    SectorId = u.SectorId
-                }).ToListAsync();
-
-        return new PagedResultDTO<UserResponseDTO>
-        {
-            Items = items,
-            TotalCount = totalCount
-        };
-    }
+            .Select(u => new UserResponseDTO
+            {
+                Id = u.Id,
+                Status = u.IsActive,
+                Masp = u.Masp,
+                Name = u.Name,
+                Login = u.Login,
+                Email = u.Email,
+                SectorId = u.SectorId
+            }));
 
     /// <inheritdoc/>
     public async Task<PagedResultDTO<UserResponseDTO>> GetAllAsync()
@@ -116,7 +85,7 @@ public class UserService(ICrypt cryp, ApplicationContext context, EntityCacheMan
         IQueryable<User> query =
             _context.Users.AsNoTracking();
 
-        string cacheKey = $"{CacheKeys.UsersTotalCount}";
+        string cacheKey = EntityCacheManager.BuildScopedCacheKey(CacheKeys.UsersTotalCount, null, null);
         int totalCount = await _cache.GetOrSetCountAsync(cacheKey, () => query.CountAsync(), EntityType);
 
         ICollection<UserResponseDTO> items = await query
@@ -138,9 +107,9 @@ public class UserService(ICrypt cryp, ApplicationContext context, EntityCacheMan
             TotalCount = totalCount
         };
     }
-        
+
     /// <inheritdoc/>
-    public async Task<PagedResultDTO<UserListItemDTO>> GetPagedAsync(
+    public async Task<PagedResultDTO<UserBasicListDTO>> GetPagedAsync(
     int pageNumber,
     int pageSize,
     string? sortLabel,
@@ -149,8 +118,8 @@ public class UserService(ICrypt cryp, ApplicationContext context, EntityCacheMan
     {
         pageSize = Math.Min(pageSize, MaxPageSize);
 
-        IQueryable<User> query = 
-            _context.Users.AsNoTracking();
+        IQueryable<User> query =
+                _context.Users.AsNoTracking();
 
         if (!string.IsNullOrWhiteSpace(searchString))
         {
@@ -175,7 +144,7 @@ public class UserService(ICrypt cryp, ApplicationContext context, EntityCacheMan
             }
         }
 
-        string cacheKey = $"{CacheKeys.UsersTotalCount}";
+        string cacheKey = EntityCacheManager.BuildScopedCacheKey(CacheKeys.UsersTotalCount, searchString, null);
         int totalCount = await _cache.GetOrSetCountAsync(cacheKey, () => query.CountAsync(), EntityType);
 
         Expression<Func<User, object>> statusOrderExpr = u => u.IsActive ? 0 : 1;
@@ -217,34 +186,23 @@ public class UserService(ICrypt cryp, ApplicationContext context, EntityCacheMan
             query = query.OrderBy(s => s.CreatedAt);
         }
 
-        IQueryable<UserListItemDTO> pagedDataQuery = query
+        IQueryable<UserBasicListDTO> pagedDataQuery = query
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
-                .Select(u => new UserListItemDTO
+                .Select(u => new UserBasicListDTO
                 {
                     Id = u.Id,
                     Status = u.IsActive,
                     Masp = u.Masp,
                     Name = u.Name,
                     Login = u.Login,
-                    Email = u.Email,
-                    Role = u.Role,
-                    SectorAcronym = u.Sector!.Acronym,
-                    ProtocolsCreated = u.ProtocolsCreated
-                        .Select(p => new ProtocolDefaultDTO
-                        {
-                            Id = p.Id,
-                            Status = p.Status,
-                            Number = p.Number,
-                            Subject = p.Subject,
-                            CreatedAt = p.CreatedAt
-                        }).ToList(),
+                    Sector = u.Sector!.Acronym
                 });
 
-        ICollection<UserListItemDTO> items = 
+        ICollection<UserBasicListDTO> items =
             await pagedDataQuery.ToListAsync();
 
-        return new PagedResultDTO<UserListItemDTO>
+        return new PagedResultDTO<UserBasicListDTO>
         {
             Items = items,
             TotalCount = totalCount
@@ -253,9 +211,41 @@ public class UserService(ICrypt cryp, ApplicationContext context, EntityCacheMan
     }
 
     /// <inheritdoc/>
+    public async Task<List<ProtocolDefaultDTO>> GetCreatedProtocolsByUserAsync(Guid userID)
+    {
+        return await _context.Protocols
+            .AsNoTracking()
+            .Where(p => p.CreatedById == userID)
+            .Select(p => new ProtocolDefaultDTO
+            {
+                Id = p.Id,
+                Status = p.Status,
+                Number = p.Number,
+                Subject = p.Subject,
+                CreatedAt = p.CreatedAt
+            })
+            .ToListAsync();
+    }
+
+    /// <inheritdoc/>
+    public async Task<PagedResultDTO<UserListItemDTO>> GetDetailsAsync(Guid id) =>
+        await GetByIdTemplateAsync(id, filtered => filtered
+            .Select(u => new UserListItemDTO
+            {
+                Id = u.Id,
+                Status = u.IsActive,
+                Masp = u.Masp,
+                Name = u.Name,
+                Login = u.Login,
+                Email = u.Email,
+                Role = u.Role,
+                Sector = u.Sector!.Acronym
+            }));
+
+    /// <inheritdoc/>
     public async Task<User?> UpdateAsync(Guid id, UserUpdateDTO dto)
     {
-        User? user = 
+        User? user =
             await _context.Users.FindAsync(id);
 
         if (user == null)
@@ -331,11 +321,79 @@ public class UserService(ICrypt cryp, ApplicationContext context, EntityCacheMan
                 s.Email.Contains(searchString));
         }
 
-        string cacheKey = $"{CacheKeys.UsersTotalCount}{searchString ?? "NoSearch"}";
+        string cacheKey = EntityCacheManager.BuildScopedCacheKey(CacheKeys.UsersTotalCount, searchString, null);
         return await _cache.GetOrSetCountAsync(cacheKey, () => query.CountAsync(), EntityType);
     }
 
     /// <inheritdoc/>
     public void ClearTotalCountCache() =>
         _cache.Invalidate(EntityType);
+
+  /// <summary>
+    /// Provides a generic helper for retrieving entities by their unique identifier,
+    /// applying a specified projection and leveraging caching for performance optimization.
+    /// </summary>
+    /// <typeparam name="TListDTO">
+    /// The DTO type representing the projected data structure returned by the query.
+    /// </typeparam>
+    /// <param name="id">
+    /// The unique identifier (<see cref="Guid"/>) of the entity to be retrieved.
+    /// </param>
+    /// <param name="projector">
+    /// A projection function defining how the base <see cref="User"/> query should be
+    /// transformed into the target DTO type (<typeparamref name="TListDTO"/>).
+    /// </param>
+    /// <returns>
+    /// A <see cref="PagedResultDTO{T}"/> containing the projected entity data and
+    /// the total count of matching records.
+    /// </returns>
+    /// <remarks>
+    /// <b>Purpose:</b><br/>
+    /// Centralizes and abstracts the repetitive logic used by multiple <c>GetByIdAsync</c>-style methods
+    /// within the <see cref="UserService"/>, ensuring consistency and reusability.
+    ///
+    /// <b>Behavior:</b><br/>
+    /// • Executes a filtered query over <see cref="User"/> entities using the provided identifier.<br/>
+    /// • Applies the supplied projection expression (<paramref name="projector"/>) to map entities into DTOs.<br/>
+    /// • Computes and caches the total count of matching records using <see cref="EntityCacheManager"/>.<br/>
+    /// • Returns a <see cref="PagedResultDTO{T}"/> that encapsulates both the results and count, maintaining
+    /// uniformity across all service-layer responses.<br/>
+    ///
+    /// <b>Usage Example:</b><br/>
+    /// Used internally by:
+    /// <list type="bullet">
+    /// <item><see cref="GetByIdAsync(Guid)"/></item>
+    /// <item><see cref="GetByIdDefaultAsync(Guid)"/></item>
+    /// <item><see cref="GetDetailsAsync(Guid)"/></item>
+    /// </list>
+    ///
+    /// <b>Visibility:</b><br/>
+    /// This method is intentionally <c>private</c> to restrict its scope to the <see cref="UserService"/> implementation,
+    /// promoting encapsulation and domain service cohesion.
+    /// </remarks>
+    private async Task<PagedResultDTO<TListDTO>> GetByIdTemplateAsync<TListDTO>(Guid id, Func<IQueryable<User>, IQueryable<TListDTO>> projector)
+        where TListDTO : class
+    {
+        IQueryable<User> query =
+            _context.Users.AsNoTracking();
+
+        IQueryable<User> filtered =
+            query.Where(u => u.Id == id);
+
+        // chave de cache já considera o contexto (id)
+        string cacheKey = EntityCacheManager.BuildScopedCacheKey(CacheKeys.UsersTotalCount, null, id);
+
+        // conta sobre a query filtrada (e cacheia esse count)
+        int totalCount = await _cache.GetOrSetCountAsync(cacheKey, () => filtered.CountAsync(), EntityType);
+
+        // aplica a projeção fornecida e materializa
+        ICollection<TListDTO> items =
+            await projector(filtered).ToListAsync();
+
+        return new PagedResultDTO<TListDTO>
+        {
+            Items = items,
+            TotalCount = totalCount
+        };
+    }
 }

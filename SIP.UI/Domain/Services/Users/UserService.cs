@@ -1,4 +1,5 @@
 ﻿using SIP.UI.Domain.DTOs.Default.Pagination;
+using SIP.UI.Domain.DTOs.Protocols.Default;
 using SIP.UI.Domain.DTOs.Users;
 using SIP.UI.Domain.DTOs.Users.Configurations;
 using SIP.UI.Domain.DTOs.Users.Pagination;
@@ -72,6 +73,25 @@ public class UserService(HttpClient http)
                 requestUri: url);
 
         return request ?? new PagedResultDTO<UserListItemDTO>();
+    }
+
+    public async Task<List<ProtocolDefaultDTO>> GetCreatedProtocolsByUserAsync(Guid userId)
+    {
+        string uri = $"{BaseEndpoints<User>._base}/{userId}/protocols_created";
+        return await _http.GetFromJsonAsync<List<ProtocolDefaultDTO>>(uri) ?? [];
+    }
+
+    public async Task<PagedResultDTO<UserListItemDTO>?> GetDetailsAsync(Guid id)
+    {
+        try
+        {
+            string url = $"{BaseEndpoints<User>._getById}{id}/details";
+            return await _http.GetFromJsonAsync<PagedResultDTO<UserListItemDTO>>(requestUri: url);
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     public async Task UpdateAsync(UserUpdateDTO user)

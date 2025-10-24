@@ -1,4 +1,4 @@
-﻿namespace SIP.API.Domain.Helpers.Messages.LogMessages.Success;
+﻿namespace SIP.API.Domain.Helpers.Messages.LogMessages.Default.Success;
 
 public readonly struct LogSuccessMessages
 {

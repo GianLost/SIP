@@ -127,28 +127,17 @@
                 </MudTh>
 
                 <MudTh Style="font-weight: bold;">
-                    <MudTableSortLabel SortLabel="Sector" InitialDirection="SortDirection.Ascending" SortBy="new Func<UserListItemDTO, object?>(x => x.SectorAcronym)">Secretaria</MudTableSortLabel>
+                    <MudTableSortLabel SortLabel="Sector" InitialDirection="SortDirection.Ascending" SortBy="new Func<UserListItemDTO, object?>(x => x.Sector)">Secretaria</MudTableSortLabel>
                 </MudTh>
             </HeaderContent>
 
             <RowTemplate Context="user">
 
-                @if(user.ProtocolsCreated.Count < 1)
-                {
-                    <MudTd Style="text-align: center;">
-                        <MudTooltip Text="Este usuário não possui protocolos cadastrados..." Arrow="true" Placement="Placement.Bottom">
-                            <MudIconButton Icon="@Icons.Material.Outlined.Book" Color="Color.Primary" Size="Size.Small" Disabled="true" />
-                        </MudTooltip>
-                    </MudTd>
-                }
-                else 
-                {
-                    <MudTd Style="text-align: center;">
-                        <MudTooltip Text="Vizualizar protocolos ..." Arrow="true" Placement="Placement.Bottom">
-                            <MudIconButton Icon="@(user.ShowProtocols? @Icons.Material.Filled.MenuBook : @Icons.Material.Outlined.Book)" Color="Color.Primary" Size="Size.Small" OnClick="@(() => ToggleShowProtocols(user))" />
-                        </MudTooltip>
-                    </MudTd>
-                }
+                <MudTd Style="text-align: center;">
+                    <MudTooltip Text="Vizualizar protocolos ..." Arrow="true" Placement="Placement.Bottom">
+                        <MudIconButton Icon="@(user.ShowProtocols? @Icons.Material.Filled.MenuBook : @Icons.Material.Outlined.Book)" Color="Color.Primary" Size="Size.Small" OnClick="@(() => ToggleShowProtocols(user))" />
+                    </MudTooltip>
+                </MudTd>
 
                 <MudTd Style="text-align: center;" DataLabel="Status">
                     <MudTooltip Text="@(user.Status ? "Ativo" : "Inativo")" Arrow="true" Placement="Placement.Left">
@@ -171,8 +160,8 @@
                     </MudTooltip>
                 </MudTd>
                 <MudTd Class="mud-table-cell-truncate" DataLabel="Sector">
-                    <MudTooltip Text="@user?.SectorAcronym.ToUppercase()">
-                        <span>@user?.SectorAcronym.ToUppercase()</span>
+                    <MudTooltip Text="@user?.Sector.ToUppercase()">
+                        <span>@user?.Sector.ToUppercase()</span>
                     </MudTooltip>
                 </MudTd>
             </RowTemplate>
@@ -180,6 +169,7 @@
             <ChildRowContent Context="userDetail">
                 @if (userDetail.ShowProtocols)
                 {
+                    var protocols = userProtocols.TryGetValue(userDetail.Id, out var u) ? u : new List<ProtocolDefaultDTO>();
                     <MudTr>
                         <td colspan="8">
                             @* <-- colspan deve ser igual ao número total de colunas (7 + 1 do botão) *@
@@ -193,7 +183,7 @@
                                     </CardHeaderContent>
                                 </MudCardHeader>
                                 <MudCardContent Class="pa-0">
-                                    <MudTable T="ProtocolDefaultDTO" Items="userDetail.ProtocolsCreated" Bordered="false" Hover="true" Dense="true" Elevation="0">
+                                    <MudTable T="ProtocolDefaultDTO" Items="protocols" Bordered="false" Hover="true" Dense="true" Elevation="0">
                                         <HeaderContent>
                                             <MudTh Style="font-weight: bold;">Status</MudTh>
                                             <MudTh Style="font-weight: bold;">Número</MudTh>
@@ -241,6 +231,9 @@
     private bool _isModalOpen = false;
 
     private HashSet<UserListItemDTO> _selectedUsers = new();
+
+    // Dicionário para armazenar usuários carregados por setor
+    private Dictionary<Guid, List<ProtocolDefaultDTO>> userProtocols = new();
 
     private RenderFragment GetStatusChip(ProtocolStatus status)
     {
@@ -320,8 +313,23 @@
     /// Toggles the visibility of related protocols for a user.
     /// </summary>
     /// <param name="user">The sector to toggle.</param>
-    private void ToggleShowProtocols(UserListItemDTO user) => 
+    private async Task ToggleShowProtocols(UserListItemDTO user)
+    {
         user.ShowProtocols = !user.ShowProtocols;
+
+        if (user.ShowProtocols && !userProtocols.ContainsKey(user.Id))
+        {
+            // Chamada assíncrona para buscar usuários do setor
+            var protocols = await _userService.GetCreatedProtocolsByUserAsync(user.Id);
+            userProtocols[user.Id] = protocols;
+            StateHasChanged();
+        }
+        else if (!user.ShowProtocols)
+        {
+            // Opcional: Remover usuários do dicionário para liberar memória
+            userProtocols.Remove(user.Id);
+        }
+    }
 
     private async Task OnSearch(string value)
     {
@@ -368,20 +376,31 @@
 
     private async Task ShowEditBasicDialog(UserListItemDTO userToEdit)
     {
+        PagedResultDTO<UserListItemDTO>? detailed = await _userService.GetDetailsAsync(userToEdit.Id);
+
+        var fullUser = detailed?.Items?.FirstOrDefault();
+
+        if (fullUser == null)
+        {
+            Snackbar.Add("Não foi possível carregar os dados completos do usuário.", Severity.Error);
+            return;
+        }
+
         DialogParameters<UserEditDialog> parameters = new();
 
         parameters.Add(x => x.User, new UserUpdateDTO
         {
-            Id = userToEdit.Id,
-            Name = userToEdit.Name!,
-            Login = userToEdit.Login!,
-            Masp = userToEdit.Masp,
-            Email = userToEdit.Email!,
-            Role = userToEdit.Role,
-            Status = userToEdit.Status
+            Id = fullUser.Id,
+            Name = fullUser.Name!,
+            Login = fullUser.Login!,
+            Masp = fullUser.Masp,
+            Email = fullUser.Email!,
+            Role = fullUser.Role,
+            Status = fullUser.Status
         });
 
         IDialogReference dialog = await DialogService.ShowAsync<UserEditDialog>("", parameters);
+
         DialogResult? result = await dialog.Result;
 
         if (result is not null && !result.Canceled)
