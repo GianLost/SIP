@@ -65,10 +65,14 @@
                                   Adornment="Adornment.End"
                                   IconSize="Size.Small"
                                   AdornmentIcon="@(showNewPassword ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"
-                                  OnAdornmentClick="ToggleNewPasswordVisibility" />
+                                  OnAdornmentClick="ToggleNewPasswordVisibility"
+                                  Immediate="true"
+                                  OnBlur="OnPasswordChanged"/>
                 </MudItem>
                 <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="ConfirmPassword"
+                    <MudTextField T="string"
+                                  @ref="confirmPasswordField"
+                                  @bind-Value="ConfirmPassword"
                                   Label="Confirmar Senha"
                                   Variant="Variant.Outlined"
                                   Margin="Margin.Normal"
@@ -80,7 +84,8 @@
                                   Adornment="Adornment.End"
                                   IconSize="Size.Small"
                                   AdornmentIcon="@(showConfirmPassword? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"
-                                  OnAdornmentClick="ToggleConfirmPasswordVisibility" />
+                                  OnAdornmentClick="ToggleConfirmPasswordVisibility" 
+                                  Immediate="true"/>
                 </MudItem>
 
                 @* Caixa de seleção para selecionar o setor do usuário *@
@@ -189,6 +194,8 @@
     /// </summary>
     private string ConfirmPassword { get; set; } = string.Empty;
 
+    private MudTextField<string>? confirmPasswordField;
+
     private string? maspString;
 
     private void SyncMaspToModel()
@@ -198,6 +205,10 @@
         else
             User.Masp = 0; // ou deixar sem alterar
     }
+
+    // Evento disparado quando o usuário muda a senha principal
+    private async Task OnPasswordChanged() =>
+        await confirmPasswordField?.Validate()!;
 
     /// <summary>
     /// Valida o campo "Nova Senha".

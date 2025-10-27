@@ -10,7 +10,8 @@
 <MudDialog Style="width:450px">
 
     <DialogContent>
-        <MudText Typo="Typo.h6" Class="mb-4">Alterar Setor para
+        <MudText Typo="Typo.h6" Class="mb-4">
+            Alterar Setor para
             <MudText Typo="Typo.h6" Color="Color.Primary" Class="font-semibold" Inline="true">
                 @Users.Login
             </MudText>
@@ -18,26 +19,23 @@
 
         <MudForm @ref="form" @bind-IsValid="isValid">
 
-            <MudSelect T="Guid"
-                       Label="Setor"
-                       @bind-Value="selectedSector"
-                       Required="true"
-                       Dense="true"
-                       RequiredError="Selecione um setor!"
-                       Variant="Variant.Outlined"
-                       Margin="Margin.Normal"
-                       Class="mb-3" 
-                       ToStringFunc="@(id => _allSectors.FirstOrDefault(s => s.Id == id)?.Acronym + " - " + _allSectors.FirstOrDefault(s => s.Id == id)?.Name ?? "")">
-                @if (_allSectors != null)
-                {
-                    @foreach (var sector in _allSectors)
-                    {
-                        <MudSelectItem Value="@(sector.Id)">
-                            @sector.Acronym - @sector.Name
-                        </MudSelectItem>
-                    }
-                }
-            </MudSelect>
+            <MudItem>
+                <MudAutocomplete T="SectorRequestDTO"
+                                 Label="Setor"
+                                 @bind-Value="selectedSector"
+                                 SearchFunc="SearchSectors"
+                                 For="() => selectedSector"
+                                 Required="true"
+                                 Dense="true"
+                                 RequiredError="Selecione um setor!"
+                                 Variant="Variant.Outlined"
+                                 Margin="Margin.Normal"
+                                 Class="mb-3"
+                                 ToStringFunc="@(s => s == null ? string.Empty : $"{s.Acronym} - {s.Name}")"
+                                 Clearable="true"
+                                 Placeholder="Selecione o setor..."
+                                 MaxItems="100" />
+            </MudItem>
 
         </MudForm>
     </DialogContent>
@@ -61,18 +59,36 @@
     private MudForm? form;
     private bool isValid;
 
-    [Parameter] 
+    [Parameter]
     public User Users { get; set; } = new();
 
-    private Guid selectedSector;
+    private SectorRequestDTO? selectedSector;
+
     private List<SectorRequestDTO> _allSectors = new();
+
+    /// <summary>
+    /// Função de pesquisa para o autocomplete de setores.
+    /// Filtra a lista de setores com base no valor de pesquisa do usuário.
+    /// </summary>
+    private Task<IEnumerable<SectorRequestDTO>> SearchSectors(string value, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return Task.FromResult<IEnumerable<SectorRequestDTO>>(_allSectors);
+
+        var filtered = _allSectors
+            .Where(s => s.Name.Contains(value, StringComparison.OrdinalIgnoreCase)
+                     || s.Acronym.Contains(value, StringComparison.OrdinalIgnoreCase));
+
+        return Task.FromResult<IEnumerable<SectorRequestDTO>>(filtered);
+    }
 
     protected override async Task OnInitializedAsync()
     {
         var result = await _sectorServices.GetAllAsync();
         _allSectors = result?.Items?.ToList() ?? new List<SectorRequestDTO>();
 
-        selectedSector = Users.SectorId;
+        // Inicializa o selectedSector encontrando o DTO correspondente ao Users.SectorId (se existir)
+        selectedSector = _allSectors.FirstOrDefault(s => s.Id == Users.SectorId);
     }
 
     private async Task SubmitAsync()
@@ -80,7 +96,8 @@
         if (form is null || !form.IsValid)
             return;
 
-        if (selectedSector == Guid.Empty)
+        // Verifica se o usuário selecionou um setor
+        if (selectedSector is null || selectedSector.Id == Guid.Empty)
         {
             Snackbar.Add("Selecione um setor válido.", Severity.Warning);
             return;
@@ -89,12 +106,12 @@
         var dto = new UserChangeSectorDTO
         {
             UserId = Users.Id,
-            SectorId = selectedSector
+            SectorId = selectedSector.Id
         };
 
         try
         {
-            var updatedUser = 
+            var updatedUser =
                 await _userService.ChangeUserSectorAsync(dto);
 
             if (updatedUser != null)
@@ -112,5 +129,6 @@
         }
     }
 
-    private void Cancel() => MudDialog.Cancel();
+    private void Cancel() =>
+        MudDialog.Cancel();
 }
