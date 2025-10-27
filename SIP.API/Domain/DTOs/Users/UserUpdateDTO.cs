@@ -17,7 +17,6 @@ public class UserUpdateDTO : BaseUser
     public override string Login { get; set; } = string.Empty;
     public override string Email { get; set; } = string.Empty;
 
-
     [Required(ErrorMessage = "O papel do usuário é obrigatório.")]
     public UserRole Role { get; set; }
 

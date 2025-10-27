@@ -16,5 +16,6 @@ public class UserListItemDTO : BaseUser
 
     public UserRole Role { get; set; }
 
+    public Guid SectorId { get; set; }
     public string Sector { get; set; } = string.Empty;
 }

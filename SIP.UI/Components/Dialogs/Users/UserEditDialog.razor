@@ -20,7 +20,16 @@
 
                 @* Campo MASP *@
                 <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="User.Masp" Label="Masp" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.ConfirmationNumber" Required="true" RequiredError="O MASP é obrigatório!" Variant="Variant.Outlined" Margin="Margin.Normal" />
+                    <MudTextField @bind-Value="maspString"
+                                  Label="Masp"
+                                  Adornment="Adornment.Start"
+                                  AdornmentIcon="@Icons.Material.Filled.ConfirmationNumber"
+                                  Required="true"
+                                  RequiredError="O MASP é obrigatório!"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Normal"
+                                  Immediate="true"
+                                  OnBlur="SyncMaspToModel" />
                 </MudItem>
 
                 @* Campo Nome Completo *@
@@ -93,17 +102,20 @@
     /// </summary>
     private MudForm? form;
 
+    private string? maspString;
+
     /// <summary>
     /// Indica se o formulário é válido. Controla a habilitação do botão "Salvar".
     /// </summary>
     private bool isValid;
 
-    /// <summary>
-    /// Executado sempre que a lista de erros do formulário é alterada.
-    /// Atualiza a interface do usuário.
-    /// </summary>
-    private void OnErrorsChanged() => 
-        StateHasChanged();
+    private void SyncMaspToModel()
+    {
+        if (int.TryParse(maspString, out int parsed))
+            User.Masp = parsed;
+        else
+            User.Masp = 0; // ou deixar sem alterar
+    }
 
     /// <summary>
     /// Retorna o nome de exibição amigável para cada função (RoleEnum).
@@ -120,6 +132,20 @@
             _ => role.ToString() // Caso surja um novo enum sem mapeamento, retorna o nome padrão
         };
     }
+
+    protected override void OnInitialized()
+    {
+        maspString = User.Masp == 0 ? string.Empty : User.Masp.ToString();
+
+        StateHasChanged();
+    }
+
+    /// <summary>
+    /// Executado sempre que a lista de erros do formulário é alterada.
+    /// Atualiza a interface do usuário.
+    /// </summary>
+    private void OnErrorsChanged() => 
+        StateHasChanged();
 
     /// <summary>
     /// Executa a validação do formulário.

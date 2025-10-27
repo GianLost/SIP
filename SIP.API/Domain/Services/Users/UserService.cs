@@ -239,6 +239,7 @@ public class UserService(ICrypt cryp, ApplicationContext context, EntityCacheMan
                 Login = u.Login,
                 Email = u.Email,
                 Role = u.Role,
+                SectorId = u.SectorId,
                 Sector = u.Sector!.Acronym
             }));
 

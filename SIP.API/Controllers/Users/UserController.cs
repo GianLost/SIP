@@ -326,30 +326,28 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
     /// </param>
     /// <returns>
     /// Retorna:
-    /// - <see cref="OkObjectResult"/> com a lista de protocolos criados pelo usuário.  
-    /// - <see cref="NotFoundObjectResult"/> se o usuário não possuir protocolos criados.  
+    /// - <see cref="OkObjectResult"/> com a lista (possivelmente vazia) de protocolos criados pelo usuário.  
     /// - <see cref="ObjectResult"/> (500) em caso de erro inesperado.  
     /// </returns>
     /// <remarks>
     /// <b>Ação:</b> Consultar protocolos criados por um usuário.  
     /// 
-    /// Este endpoint retorna todos os protocolos cadastrados pelo usuário informado,
-    /// permitindo identificar sua autoria em fluxos administrativos e operacionais.  
+    /// Este endpoint retorna todos os protocolos cadastrados pelo usuário informado.
+    /// Caso o usuário ainda não tenha criado nenhum protocolo, uma lista vazia é retornada
+    /// para manter a consistência da resposta esperada pelo cliente.  
     /// 
     /// 🔄 <b>Retornos possíveis:</b>
-    /// - <b>200 (OK)</b> → Lista de protocolos retornada com sucesso.  
-    /// - <b>404 (Not Found)</b> → Nenhum protocolo encontrado para o usuário.  
+    /// - <b>200 (OK)</b> → Lista de protocolos retornada com sucesso (mesmo que vazia).  
     /// - <b>500 (Internal Server Error)</b> → Erro inesperado ao processar a solicitação.  
     /// </remarks>
     [HttpGet("{userId:guid}/protocols_created")]
     [ProducesResponseType(typeof(List<ProtocolDefaultDTO>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<List<ProtocolDefaultDTO>>> GetCreatedProtocolsByUserAsync(Guid userId)
     {
         _logger.LogInformation<User>(
-        message: "Solicitação para buscar protocolos criados pelo usuário {UserId}.",
-        args: userId);
+            message: "Solicitação para buscar protocolos criados pelo usuário {UserId}.",
+            args: userId);
 
         try
         {
@@ -358,12 +356,12 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
 
             if (protocols == null || protocols.Count == 0)
             {
-                _logger.LogWarning<User>(
+                _logger.LogInformation<User>(
                     message: "Nenhum protocolo encontrado para o usuário {UserId}.",
                     args: userId);
 
-                return NotFound(new ErrorResponse(
-                    error: $"Nenhum protocolo encontrado para o usuário {userId}."));
+                // Retorna lista vazia em vez de erro
+                return Ok(new List<ProtocolDefaultDTO>());
             }
 
             _logger.LogInformation<User>(

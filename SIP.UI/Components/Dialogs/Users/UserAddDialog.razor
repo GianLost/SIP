@@ -61,14 +61,14 @@
                                   Required="true"
                                   RequiredError="A nova senha é obrigatória!"
                                   For="@(() => User.Password)"
-                                  OnBlur="() => form!.ResetValidation()"
+                                  Validation="(string value) => ValidateNewPassword(value)"
                                   Adornment="Adornment.End"
+                                  IconSize="Size.Small"
                                   AdornmentIcon="@(showNewPassword ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"
                                   OnAdornmentClick="ToggleNewPasswordVisibility" />
                 </MudItem>
                 <MudItem xs="12" sm="6">
-                    <MudTextField T="string" 
-                                  @bind-Value="ConfirmPassword"
+                    <MudTextField @bind-Value="ConfirmPassword"
                                   Label="Confirmar Senha"
                                   Variant="Variant.Outlined"
                                   Margin="Margin.Normal"
@@ -76,9 +76,9 @@
                                   Required="true"
                                   RequiredError="A confirmação de senha é obrigatória!"
                                   For="@(() => ConfirmPassword)"
-                                  Validation="@(new Func<string, string>(ValidateConfirmPassword))"
-                                  OnBlur="() => form!.ResetValidation()"
+                                  Validation="(string value) => ValidateConfirmPassword(value)"
                                   Adornment="Adornment.End"
+                                  IconSize="Size.Small"
                                   AdornmentIcon="@(showConfirmPassword? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"
                                   OnAdornmentClick="ToggleConfirmPasswordVisibility" />
                 </MudItem>
@@ -191,31 +191,62 @@
 
     private string? maspString;
 
-    /// <summary>
-    /// Executado ao inicializar o componente.
-    /// Responsável por carregar os setores e preparar o formulário.
-    /// </summary>
-    protected override async Task OnInitializedAsync()
+    private void SyncMaspToModel()
     {
-        PagedResultDTO<SectorRequestDTO>? result = await _sectorServices.GetAllAsync();
+        if (int.TryParse(maspString, out int parsed))
+            User.Masp = parsed;
+        else
+            User.Masp = 0; // ou deixar sem alterar
+    }
 
-        if (_sectorServices is not null)
-            _allSectors = result?.Items?.ToList() ?? new List<SectorRequestDTO>();
+    /// <summary>
+    /// Valida o campo "Nova Senha".
+    /// </summary>
+    /// <param name="value">Valor digitado no campo de senha.</param>
+    /// <returns>Mensagem de erro se inválido, string vazia se válido.</returns>
+    private string? ValidateNewPassword(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return "A nova senha é obrigatória.";
+        return null;
+    }
 
-        if (_allSectors != null && !_allSectors.Any())
-        {
-            Snackbar.Add(
-                "Não foi possível carregar a lista de setores. O cadastro de usuários pode não funcionar corretamente.",
-                severity: Severity.Warning
-            );
-        }
+    /// <summary>
+    /// Valida o campo "Confirmar Senha".
+    /// </summary>
+    /// <param name="value">Valor digitado no campo de confirmação.</param>
+    /// <returns>Mensagem de erro se inválido, string vazia se válido.</returns>
+    private string? ValidateConfirmPassword(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return "A confirmação de senha é obrigatória.";
+        if (value != User.Password)
+            return "As senhas não conferem.";
+        return null;
+    }
 
-        if (User.Password != null)
-            User.Password = string.Empty;
+    /// <summary>
+    /// Alterna a visibilidade do campo "Nova Senha".
+    /// </summary>
+    private void ToggleNewPasswordVisibility() =>
+        showNewPassword = !showNewPassword;
 
-        ConfirmPassword = string.Empty;
+    /// <summary>
+    /// Alterna a visibilidade do campo "Confirmar Senha".
+    /// </summary>
+    private void ToggleConfirmPasswordVisibility() =>
+        showConfirmPassword = !showConfirmPassword;
 
-        StateHasChanged();
+    /// <summary>
+    /// Função de pesquisa para o autocomplete de setores.
+    /// Filtra a lista de setores com base no valor de pesquisa do usuário.
+    /// </summary>
+    private Task<IEnumerable<SectorRequestDTO>> SearchSectors(string value, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrEmpty(value))
+            return Task.FromResult<IEnumerable<SectorRequestDTO>>(_allSectors!);
+
+        return Task.FromResult(_allSectors!.Where(s => s.Name.Contains(value, StringComparison.OrdinalIgnoreCase) || s.Acronym.Contains(value, StringComparison.OrdinalIgnoreCase)));
     }
 
     /// <summary>
@@ -235,68 +266,27 @@
     }
 
     /// <summary>
-    /// Alterna a visibilidade do campo "Nova Senha".
+    /// Executado ao inicializar o componente.
+    /// Responsável por carregar os setores e preparar o formulário.
     /// </summary>
-    private void ToggleNewPasswordVisibility() =>
-        showNewPassword = !showNewPassword;
-
-    /// <summary>
-    /// Alterna a visibilidade do campo "Confirmar Senha".
-    /// </summary>
-    private void ToggleConfirmPasswordVisibility() =>
-        showConfirmPassword = !showConfirmPassword;
-
-    /// <summary>
-    /// Valida o campo "Nova Senha".
-    /// </summary>
-    /// <param name="value">Valor digitado no campo de senha.</param>
-    /// <returns>Mensagem de erro se inválido, string vazia se válido.</returns>
-    private string ValidateNewPassword(string value)
+    protected override async Task OnInitializedAsync()
     {
-        if (string.IsNullOrWhiteSpace(value))
-            return "A nova senha é obrigatória.";
+        PagedResultDTO<SectorRequestDTO>? result = await _sectorServices.GetAllAsync();
 
-        return string.Empty;
-    }
+        if (_sectorServices is not null)
+            _allSectors = result?.Items?.ToList() ?? new List<SectorRequestDTO>();
 
-    /// <summary>
-    /// Valida o campo "Confirmar Senha".
-    /// </summary>
-    /// <param name="value">Valor digitado no campo de confirmação.</param>
-    /// <returns>Mensagem de erro se inválido, string vazia se válido.</returns>
-    private string ValidateConfirmPassword(string value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-            return "A confirmação de senha é obrigatória.";
+        if (_allSectors != null && !_allSectors.Any())
+        {
+            Snackbar.Add(
+                "Não foi possível carregar a lista de setores. O cadastro de usuários pode não funcionar corretamente.",
+                severity: Severity.Warning
+            );
+        }
 
-        if (value != User.Password)
-            return "As senhas não conferem.";
-
-        return string.Empty;
-    }
-
-
-    /// <summary>
-    /// Função de pesquisa para o autocomplete de setores.
-    /// Filtra a lista de setores com base no valor de pesquisa do usuário.
-    /// </summary>
-    private Task<IEnumerable<SectorRequestDTO>> SearchSectors(string value, CancellationToken cancellationToken)
-    {
-        if (string.IsNullOrEmpty(value))
-            return Task.FromResult<IEnumerable<SectorRequestDTO>>(_allSectors!);
-
-        return Task.FromResult(_allSectors!.Where(s => s.Name.Contains(value, StringComparison.OrdinalIgnoreCase) || s.Acronym.Contains(value, StringComparison.OrdinalIgnoreCase)));
-    }
-
-    protected override void OnInitialized() => 
         maspString = User.Masp == 0 ? string.Empty : User.Masp.ToString();
 
-    private void SyncMaspToModel()
-    {
-        if (int.TryParse(maspString, out int parsed))
-            User.Masp = parsed;
-        else
-            User.Masp = 0; // ou deixar sem alterar
+        StateHasChanged();
     }
 
     /// <summary>

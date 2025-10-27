@@ -7,6 +7,7 @@ using SIP.UI.Domain.DTOs.Users.Request;
 using SIP.UI.Domain.Helpers.Endpoints;
 using SIP.UI.Models.Errors;
 using SIP.UI.Models.Users;
+using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
 
@@ -148,15 +149,14 @@ public class UserService(HttpClient http)
     {
         try
         {
-            UserDefaultChangePasswordDTO changePasswordDto = new()
+            AdminResetPasswordDTO changePasswordDto = new()
             {
-                Id = userId,
                 Password = newPassword
             };
 
             HttpResponseMessage request = 
                 await _http.PatchAsJsonAsync(
-                    requestUri: BaseEndpoints<User>._password, 
+                    requestUri: $"{BaseEndpoints<User>._password}/{userId}",
                     value: changePasswordDto);
 
             request.EnsureSuccessStatusCode();
@@ -168,6 +168,16 @@ public class UserService(HttpClient http)
 
             throw new Exception($"Falha ao alterar senha do usuário. Detalhes: {ex.Message}");
         }
+    }
+
+    public async Task<User?> ChangeUserSectorAsync(UserChangeSectorDTO dto)
+    {
+        var response = await _http.PatchAsJsonAsync($"{BaseEndpoints<User>._base}/{dto.UserId}/sector", dto);
+
+        if (response.IsSuccessStatusCode)
+            return await response.Content.ReadFromJsonAsync<User>();
+
+        return null;
     }
 
     private async Task InvalidateCacheAsync()

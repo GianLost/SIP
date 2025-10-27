@@ -1,0 +1,116 @@
+﻿@using SIP.UI.Domain.DTOs.Users.Configurations
+@using SIP.UI.Domain.DTOs.Sectors.Request
+@using SIP.UI.Domain.Services.Sectors
+@using SIP.UI.Domain.Services.Users
+@using SIP.UI.Models.Users
+@inject ISnackbar Snackbar
+@inject SectorService _sectorServices
+@inject UserService _userService
+
+<MudDialog Style="width:450px">
+
+    <DialogContent>
+        <MudText Typo="Typo.h6" Class="mb-4">Alterar Setor para
+            <MudText Typo="Typo.h6" Color="Color.Primary" Class="font-semibold" Inline="true">
+                @Users.Login
+            </MudText>
+        </MudText>
+
+        <MudForm @ref="form" @bind-IsValid="isValid">
+
+            <MudSelect T="Guid"
+                       Label="Setor"
+                       @bind-Value="selectedSector"
+                       Required="true"
+                       Dense="true"
+                       RequiredError="Selecione um setor!"
+                       Variant="Variant.Outlined"
+                       Margin="Margin.Normal"
+                       Class="mb-3" 
+                       ToStringFunc="@(id => _allSectors.FirstOrDefault(s => s.Id == id)?.Acronym + " - " + _allSectors.FirstOrDefault(s => s.Id == id)?.Name ?? "")">
+                @if (_allSectors != null)
+                {
+                    @foreach (var sector in _allSectors)
+                    {
+                        <MudSelectItem Value="@(sector.Id)">
+                            @sector.Acronym - @sector.Name
+                        </MudSelectItem>
+                    }
+                }
+            </MudSelect>
+
+        </MudForm>
+    </DialogContent>
+
+    <DialogActions>
+        <MudStack Row="true" Class="justify-end pa-4">
+            <MudButton OnClick="SubmitAsync" Color="Color.Primary" Variant="Variant.Filled" Disabled="!isValid" Class="mr-3">
+                Salvar
+            </MudButton>
+            <MudButton Color="Color.Secondary" Variant="Variant.Outlined" OnClick="Cancel">
+                Cancelar
+            </MudButton>
+        </MudStack>
+    </DialogActions>
+
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+
+    private MudForm? form;
+    private bool isValid;
+
+    [Parameter] 
+    public User Users { get; set; } = new();
+
+    private Guid selectedSector;
+    private List<SectorRequestDTO> _allSectors = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await _sectorServices.GetAllAsync();
+        _allSectors = result?.Items?.ToList() ?? new List<SectorRequestDTO>();
+
+        selectedSector = Users.SectorId;
+    }
+
+    private async Task SubmitAsync()
+    {
+        if (form is null || !form.IsValid)
+            return;
+
+        if (selectedSector == Guid.Empty)
+        {
+            Snackbar.Add("Selecione um setor válido.", Severity.Warning);
+            return;
+        }
+
+        var dto = new UserChangeSectorDTO
+        {
+            UserId = Users.Id,
+            SectorId = selectedSector
+        };
+
+        try
+        {
+            var updatedUser = 
+                await _userService.ChangeUserSectorAsync(dto);
+
+            if (updatedUser != null)
+            {
+                MudDialog.Close(DialogResult.Ok(updatedUser));
+            }
+            else
+            {
+                Snackbar.Add("Usuário não encontrado.", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Erro ao alterar setor: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

@@ -3,9 +3,11 @@ using System.ComponentModel.DataAnnotations;
 
 namespace SIP.UI.Domain.DTOs.Users.Configurations;
 
-public class UserDefaultChangePasswordDTO
+public class AdminResetPasswordDTO
 {
+    [Required]
     public Guid Id { get; set; }
+
     public string Login { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "A senha é obrigatória.")]

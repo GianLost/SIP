@@ -316,7 +316,6 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
     /// <returns>
     /// Retorna:
     /// - <see cref="OkObjectResult"/> com a lista de usuários vinculados ao setor, se existirem.  
-    /// - <see cref="NotFoundObjectResult"/> caso o setor não exista ou não possua usuários associados.  
     /// - <see cref="ObjectResult"/> (500) em caso de erro inesperado.  
     /// </returns>
     /// <exception cref="Exception">Erro inesperado ao consultar os usuários do setor.</exception>
@@ -325,14 +324,13 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
     /// 
     /// Este endpoint retorna todos os usuários pertencentes a um setor específico identificado por seu <c>sectorId</c>.  
     /// É útil para exibir a composição de equipes ou departamentos dentro da organização.
-    /// 
+    ///
+    /// 🔄 <b>Retornos possíveis:</b> 
     /// - Retorna 200 (OK) com a lista de usuários do setor.  
-    /// - Retorna 404 (Not Found) se o setor não existir ou não tiver usuários vinculados.  
     /// - Retorna 500 (Internal Server Error) em caso de falha inesperada durante a operação.  
     /// </remarks>
     [HttpGet("{sectorId}/users")]
     [ProducesResponseType(typeof(List<UserBasicListDTO>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<List<UserBasicListDTO>>> GetUsersBySectorAsync(Guid sectorId)
     {
@@ -351,8 +349,8 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
                     message: SectorLogWarningMessages.NotFoundUsersInSector,
                     args: sectorId);
 
-                return NotFound(
-                    value: new ErrorResponse($"Nenhum usuário encontrado para o setor de ID {sectorId}."));
+                // Retorna lista vazia em vez de erro
+                return Ok(new List<UserBasicListDTO>());
             }
 
             _logger.LogInformation<Sector>(
