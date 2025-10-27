@@ -79,7 +79,7 @@ public class SectorService(HttpClient http)
 
     public async Task<List<UserBasicListDTO>> GetUsersBySectorAsync(Guid sectorId)
     {
-        string uri = $"{BaseEndpoints<Sector>._base}/{sectorId}/users";
+        string uri = $"{BaseEndpoints<Sector>._getById}{sectorId}/users";
         return await _http.GetFromJsonAsync<List<UserBasicListDTO>>(uri) ?? [];
     }
 

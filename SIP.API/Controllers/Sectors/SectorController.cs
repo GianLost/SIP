@@ -349,7 +349,6 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
                     message: SectorLogWarningMessages.NotFoundUsersInSector,
                     args: sectorId);
 
-                // Retorna lista vazia em vez de erro
                 return Ok(new List<UserBasicListDTO>());
             }
 
