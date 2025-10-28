@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SIP.API.Controllers.Errors;
+using SIP.API.Domain.DTOs.Default.Pagination;
 using SIP.API.Domain.DTOs.Protocols;
-using SIP.API.Domain.DTOs.Protocols.Default;
 using SIP.API.Domain.DTOs.Protocols.Pagination;
 using SIP.API.Domain.DTOs.Protocols.Responses;
 using SIP.API.Domain.Entities.Protocols;
@@ -25,7 +25,6 @@ namespace SIP.API.Controllers.Protocols;
 [ApiController]
 public class ProtocolController(IProtocol protocol, ILogger<ProtocolController> logger) : ControllerBase
 {
-    private readonly IProtocol _protocolService = protocol;
     private readonly ILogger<ProtocolController> _logger = logger;
 
     /// <summary>
@@ -57,7 +56,7 @@ public class ProtocolController(IProtocol protocol, ILogger<ProtocolController> 
         try
         {
             Protocol entity =
-                await _protocolService.CreateAsync(protocolDTO);
+                await protocol.CreateAsync(protocolDTO);
 
             _logger.LogInformation<Protocol>(
             message: LogSuccessMessages.Created,
@@ -131,10 +130,9 @@ public class ProtocolController(IProtocol protocol, ILogger<ProtocolController> 
 
         try
         {
-            Protocol? protocol =
-           await _protocolService.GetByIdAsync(id);
+            PagedResultDTO<ProtocolBasicListDTO> finded = await protocol.GetByIdAsync(id);
 
-            if (protocol == null)
+            if (finded == null)
             {
                 _logger.LogWarning<Protocol>(
                     message: LogWarningMessages.NotFound,
@@ -144,7 +142,7 @@ public class ProtocolController(IProtocol protocol, ILogger<ProtocolController> 
                     value: new ErrorResponse($"Nenhum protocolo encontrado para o ID {id}"));
             }
 
-            return Ok(ToResponse(protocol));
+            return Ok(finded);
         }
         catch (Exception ex)
         {
@@ -175,29 +173,29 @@ public class ProtocolController(IProtocol protocol, ILogger<ProtocolController> 
     /// - Retorna 500 (Internal Server Error) em caso de falha inesperada.  
     /// </remarks>
     [HttpGet]
-    [ProducesResponseType(typeof(IEnumerable<ProtocolDefaultDTO>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<PagedResultDTO<ProtocolResponseDTO>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<IEnumerable<ProtocolDefaultDTO>>> GetAllAsync()
+    public async Task<ActionResult<IEnumerable<PagedResultDTO<ProtocolResponseDTO>>>> GetAllAsync()
     {
         _logger.LogInformation<Protocol>(
            message: LogInfoMessages.GetAllRequest);
         
         try
         {
-            ICollection<Protocol> protocols =
-                await _protocolService.GetAllAsync();
+            PagedResultDTO<ProtocolResponseDTO> protocols =
+                await protocol.GetAllAsync();
 
-            if (protocols == null || protocols.Count == 0)
+            if (protocols.Items == null || protocols.Items.Count == 0)
             {
                 _logger.LogWarning<Protocol>(
                     message: LogWarningMessages.Empty);
 
-                return Ok(Enumerable.Empty<ProtocolDefaultDTO>());
+                return Ok(Enumerable.Empty<ProtocolBasicListDTO>());
             }
 
             _logger.LogInformation<Protocol>(
                 message: LogSuccessMessages.FoundAll,
-                args: protocols.Count);
+                args: protocols.Items.Count);
 
             return Ok(protocols);
         }
@@ -235,9 +233,9 @@ public class ProtocolController(IProtocol protocol, ILogger<ProtocolController> 
     /// - Retorna 500 (Internal Server Error) em caso de falha inesperada.  
     /// </remarks>
     [HttpGet("paged")]
-    [ProducesResponseType(typeof(ProtocolPagedResultDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PagedResultDTO<ProtocolBasicListDTO>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<ProtocolPagedResultDTO>> GetPagedAsync(
+    public async Task<ActionResult<PagedResultDTO<ProtocolBasicListDTO>>> GetPagedAsync(
     [FromQuery] int pageNumber = 1,
     [FromQuery] int pageSize = 15,
     [FromQuery] string? sortLabel = null,
@@ -257,8 +255,8 @@ public class ProtocolController(IProtocol protocol, ILogger<ProtocolController> 
 
         try
         {
-            ProtocolPagedResultDTO result =
-                await _protocolService.GetPagedAsync(
+            PagedResultDTO<ProtocolBasicListDTO> result =
+                await protocol.GetPagedAsync(
                     pageNumber,
                     pageSize,
                     sortLabel,
@@ -334,7 +332,7 @@ public class ProtocolController(IProtocol protocol, ILogger<ProtocolController> 
         try
         {
             int total =
-                await _protocolService.GetTotalProtocolsCountAsync(searchString);
+                await protocol.GetTotalCountAsync(searchString);
 
             _logger.LogInformation<Protocol>(
                 message: LogSuccessMessages.Counted,
@@ -395,7 +393,7 @@ public class ProtocolController(IProtocol protocol, ILogger<ProtocolController> 
         try
         {
             Protocol? entity =
-                await _protocolService.UpdateAsync(id, protocolDTO);
+                await protocol.UpdateAsync(id, protocolDTO);
 
             if (entity == null)
             {
@@ -480,7 +478,7 @@ public class ProtocolController(IProtocol protocol, ILogger<ProtocolController> 
         try
         {
             bool deleted =
-                await _protocolService.DeleteAsync(id);
+                await protocol.DeleteAsync(id);
 
             if (!deleted)
             {

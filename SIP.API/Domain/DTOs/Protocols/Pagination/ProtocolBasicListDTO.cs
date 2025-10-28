@@ -2,16 +2,11 @@
 
 namespace SIP.API.Domain.DTOs.Protocols.Pagination;
 
-public class ProtocolListItemDTO
+public class ProtocolBasicListDTO
 {
     public Guid Id { get; set; }
     public ProtocolStatus Status { get; set; }
-    public int Number { get; set; }
-    public string CreatedBy { get; set; } = string.Empty;
+    public string Number { get; set; } = string.Empty;
     public string Subject { get; set; } = string.Empty;
-
     public DateTime CreatedAt { get; set; }
-
-    public Guid CreatedById { get; set; }
-    public bool IsArchived { get; set; } = false;
 }

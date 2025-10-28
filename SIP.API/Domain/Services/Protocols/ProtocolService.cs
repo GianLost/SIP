@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using SIP.API.Domain.DTOs.Default.Pagination;
 using SIP.API.Domain.DTOs.Protocols;
 using SIP.API.Domain.DTOs.Protocols.Pagination;
+using SIP.API.Domain.DTOs.Protocols.Responses;
 using SIP.API.Domain.Entities.Protocols;
 using SIP.API.Domain.Enums;
 using SIP.API.Domain.Helpers.KeysHelper;
@@ -59,7 +61,6 @@ public class ProtocolService(ApplicationContext contex, EntityCacheManager cache
         return $"{prefix}{nextSequence:D5}";
     }
 
-    // MANTENHA ESTE MÉTODO PARA USO EM OUTROS LUGARES, COMO NA CRIAÇÃO DE UM ÚNICO PROTOCOLO
     public async Task<string> GenerateProtocolNumberAsync()
     {
         string? lastNumber = await GetLastProtocolNumberAsync();
@@ -86,32 +87,78 @@ public class ProtocolService(ApplicationContext contex, EntityCacheManager cache
         await _context.Protocols.AddAsync(entity);
         await _context.SaveChangesAsync();
 
-        ClearTotalProtocolsCountCache();
+        ClearTotalCountCache();
 
         return entity;
     }
 
     /// <inheritdoc/>
-    public async Task<Protocol?> GetByIdAsync(Guid id)
+    public async Task<PagedResultDTO<ProtocolBasicListDTO>> GetByIdAsync(Guid id) =>
+        await GetByIdTemplateAsync(id, filtered => filtered
+        .OrderBy(u => u.CreatedAt)
+        .Select(u => new ProtocolBasicListDTO
+        {
+            Id = u.Id,
+            Status = u.Status,
+            Number = u.Number.ToString(),
+            Subject = u.Subject,
+            CreatedAt = u.CreatedAt
+        }));
+
+    /// <inheritdoc/>
+    public async Task<PagedResultDTO<ProtocolResponseDTO>> GetByIdDefaultAsync(Guid id) =>
+        await GetByIdTemplateAsync(id, filtered => filtered
+            .OrderBy(u => u.CreatedAt)
+            .Select(u => new ProtocolResponseDTO
+            {
+                Id = u.Id,
+                Number = u.Number,
+                Subject = u.Subject,
+                Description = u.Description,
+                Status = u.Status,
+                IsArchived = u.IsArchived,
+                CreatedAt = u.CreatedAt,
+                CreatedById = u.CreatedById,
+                DestinationUserId = u.DestinationUserId,
+                OriginSectorId = u.OriginSectorId,
+                DestinationSectorId = u.DestinationSectorId
+            }));
+
+    /// <inheritdoc/>
+    public async Task<PagedResultDTO<ProtocolResponseDTO>> GetAllAsync()
     {
-        return await _context.Protocols
-            .Include(p => p.CreatedBy)
-            .Include(p => p.UpdatedBy)
-            .Include(p => p.DestinationUser)
-            .Include(p => p.OriginSector)
-            .Include(p => p.DestinationSector)
-            .FirstOrDefaultAsync(p => p.Id == id);
+        IQueryable<Protocol> query =
+            _context.Protocols.AsNoTracking();
+
+        string cacheKey = EntityCacheManager.BuildScopedCacheKey(CacheKeys.UsersTotalCount, null, null);
+        int totalCount = await _cache.GetOrSetCountAsync(cacheKey, () => query.CountAsync(), EntityType);
+
+        ICollection<ProtocolResponseDTO> items = await query
+            .OrderBy(u => u.CreatedAt)
+            .Select(u => new ProtocolResponseDTO
+            {
+                Id = u.Id,
+                Number = u.Number,
+                Subject = u.Subject,
+                Description = u.Description,
+                Status = u.Status,
+                IsArchived = u.IsArchived,
+                CreatedAt = u.CreatedAt,
+                CreatedById = u.CreatedById,
+                DestinationUserId = u.DestinationUserId,
+                OriginSectorId = u.OriginSectorId,
+                DestinationSectorId = u.DestinationSectorId
+            }).ToListAsync();
+
+        return new PagedResultDTO<ProtocolResponseDTO>
+        {
+            Items = items,
+            TotalCount = totalCount
+        };
     }
 
     /// <inheritdoc/>
-    public async Task<ICollection<Protocol>> GetAllAsync() =>
-        await _context.Protocols
-            .OrderBy(s => s.CreatedAt)
-            .AsNoTracking()
-            .ToListAsync();
-
-    /// <inheritdoc/>
-    public async Task<ProtocolPagedResultDTO> GetPagedAsync(
+    public async Task<PagedResultDTO<ProtocolBasicListDTO>> GetPagedAsync(
     int pageNumber,
     int pageSize,
     string? sortLabel,
@@ -120,7 +167,8 @@ public class ProtocolService(ApplicationContext contex, EntityCacheManager cache
     {
         pageSize = Math.Min(pageSize, MaxPageSize);
 
-        IQueryable<Protocol> query = _context.Protocols.AsNoTracking();
+        IQueryable<Protocol> query = 
+            _context.Protocols.AsNoTracking();
 
         if (!string.IsNullOrWhiteSpace(searchString))
         {
@@ -133,13 +181,8 @@ public class ProtocolService(ApplicationContext contex, EntityCacheManager cache
                 (s.DestinationSector != null && s.DestinationSector.Acronym.Contains(searchString)));
         }
 
-        int? totalCount = _cache.Get<int?>($"{CacheKeys.ProtocolsTotalCount}{searchString ?? "NoSearch"}");
-
-        if (!totalCount.HasValue)
-        {
-            totalCount = await query.CountAsync();
-            _cache.Set($"{CacheKeys.ProtocolsTotalCount}{searchString ?? "NoSearch"}", totalCount.Value, EntityType);
-        }
+        string cacheKey = EntityCacheManager.BuildScopedCacheKey(CacheKeys.ProtocolsTotalCount, searchString, null);
+        int totalCount = await _cache.GetOrSetCountAsync(cacheKey, () => query.CountAsync(), EntityType);
 
         Expression<Func<Protocol, int>> statusOrderExpr = s =>
             s.Status == ProtocolStatus.Open ? 1 :
@@ -185,40 +228,34 @@ public class ProtocolService(ApplicationContext contex, EntityCacheManager cache
             query = query.OrderBy(statusOrderExpr);
         }
 
-        IQueryable<ProtocolListItemDTO> pagedDataQuery = query
+        IQueryable<ProtocolBasicListDTO> pagedDataQuery = query
         .Skip((pageNumber - 1) * pageSize)
         .Take(pageSize)
-        .Select(p => new ProtocolListItemDTO
+        .Select(p => new ProtocolBasicListDTO
         {
             Id = p.Id,
+            Status = p.Status,
             Number = p.Number.ToString(),
             Subject = p.Subject,
-            Description = p.Description,
-            Status = p.Status,
-            CreatedAt = p.CreatedAt,
-            IsArchived = p.IsArchived,
-            CreatedByFullName = p.CreatedBy!.Name,
-            OriginSectorAcronym = p.OriginSector!.Acronym,
-            DestinationUserFullName = p.DestinationUser!.Name,
-            DestinationSectorAcronym = p.DestinationSector!.Acronym
+            CreatedAt = p.CreatedAt
         });
 
 
-        ICollection<ProtocolListItemDTO> items = 
+        ICollection<ProtocolBasicListDTO> items = 
             await pagedDataQuery.ToListAsync();
 
-        return new ProtocolPagedResultDTO
+        return new PagedResultDTO<ProtocolBasicListDTO>
         {
             Items = items,
-            TotalCount = totalCount.Value
+            TotalCount = totalCount
         };
     }
 
     /// <inheritdoc/>
     public async Task<Protocol?> UpdateAsync(Guid id, ProtocolUpdateDTO dto)
     {
-        Protocol? protocol = 
-            await GetByIdAsync(id);
+        Protocol? protocol =
+            await _context.Protocols.FindAsync(id);
 
         if (protocol == null)
             return null;
@@ -236,7 +273,7 @@ public class ProtocolService(ApplicationContext contex, EntityCacheManager cache
 
         await _context.SaveChangesAsync();
 
-        ClearTotalProtocolsCountCache();
+        ClearTotalCountCache();
 
         return protocol;
     }
@@ -244,24 +281,47 @@ public class ProtocolService(ApplicationContext contex, EntityCacheManager cache
     /// <inheritdoc/>
     public async Task<bool> DeleteAsync(Guid id)
     {
-        Protocol? protocol = await GetByIdAsync(id);
+        // 1) Verifica existência simples antes de executar outras checagens
+        bool exists =
+            await _context.Protocols
+                .AsNoTracking()
+                .AnyAsync(s => s.Id == id);
 
-        if (protocol == null)
+        if (!exists)
             return false;
 
-        if (protocol.IsArchived)
+        // 2) Checa se o protocolo está arquivado
+        bool isArchived =
+            await _context.Protocols
+                .AsNoTracking()
+                .AnyAsync(p => p.IsArchived);
+
+        if (isArchived)
             throw new InvalidOperationException("Não é possível excluir um protocolo que está arquivado.");
 
-        _context.Protocols.Remove(protocol);
-        await _context.SaveChangesAsync();
+        // 4) Efetua a exclusão
+        try
+        {
+            int affected = await _context.Protocols
+                .Where(s => s.Id == id)
+                .ExecuteDeleteAsync();
 
-        ClearTotalProtocolsCountCache();
+            if (affected > 0)
+            {
+                ClearTotalCountCache();
+                return true;
+            }
 
-        return true;
+            return false;
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new InvalidOperationException("Falha ao excluir o protocolo devido a restrições no banco de dados.", ex);
+        }
     }
 
     /// <inheritdoc/>
-    public async Task<int> GetTotalProtocolsCountAsync(string? searchString)
+    public async Task<int> GetTotalCountAsync(string? searchString)
     {
         IQueryable<Protocol> query = _context.Protocols;
 
@@ -272,19 +332,78 @@ public class ProtocolService(ApplicationContext contex, EntityCacheManager cache
                 s.Subject.Contains(searchString));
         }
 
-        string cacheKey = $"{CacheKeys.ProtocolsTotalCount}{searchString ?? "NoSearch"}";
-        int? totalCount = _cache.Get<int?>(cacheKey);
-
-        if (!totalCount.HasValue)
-        {
-            totalCount = await query.CountAsync();
-            _cache.Set(cacheKey, totalCount.Value, EntityType);
-        }
-
-        return totalCount.Value;
+        string cacheKey = EntityCacheManager.BuildScopedCacheKey(CacheKeys.ProtocolsTotalCount, searchString, null);
+        return await _cache.GetOrSetCountAsync(cacheKey, () => query.CountAsync(), EntityType);
     }
 
     /// <inheritdoc/>
-    public void ClearTotalProtocolsCountCache() =>
+    public void ClearTotalCountCache() =>
         _cache.Invalidate(EntityType);
+
+    /// <summary>
+    /// Provides a generic helper for retrieving entities by their unique identifier,
+    /// applying a specified projection and leveraging caching for performance optimization.
+    /// </summary>
+    /// <typeparam name="TListDTO">
+    /// The DTO type representing the projected data structure returned by the query.
+    /// </typeparam>
+    /// <param name="id">
+    /// The unique identifier (<see cref="Guid"/>) of the entity to be retrieved.
+    /// </param>
+    /// <param name="projector">
+    /// A projection function defining how the base <see cref="Protocol"/> query should be
+    /// transformed into the target DTO type (<typeparamref name="TListDTO"/>).
+    /// </param>
+    /// <returns>
+    /// A <see cref="PagedResultDTO{T}"/> containing the projected entity data and
+    /// the total count of matching records.
+    /// </returns>
+    /// <remarks>
+    /// <b>Purpose:</b><br/>
+    /// Centralizes and abstracts the repetitive logic used by multiple <c>GetByIdAsync</c>-style methods
+    /// within the <see cref="ProtocolService"/>, ensuring consistency and reusability.
+    ///
+    /// <b>Behavior:</b><br/>
+    /// • Executes a filtered query over <see cref="Protocol"/> entities using the provided identifier.<br/>
+    /// • Applies the supplied projection expression (<paramref name="projector"/>) to map entities into DTOs.<br/>
+    /// • Computes and caches the total count of matching records using <see cref="EntityCacheManager"/>.<br/>
+    /// • Returns a <see cref="PagedResultDTO{T}"/> that encapsulates both the results and count, maintaining
+    /// uniformity across all service-layer responses.<br/>
+    ///
+    /// <b>Usage Example:</b><br/>
+    /// Used internally by:
+    /// <list type="bullet">
+    /// <item><see cref="GetByIdAsync(Guid)"/></item>
+    /// <item><see cref="GetByIdDefaultAsync(Guid)"/></item>
+    /// </list>
+    ///
+    /// <b>Visibility:</b><br/>
+    /// This method is intentionally <c>private</c> to restrict its scope to the <see cref="ProtocolService"/> implementation,
+    /// promoting encapsulation and domain service cohesion.
+    /// </remarks>
+    private async Task<PagedResultDTO<TListDTO>> GetByIdTemplateAsync<TListDTO>(Guid id, Func<IQueryable<Protocol>, IQueryable<TListDTO>> projector)
+        where TListDTO : class
+    {
+        IQueryable<Protocol> query =
+            _context.Protocols.AsNoTracking();
+
+        IQueryable<Protocol> filtered =
+            query.Where(u => u.Id == id);
+
+        // chave de cache já considera o contexto (id)
+        string cacheKey = EntityCacheManager.BuildScopedCacheKey(CacheKeys.UsersTotalCount, null, id);
+
+        // conta sobre a query filtrada (e cacheia esse count)
+        int totalCount = await _cache.GetOrSetCountAsync(cacheKey, () => filtered.CountAsync(), EntityType);
+
+        // aplica a projeção fornecida e materializa
+        ICollection<TListDTO> items =
+            await projector(filtered).ToListAsync();
+
+        return new PagedResultDTO<TListDTO>
+        {
+            Items = items,
+            TotalCount = totalCount
+        };
+    }
 }

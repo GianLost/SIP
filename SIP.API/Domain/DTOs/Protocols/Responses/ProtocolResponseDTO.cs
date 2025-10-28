@@ -1,8 +1,6 @@
 ﻿using SIP.API.Domain.Enums;
 using SIP.API.Domain.Helpers.StatusHelper;
 using SIP.API.Domain.Models.Protocols;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SIP.API.Domain.DTOs.Protocols.Responses;
 

@@ -5,6 +5,7 @@ using SIP.UI.Domain.Helpers.Endpoints;
 using SIP.UI.Models.Errors;
 using SIP.UI.Models.Protocols;
 using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace SIP.UI.Domain.Services.Protocols;
 
@@ -12,11 +13,25 @@ public class ProtocolService(HttpClient http)
 {
     private readonly HttpClient _http = http;
 
+    public async Task CreateAsync(ProtocolCreateDTO protocol)
+    {
+        HttpResponseMessage request = 
+            await _http.PostAsJsonAsync(
+                requestUri: BaseEndpoints<Protocol>._create, 
+                value: protocol);
+
+        request.EnsureSuccessStatusCode();
+
+        await InvalidateCacheAsync();
+    }
+
     public async Task<ProtocolResponseDTO?> GetByIdAsync(Guid id)
     {
         try
         {
-            return await _http.GetFromJsonAsync<ProtocolResponseDTO>($"{BaseEndpoints<Protocol>._getById}{id}");
+            return 
+                await _http.GetFromJsonAsync<ProtocolResponseDTO>(
+                    requestUri: $"{BaseEndpoints<Protocol>._getById}{id}");
         }
         catch
         {
@@ -31,65 +46,57 @@ public class ProtocolService(HttpClient http)
 
         string url = $"{BaseEndpoints<Protocol>._getPaged}pageNumber={pageNumber}&pageSize={pageSize}&sortLabel={sortLabel}&sortDirection={sortDirection}&searchString={searchString}";
 
-        ProtocolPagedResultDTO? response = await _http.GetFromJsonAsync<ProtocolPagedResultDTO>(url);
+        ProtocolPagedResultDTO? request = 
+            await _http.GetFromJsonAsync<ProtocolPagedResultDTO>(
+                requestUri: url);
 
-        return response ?? new ProtocolPagedResultDTO();
-    }
-
-    public async Task CreateAsync(ProtocolCreateDTO protocol)
-    {
-        HttpResponseMessage response = await _http.PostAsJsonAsync(BaseEndpoints<Protocol>._create, protocol);
-        response.EnsureSuccessStatusCode();
-        await InvalidateCacheAsync();
-        //// Mapeia o objeto Protocol para o DTO de criação
-        //ProtocolCreateDTO protocolCreateDto = new()
-        //{
-        //    Subject = protocol.Subject,
-        //    Description = protocol.Description,
-        //    OriginSectorId = protocol.OriginSectorId,
-        //    CreatedById = protocol.CreatedById,
-        //    DestinationSectorId = protocol.DestinationSectorId,
-        //    DestinationUserId = protocol.DestinationUserId,
-        //    Status = protocol.Status,
-        //    IsArchived = protocol.IsArchived
-        //};
+        return request ?? new ProtocolPagedResultDTO();
     }
 
     public async Task UpdateAsync(ProtocolUpdateDTO protocol)
     {
-        HttpResponseMessage response = await _http.PatchAsJsonAsync($"{BaseEndpoints<Protocol>._update}{protocol.Id}", protocol);
-        response.EnsureSuccessStatusCode();
+        HttpResponseMessage request = 
+            await _http.PatchAsJsonAsync(
+                requestUri: $"{BaseEndpoints<Protocol>._update}{protocol.Id}", 
+                value: protocol);
+
+        request.EnsureSuccessStatusCode();
+
         await InvalidateCacheAsync();
     }
 
     public async Task DeleteAsync(Guid id)
     {
-        HttpResponseMessage response = await _http.DeleteAsync($"{BaseEndpoints<Protocol>._delete}{id}");
+        HttpResponseMessage request = 
+            await _http.DeleteAsync(
+                requestUri: $"{BaseEndpoints<Protocol>._delete}{id}");
 
-        if (!response.IsSuccessStatusCode)
+        if (!request.IsSuccessStatusCode)
         {
-            string errorContent = await response.Content.ReadAsStringAsync();
+            string errorContent = 
+                await request.Content.ReadAsStringAsync();
 
-            if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
+            if (request.StatusCode == System.Net.HttpStatusCode.Conflict)
             {
                 try
                 {
-                    ErrorResponse? errorObject = System.Text.Json.JsonSerializer.Deserialize<ErrorResponse>(errorContent);
+                    ErrorResponse? errorObject = 
+                        JsonSerializer.Deserialize<ErrorResponse>(errorContent);
 
                     throw new InvalidOperationException(errorObject?.Error ?? "Erro desconhecido ao excluir protocolo.");
                 }
-                catch (System.Text.Json.JsonException)
+                catch (JsonException)
                 {
                     throw new InvalidOperationException($"Erro de formato ao excluir protocolo: {errorContent}");
                 }
             }
-            else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            else if (request.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
                 throw new InvalidOperationException("Protocolo não encontrado.");
             }
             else
             {
-                throw new HttpRequestException($"Erro na requisição: {response.StatusCode} - {errorContent}");
+                throw new HttpRequestException($"Erro na requisição: {request.StatusCode} - {errorContent}");
             }
         }
 
@@ -99,7 +106,12 @@ public class ProtocolService(HttpClient http)
     private async Task InvalidateCacheAsync()
     {
         string url = CacheEndpoints._invalidateProtocolCount;
-        HttpResponseMessage response = await _http.PostAsync(url, null);
+
+        HttpResponseMessage response = 
+            await _http.PostAsync(
+                requestUri: url, 
+                content: null);
+
         response.EnsureSuccessStatusCode();
     }
 }

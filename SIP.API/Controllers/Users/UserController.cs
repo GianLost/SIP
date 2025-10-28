@@ -9,11 +9,11 @@ using SIP.API.Domain.DTOs.Users.Responses;
 using SIP.API.Domain.Helpers.Extensions;
 using SIP.API.Domain.DTOs.Default.Pagination;
 using SIP.API.Domain.DTOs.Users.Pagination;
-using SIP.API.Domain.DTOs.Protocols.Default;
 using SIP.API.Domain.Helpers.Messages.LogMessages.Default.Error;
 using SIP.API.Domain.Helpers.Messages.LogMessages.Default.Warning;
 using SIP.API.Domain.Helpers.Messages.LogMessages.Default.Info;
 using SIP.API.Domain.Helpers.Messages.LogMessages.Default.Success;
+using SIP.API.Domain.DTOs.Protocols.Pagination;
 
 namespace SIP.API.Controllers.Users;
 
@@ -341,9 +341,9 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
     /// - <b>500 (Internal Server Error)</b> → Erro inesperado ao processar a solicitação.  
     /// </remarks>
     [HttpGet("{userId:guid}/protocols_created")]
-    [ProducesResponseType(typeof(List<ProtocolDefaultDTO>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(List<ProtocolBasicListDTO>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<List<ProtocolDefaultDTO>>> GetCreatedProtocolsByUserAsync(Guid userId)
+    public async Task<ActionResult<List<ProtocolBasicListDTO>>> GetCreatedProtocolsByUserAsync(Guid userId)
     {
         _logger.LogInformation<User>(
             message: "Solicitação para buscar protocolos criados pelo usuário {UserId}.",
@@ -351,7 +351,7 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
 
         try
         {
-            List<ProtocolDefaultDTO> protocols =
+            List<ProtocolBasicListDTO> protocols =
                 await user.GetCreatedProtocolsByUserAsync(userId);
 
             if (protocols == null || protocols.Count == 0)
@@ -361,7 +361,7 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
                     args: userId);
 
                 // Retorna lista vazia em vez de erro
-                return Ok(new List<ProtocolDefaultDTO>());
+                return Ok(new List<ProtocolBasicListDTO>());
             }
 
             _logger.LogInformation<User>(

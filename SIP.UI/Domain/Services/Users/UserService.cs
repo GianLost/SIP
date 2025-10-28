@@ -7,7 +7,6 @@ using SIP.UI.Domain.DTOs.Users.Request;
 using SIP.UI.Domain.Helpers.Endpoints;
 using SIP.UI.Models.Errors;
 using SIP.UI.Models.Users;
-using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
 

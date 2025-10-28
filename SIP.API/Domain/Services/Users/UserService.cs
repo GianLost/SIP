@@ -10,7 +10,7 @@ using SIP.API.Domain.Interfaces.Hashes.Passwords;
 using SIP.API.Infrastructure.Caching;
 using SIP.API.Infrastructure.Database;
 using System.Linq.Expressions;
-using SIP.API.Domain.DTOs.Protocols.Default;
+using SIP.API.Domain.DTOs.Protocols.Pagination;
 
 namespace SIP.API.Domain.Services.Users;
 
@@ -211,16 +211,16 @@ public class UserService(ICrypt cryp, ApplicationContext context, EntityCacheMan
     }
 
     /// <inheritdoc/>
-    public async Task<List<ProtocolDefaultDTO>> GetCreatedProtocolsByUserAsync(Guid userID)
+    public async Task<List<ProtocolBasicListDTO>> GetCreatedProtocolsByUserAsync(Guid userID)
     {
         return await _context.Protocols
             .AsNoTracking()
             .Where(p => p.CreatedById == userID)
-            .Select(p => new ProtocolDefaultDTO
+            .Select(p => new ProtocolBasicListDTO
             {
                 Id = p.Id,
                 Status = p.Status,
-                Number = p.Number,
+                Number = p.Number.ToString(),
                 Subject = p.Subject,
                 CreatedAt = p.CreatedAt
             })

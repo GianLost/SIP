@@ -1,5 +1,5 @@
 ﻿using SIP.API.Domain.DTOs.Default.Pagination;
-using SIP.API.Domain.DTOs.Protocols.Default;
+using SIP.API.Domain.DTOs.Protocols.Pagination;
 using SIP.API.Domain.DTOs.Users;
 using SIP.API.Domain.DTOs.Users.Pagination;
 using SIP.API.Domain.DTOs.Users.Responses;
@@ -27,7 +27,7 @@ public interface IUser : IEntityManager<User, UserCreateDTO, UserUpdateDTO, User
     /// The unique identifier (<see cref="Guid"/>) of the user whose created protocols will be retrieved.
     /// </param>
     /// <returns>
-    /// A collection of <see cref="ProtocolDefaultDTO"/> objects representing the protocols created by the user.
+    /// A collection of <see cref="ProtocolBasicListDTO"/> objects representing the protocols created by the user.
     /// </returns>
     /// <remarks>
     /// <b>Purpose:</b>  
@@ -36,7 +36,7 @@ public interface IUser : IEntityManager<User, UserCreateDTO, UserUpdateDTO, User
     /// This method is commonly used in administrative dashboards or auditing modules
     /// where protocol provenance needs to be displayed.
     /// </remarks>
-    Task<List<ProtocolDefaultDTO>> GetCreatedProtocolsByUserAsync(Guid userId);
+    Task<List<ProtocolBasicListDTO>> GetCreatedProtocolsByUserAsync(Guid userId);
 
     /// <summary>
     /// Retrieves the detailed information of a specific user.
