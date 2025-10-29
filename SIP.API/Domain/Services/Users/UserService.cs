@@ -222,6 +222,7 @@ public class UserService(ICrypt cryp, ApplicationContext context, EntityCacheMan
                 Status = p.Status,
                 Number = p.Number.ToString(),
                 Subject = p.Subject,
+                CreatedBy = p.CreatedBy!.Name,
                 CreatedAt = p.CreatedAt
             })
             .ToListAsync();

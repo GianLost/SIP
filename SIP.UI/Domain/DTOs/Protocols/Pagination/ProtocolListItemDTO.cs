@@ -2,7 +2,7 @@
 
 namespace SIP.UI.Domain.DTOs.Protocols.Pagination;
 
-public class ProtocolListItemDto
+public class ProtocolListItemDTO
 {
     public Guid Id { get; set; }
     public ProtocolStatus Status { get; set; }
