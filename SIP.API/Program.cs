@@ -146,12 +146,12 @@ builder.Services.AddSwaggerGen(s =>
     s.IncludeXmlComments(xmlPath);
 });
 
-// Configuração do DbContext com MySQL passando string de conexão através do arquivo appsettings.Development.json
+// Configuração do DbContext com MySQL
 builder.Services.AddDbContext<ApplicationContext>(options =>
 {
     options.UseMySql(
-        builder.Configuration.GetConnectionString("MySql"),
-            ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("MySql")
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+            ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection")
     ));
 });
 
