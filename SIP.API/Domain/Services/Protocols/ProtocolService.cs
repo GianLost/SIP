@@ -284,25 +284,21 @@ public class ProtocolService(ApplicationContext contex, EntityCacheManager cache
     /// <inheritdoc/>
     public async Task<bool> DeleteAsync(Guid id)
     {
-        // 1) Verifica existência simples antes de executar outras checagens
-        bool exists =
-            await _context.Protocols
-                .AsNoTracking()
-                .AnyAsync(s => s.Id == id);
+        // 1) Verifica se o protocolo existe e se está arquivado
+        var protocol = await _context.Protocols
+            .AsNoTracking()
+            .Where(p => p.Id == id)
+            .Select(p => new { p.Id, p.IsArchived })
+            .FirstOrDefaultAsync();
 
-        if (!exists)
+        if (protocol is null)
             return false;
 
-        // 2) Checa se o protocolo está arquivado
-        bool isArchived =
-            await _context.Protocols
-                .AsNoTracking()
-                .AnyAsync(p => p.IsArchived);
-
-        if (isArchived)
+        // 2) Impede exclusão de protocolo arquivado
+        if (protocol.IsArchived)
             throw new InvalidOperationException("Não é possível excluir um protocolo que está arquivado.");
 
-        // 4) Efetua a exclusão
+        // 3) Efetua a exclusão
         try
         {
             int affected = await _context.Protocols
