@@ -101,6 +101,7 @@ public class ProtocolService(ApplicationContext contex, EntityCacheManager cache
             Id = u.Id,
             Status = u.Status,
             Number = u.Number.ToString(),
+            CreatedBy = u.CreatedBy!.Login,
             Subject = u.Subject,
             CreatedAt = u.CreatedAt
         }));
@@ -236,7 +237,9 @@ public class ProtocolService(ApplicationContext contex, EntityCacheManager cache
             Id = p.Id,
             Status = p.Status,
             Number = p.Number.ToString(),
+            CreatedBy = p.CreatedBy!.Name,
             Subject = p.Subject,
+            IsArchived = p.IsArchived,
             CreatedAt = p.CreatedAt
         });
 

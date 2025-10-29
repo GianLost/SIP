@@ -5,11 +5,11 @@
 @using SIP.UI.Components.Dialogs.Users
 @using SIP.UI.Components.Dialogs.Users.Configurations
 @using SIP.UI.Domain.DTOs.Default.Pagination
+@using SIP.UI.Domain.DTOs.Protocols.Pagination
 @using SIP.UI.Domain.DTOs.Users
 @using SIP.UI.Domain.DTOs.Users.Configurations
 @using SIP.UI.Domain.DTOs.Users.Pagination
 @using SIP.UI.Domain.DTOs.Users.Request
-@using SIP.UI.Domain.DTOs.Protocols.Default;
 @using SIP.UI.Domain.Enums
 @using SIP.UI.Domain.Helpers.DataFormatting.DateTimes
 @using SIP.UI.Domain.Helpers.DataFormatting.Strings
@@ -169,7 +169,7 @@
             <ChildRowContent Context="userDetail">
                 @if (userDetail.ShowProtocols)
                 {
-                    var protocols = userProtocols.TryGetValue(userDetail.Id, out var u) ? u : new List<ProtocolDefaultDTO>();
+                    var protocols = userProtocols.TryGetValue(userDetail.Id, out var u) ? u : new List<ProtocolBasicListDTO>();
                     <MudTr>
                         <td colspan="8">
                             @* <-- colspan deve ser igual ao número total de colunas (7 + 1 do botão) *@
@@ -183,7 +183,7 @@
                                     </CardHeaderContent>
                                 </MudCardHeader>
                                 <MudCardContent Class="pa-0">
-                                    <MudTable T="ProtocolDefaultDTO" Items="protocols" Bordered="false" Hover="true" Dense="true" Elevation="0">
+                                    <MudTable T="ProtocolBasicListDTO" Items="protocols" Bordered="false" Hover="true" Dense="true" Elevation="0">
                                         <HeaderContent>
                                             <MudTh Style="font-weight: bold;">Status</MudTh>
                                             <MudTh Style="font-weight: bold;">Número</MudTh>
@@ -233,7 +233,7 @@
     private HashSet<UserListItemDTO> _selectedUsers = new();
 
     // Dicionário para armazenar usuários carregados por setor
-    private Dictionary<Guid, List<ProtocolDefaultDTO>> userProtocols = new();
+    private Dictionary<Guid, List<ProtocolBasicListDTO>> userProtocols = new();
 
     private RenderFragment GetStatusChip(ProtocolStatus status)
     {

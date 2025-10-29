@@ -3,6 +3,7 @@
 @using MudBlazor
 @using MudBlazor.Utilities
 @using SIP.UI.Components.Dialogs.Protocols
+@using SIP.UI.Domain.DTOs.Default.Pagination
 @using SIP.UI.Domain.DTOs.Protocols
 @using SIP.UI.Domain.DTOs.Protocols.Pagination
 @using SIP.UI.Domain.DTOs.Protocols.Response
@@ -29,7 +30,7 @@
 
     <MudPaper Class="pa-4 ma-2" Elevation="1">
 
-        <MudTable T="ProtocolListItemDto" ServerData="LoadServerData" Dense="true" Hover="true" Bordered="false" @ref="table" RowsPerPage="pageSize" LoadingProgressColor="Color.Primary" Loading="@isLoading" Elevation="0" MultiSelection="true" @bind-SelectedItems="_selectedProtocols">
+        <MudTable T="ProtocolBasicListDTO" ServerData="LoadServerData" Dense="true" Hover="true" Bordered="false" @ref="table" RowsPerPage="pageSize" LoadingProgressColor="Color.Primary" Loading="@isLoading" Elevation="0" MultiSelection="true" @bind-SelectedItems="_selectedProtocols">
 
             <ToolBarContent>
 
@@ -101,7 +102,7 @@
                     <MudTableSortLabel SortLabel="number" SortBy="new Func<ProtocolListItemDto, object>(p => p.Number!)">Número</MudTableSortLabel>
                 </MudTh>
                 <MudTh Class="mud-table-header-custom">
-                    <MudTableSortLabel SortLabel="CreatedBy" SortBy="new Func<ProtocolListItemDto, object>(p => p.CreatedByFullName!)">Criado Por</MudTableSortLabel>
+                    <MudTableSortLabel SortLabel="CreatedBy" SortBy="new Func<ProtocolListItemDto, object>(p => p.CreatedBy!)">Criado Por</MudTableSortLabel>
                 </MudTh>
                 <MudTh Class="mud-table-header-custom">Assunto</MudTh>
                 <MudTh Class="mud-table-header-custom">Data de Criacao</MudTh>
@@ -137,8 +138,8 @@
                 </MudTd>
 
                 <MudTd Class="mud-table-cell-truncate" Style="max-width: 200px;" DataLabel="Criado Por">
-                    <MudTooltip Text="@protocol.CreatedByFullName.ToUppercase()">
-                        <span>@FormatName(protocol.CreatedByFullName.ToUppercase())</span>
+                    <MudTooltip Text="@protocol.CreatedBy.ToUppercase()">
+                        <span>@FormatName(protocol.CreatedBy.ToUppercase())</span>
                     </MudTooltip>
                 </MudTd>
 
@@ -178,13 +179,13 @@
 </MudContainer>
 
 @code {
-    private MudTable<ProtocolListItemDto>? table;
+    private MudTable<ProtocolBasicListDTO>? table;
     private bool isLoading = false;
     private int pageSize = 15;
     private string searchString = string.Empty;
     private bool _isModalOpen = false;
 
-    private HashSet<ProtocolListItemDto> _selectedProtocols = new();
+    private HashSet<ProtocolBasicListDTO> _selectedProtocols = new();
 
     private RenderFragment GetStatusChip(ProtocolStatus status)
     {
@@ -265,7 +266,7 @@
     protected override void OnInitialized() =>
         _selectedProtocols.Clear();
 
-    private async Task<TableData<ProtocolListItemDto>> LoadServerData(TableState state, CancellationToken cancellationToken)
+    private async Task<TableData<ProtocolBasicListDTO>> LoadServerData(TableState state, CancellationToken cancellationToken)
     {
         isLoading = true;
         StateHasChanged();
@@ -280,23 +281,23 @@
 
         try
         {
-            ProtocolPagedResultDTO protocols = await _protocolService.GetPagedAsync(
+            PagedResultDTO<ProtocolBasicListDTO>? protocols = await _protocolService.GetPagedAsync(
                 state.Page + 1,
                 state.PageSize,
                 sortLabel,
                 GetSortDirectionString(state.SortDirection),
                 searchString);
 
-            return new TableData<ProtocolListItemDto>
+            return new TableData<ProtocolBasicListDTO>
             {
-                Items = protocols.Items,
+                Items = protocols!.Items,
                 TotalItems = protocols.TotalCount
             };
         }
         catch (Exception ex)
         {
             Snackbar.Add($"Erro ao carregar dados: {ex.Message}", Severity.Error);
-            return new TableData<ProtocolListItemDto> { Items = [], TotalItems = 0 };
+            return new TableData<ProtocolBasicListDTO> { Items = [], TotalItems = 0 };
         }
         finally
         {
@@ -359,7 +360,7 @@
         }
     }
 
-    private async Task ShowEditDialog(ProtocolResponseDTO protocol)
+    private async Task ShowEditDialog(ProtocolRequestDTO protocol)
     {
         _isModalOpen = true;
 
@@ -370,13 +371,8 @@
             Id = protocol.Id,
             Number = Convert.ToInt32(protocol.Number),
             Subject = protocol.Subject!,
-            Description = protocol.Description!,
             Status = protocol.Status,
-            CreatedById = protocol.CreatedById,
-            OriginSectorId = protocol.OriginSectorId,
-            DestinationUserId = protocol.DestinationUserId,
-            DestinationSectorId = protocol.DestinationSectorId,
-            IsArchived = protocol.IsArchived
+            CreatedById = protocol.CreatedById
         });
         parameters.Add(x => x.IsEdit, true);
 
@@ -417,7 +413,7 @@
         var selectedProtocolDto = _selectedProtocols.First();
         isLoading = true;
 
-        ProtocolResponseDTO? fullProtocol = await _protocolService.GetByIdAsync(selectedProtocolDto.Id);
+        ProtocolRequestDTO? fullProtocol = await _protocolService.GetByIdAsync(selectedProtocolDto.Id);
 
         isLoading = false;
 
@@ -431,7 +427,7 @@
         }
     }
 
-    private async Task ShowDeleteDialog(ProtocolListItemDto protocolDto)
+    private async Task ShowDeleteDialog(ProtocolBasicListDTO protocolDto)
     {
         _isModalOpen = true;
         var parameters = new DialogParameters<ProtocolDeleteDialog>();

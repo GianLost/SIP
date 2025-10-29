@@ -1,4 +1,5 @@
-﻿using SIP.UI.Domain.DTOs.Protocols;
+﻿using SIP.UI.Domain.DTOs.Default.Pagination;
+using SIP.UI.Domain.DTOs.Protocols;
 using SIP.UI.Domain.DTOs.Protocols.Pagination;
 using SIP.UI.Domain.DTOs.Protocols.Response;
 using SIP.UI.Domain.Helpers.Endpoints;
@@ -25,12 +26,12 @@ public class ProtocolService(HttpClient http)
         await InvalidateCacheAsync();
     }
 
-    public async Task<ProtocolResponseDTO?> GetByIdAsync(Guid id)
+    public async Task<ProtocolRequestDTO?> GetByIdAsync(Guid id)
     {
         try
         {
             return 
-                await _http.GetFromJsonAsync<ProtocolResponseDTO>(
+                await _http.GetFromJsonAsync<ProtocolRequestDTO>(
                     requestUri: $"{BaseEndpoints<Protocol>._getById}{id}");
         }
         catch
@@ -40,17 +41,17 @@ public class ProtocolService(HttpClient http)
 
     }
 
-    public async Task<ProtocolPagedResultDTO> GetPagedAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection, string? searchString)
+    public async Task<PagedResultDTO<ProtocolBasicListDTO>?> GetPagedAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection, string? searchString)
     {
         pageSize = Math.Min(pageSize, 100);
 
         string url = $"{BaseEndpoints<Protocol>._getPaged}pageNumber={pageNumber}&pageSize={pageSize}&sortLabel={sortLabel}&sortDirection={sortDirection}&searchString={searchString}";
 
-        ProtocolPagedResultDTO? request = 
-            await _http.GetFromJsonAsync<ProtocolPagedResultDTO>(
+        var request = 
+            await _http.GetFromJsonAsync<PagedResultDTO<ProtocolBasicListDTO>>(
                 requestUri: url);
 
-        return request ?? new ProtocolPagedResultDTO();
+        return request ?? new PagedResultDTO<ProtocolBasicListDTO>();
     }
 
     public async Task UpdateAsync(ProtocolUpdateDTO protocol)

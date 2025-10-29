@@ -3,7 +3,7 @@ using SIP.UI.Models.Protocols;
 
 namespace SIP.UI.Domain.DTOs.Protocols.Response;
 
-public class ProtocolResponseDTO : BaseProtocol
+public class ProtocolRequestDTO : BaseProtocol
 {
     public Guid Id { get; set; }
 
@@ -15,7 +15,7 @@ public class ProtocolResponseDTO : BaseProtocol
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-    public override Guid CreatedById { get; set; }
+    public override Guid? CreatedById { get; set; }
     public override Guid DestinationUserId { get; set; }
     public override Guid OriginSectorId { get; set; }
     public override Guid DestinationSectorId { get; set; }

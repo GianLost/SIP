@@ -151,6 +151,7 @@
                                             <MudTh Style="font-weight: bold;">MASP</MudTh>
                                             <MudTh Style="font-weight: bold;">Nome</MudTh>
                                             <MudTh Style="font-weight: bold;">Login</MudTh>
+                                            <MudTh Style="font-weight: bold;">Secretaria</MudTh>
                                         </HeaderContent>
 
                                         <RowTemplate Context="user">
@@ -165,6 +166,7 @@
                                             <MudTd DataLabel="MASP">@user.Masp</MudTd>
                                             <MudTd DataLabel="Nome">@user.Name.ToUppercase()</MudTd>
                                             <MudTd DataLabel="Login">@user.Login</MudTd>
+                                            <MudTd DataLabel="Login">@user.Sector</MudTd>
                                         </RowTemplate>
 
                                         <NoRecordsContent>

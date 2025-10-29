@@ -23,7 +23,7 @@ public abstract class BaseProtocol
     public virtual bool IsArchived { get; set; } = false;
 
     [Required(ErrorMessage = "Obrigatório informar quem está gerando o protocolo.")]
-    public virtual Guid CreatedById { get; set; }
+    public virtual Guid? CreatedById { get; set; }
 
     [Required(ErrorMessage = "Obrigatório informar o setor de origem do protocolo.")]
     public virtual Guid OriginSectorId { get; set; }
