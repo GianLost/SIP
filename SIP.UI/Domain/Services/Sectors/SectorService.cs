@@ -64,6 +64,25 @@ public class SectorService(HttpClient http)
         }
     }
 
+    public async Task<PagedResultDTO<SectorBasicListDTO>?> GetSectorsBySelection(int pageNumber = 1, int pageSize = 10, string? searchString = null)
+    {
+        try
+        {
+            string uri = $"{BaseEndpoints<Sector>._getToSelection}pageNumber{pageNumber}&pageSize={pageSize}&searchString={searchString}";
+
+            var request = 
+                await _http.GetFromJsonAsync<PagedResultDTO<SectorBasicListDTO>>(
+                    requestUri: uri);
+
+            return request;
+        }
+        catch (HttpRequestException ex)
+        {
+            Console.WriteLine($"Falha ao carregar a lista de setores para seleção: {ex.Message}");
+            return null;
+        }
+    }
+
     public async Task<PagedResultDTO<SectorListItemDTO>?> GetPagedAsync(int pageNumber, int pageSize, string? sortLabel, string? sortDirection, string? searchString)
     {
         pageSize = Math.Min(pageSize, 100);

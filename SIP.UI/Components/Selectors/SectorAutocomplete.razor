@@ -1,0 +1,113 @@
+﻿@using SIP.UI.Domain.DTOs.Sectors.Pagination
+@using SIP.UI.Domain.Services.Sectors
+@using MudBlazor
+
+<MudAutocomplete T="SectorBasicListDTO"
+                 @bind-Value="Value"
+                 Label="@Label"
+                 SearchFunc="LoadSectorsLazy"
+                 ToStringFunc="@(s => s == null ? null : $"{s.Name} ({s.Acronym})")"
+                 Variant="Variant.Outlined"
+                 Dense="true"
+                 Margin="Margin.Normal"
+                 Clearable="true"
+                 CoerceText="false"
+                 ResetValueOnEmptyText="false"
+                 Placeholder="@Placeholder"
+                 DebounceInterval="400"
+                 OpenIcon="@Icons.Material.Filled.ArrowDropDown"
+                 Adornment="Adornment.End"
+                 Required="@Required"
+                 RequiredError="@RequiredError" />
+                 
+@code {
+    [Inject] private SectorService SectorService { get; set; } = default!;
+
+    [Parameter] public SectorBasicListDTO? Value { get; set; }
+    [Parameter] public EventCallback<SectorBasicListDTO?> ValueChanged { get; set; }
+
+    [Parameter] public string Label { get; set; } = "Setor";
+    [Parameter] public string Placeholder { get; set; } = "Digite ou selecione um setor...";
+    [Parameter] public bool Required { get; set; } = false;
+    [Parameter] public string RequiredError { get; set; } = "Selecione um setor!";
+
+    private List<SectorBasicListDTO> sectors = new();
+    private string? lastSearch;
+    private int currentPage = 1;
+    private int totalCount = 0;
+    private bool hasMoreResults = false;
+    private bool isLoading = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadInitialSectorsAsync();
+    }
+
+    private async Task LoadInitialSectorsAsync()
+    {
+        isLoading = true;
+
+        try
+        {
+            currentPage = 1;
+            var result = await SectorService.GetSectorsBySelection(currentPage, 10, "");
+
+            if (result?.Items != null)
+            {
+                sectors.Clear();
+                sectors.AddRange(result.Items);
+                totalCount = result.TotalCount;
+                hasMoreResults = sectors.Count < totalCount;
+                currentPage++;
+            }
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task<IEnumerable<SectorBasicListDTO>> LoadSectorsLazy(string value, CancellationToken cancellationToken)
+    {
+        // Caso o usuário apenas abra o seletor, retorna os já carregados inicialmente
+        if (string.IsNullOrWhiteSpace(value))
+            return sectors;
+
+        bool newSearch = value != lastSearch;
+
+        if (newSearch)
+        {
+            currentPage = 1;
+            sectors.Clear();
+            lastSearch = value;
+        }
+
+        if (isLoading || (!hasMoreResults && !newSearch))
+            return sectors;
+
+        isLoading = true;
+
+        try
+        {
+            var result = await SectorService.GetSectorsBySelection(currentPage, 10, value);
+
+            if (result?.Items?.Any() == true)
+            {
+                sectors.AddRange(result.Items.Where(i => !sectors.Any(s => s.Id == i.Id)));
+                totalCount = result.TotalCount;
+                hasMoreResults = sectors.Count < totalCount;
+                currentPage++;
+            }
+            else
+            {
+                hasMoreResults = false;
+            }
+        }
+        finally
+        {
+            isLoading = false;
+        }
+
+        return sectors;
+    }
+}

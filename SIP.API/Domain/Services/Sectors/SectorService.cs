@@ -94,6 +94,38 @@ public class SectorService(ApplicationContext context, EntityCacheManager cache)
 
     }
 
+    public async Task<PagedResultDTO<SectorBasicListDTO>> GetSectorsToSelection(int pageNumber = 1, int pageSize = 10, string? searchString = null)
+    { 
+        IQueryable<Sector> query = 
+            _context.Sectors.AsNoTracking();
+
+        if(!string.IsNullOrEmpty(searchString))
+        {
+            query = query.Where(s => s.Acronym.Contains(searchString) || s.Name.Contains(searchString));
+        }
+
+        string cacheKey = EntityCacheManager.BuildScopedCacheKey(CacheKeys.SectorsTotalCount, searchString, null);
+        int totalCount = await _cache.GetOrSetCountAsync(cacheKey, () => query.CountAsync(), EntityType);
+        
+        var items = await query
+            .OrderBy(s => s.Name)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .Select(s => new SectorBasicListDTO
+            {
+                Id = s.Id,
+                Acronym = s.Acronym,
+                Name = s.Name
+            })
+            .ToListAsync();
+
+        return new PagedResultDTO<SectorBasicListDTO>
+        {
+            Items = items,
+            TotalCount = totalCount
+        };
+    }
+
     /// <inheritdoc/>
     public async Task<PagedResultDTO<SectorListItemDTO>> GetPagedAsync(
     int pageNumber,

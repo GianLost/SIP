@@ -4,6 +4,7 @@ using SIP.API.Domain.DTOs.Sectors;
 using SIP.API.Domain.DTOs.Sectors.Pagination;
 using SIP.API.Domain.DTOs.Sectors.Responses;
 using SIP.API.Domain.DTOs.Users.Pagination;
+using SIP.API.Domain.DTOs.Default.Pagination;
 
 namespace SIP.API.Domain.Interfaces.Sectors;
 
@@ -40,4 +41,6 @@ public interface ISector : IEntityManager<Sector, SectorCreateDTO, SectorUpdateD
     /// Thrown when an unexpected error occurs while retrieving the users of the sector.
     /// </exception>
     Task<List<UserBasicListDTO>> GetUsersBySectorAsync(Guid sectorId);
+
+    Task<PagedResultDTO<SectorBasicListDTO>> GetSectorsToSelection(int pageNumber = 1, int pageSize = 10, string? searchString = null);
 }

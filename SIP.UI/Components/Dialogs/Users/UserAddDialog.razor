@@ -1,5 +1,7 @@
 ﻿@using MudBlazor
+@using SIP.UI.Components.Selectors
 @using SIP.UI.Domain.DTOs.Default.Pagination
+@using SIP.UI.Domain.DTOs.Sectors.Pagination
 @using SIP.UI.Domain.DTOs.Sectors.Request
 @using SIP.UI.Domain.DTOs.Users.Request
 @using SIP.UI.Domain.DTOs.Users
@@ -69,6 +71,7 @@
                                   Immediate="true"
                                   OnBlur="OnPasswordChanged"/>
                 </MudItem>
+
                 <MudItem xs="12" sm="6">
                     <MudTextField T="string"
                                   @ref="confirmPasswordField"
@@ -90,21 +93,7 @@
 
                 @* Caixa de seleção para selecionar o setor do usuário *@
                 <MudItem xs="12" sm="6">
-                    <MudAutocomplete 
-                            T="SectorRequestDTO" 
-                            Label="Setor"
-                            @bind-Value="selectedSector" 
-                            SearchFunc="SearchSectors"
-                            For="() => selectedSector"
-                            Required="true" 
-                            Dense="true" 
-                            RequiredError="Selecione um setor!" 
-                            Variant="Variant.Outlined" 
-                            Margin="Margin.Normal"
-                            ToStringFunc="@(s => s == null ? null : $"{s.Name} ({s.Acronym})")"
-                            Clearable="true"
-                            Placeholder="Selecione o setor..."
-                            MaxItems="int.MaxValue" />
+                    <SectorAutocomplete @bind-Value="selectedSector" Required="true" Label="Setor" />
                 </MudItem>
 
                 @* Caixa de seleção para selecionar o nível de acesso do usuário *@
@@ -146,57 +135,19 @@
     [CascadingParameter]
     private IMudDialogInstance MudDialog { get; set; } = default!;
 
-    /// <summary>
-    /// O objeto de usuário que será adicionado ou editado.
-    /// Este parâmetro é passado pelo componente pai.
-    /// </summary>
     [Parameter]
     public UserCreateDTO User { get; set; } = new();
 
-    /// <summary>
-    /// Lista completa de setores disponíveis, usada para popular o dropdown de seleção de setor.
-    /// É carregada pelo serviço de setores e passada pelo componente pai.
-    /// </summary>
-    [Parameter]
-    public ICollection<SectorRequestDTO>? _allSectors { get; set; }
-
-    /// <summary>
-    /// Referência para o formulário do MudBlazor.
-    /// Permite disparar manualmente a validação de todos os campos.
-    /// </summary>
+    private SectorBasicListDTO? selectedSector;
     private MudForm? form;
 
-    /// <summary>
-    /// Flag que indica se o formulário é válido.
-    /// Controla a habilitação do botão "Salvar".
-    /// </summary>
-    private bool isValid;
-
-    /// <summary>
-    /// Armazena o setor selecionado pelo usuário no formulário.
-    /// </summary>
-    private SectorRequestDTO? selectedSector;
-
-    /// <summary>
-    /// Flag que controla a visibilidade do campo "Nova Senha".
-    /// Quando true, a senha é exibida em texto; quando false, é exibida como senha (oculta).
-    /// </summary>
+    private string? maspString;
     private bool showNewPassword;
-
-    /// <summary>
-    /// Flag que controla a visibilidade do campo "Confirmar Senha".
-    /// Quando true, a confirmação é exibida em texto; quando false, é exibida como senha (oculta).
-    /// </summary>
     private bool showConfirmPassword;
-
-    /// <summary>
-    /// Valor digitado no campo "Confirmar Senha".
-    /// </summary>
     private string ConfirmPassword { get; set; } = string.Empty;
-
     private MudTextField<string>? confirmPasswordField;
 
-    private string? maspString;
+    private bool isValid;
 
     private void SyncMaspToModel()
     {
@@ -205,10 +156,6 @@
         else
             User.Masp = 0; // ou deixar sem alterar
     }
-
-    // Evento disparado quando o usuário muda a senha principal
-    private async Task OnPasswordChanged() =>
-        await confirmPasswordField?.Validate()!;
 
     /// <summary>
     /// Valida o campo "Nova Senha".
@@ -236,6 +183,9 @@
         return null;
     }
 
+    private async Task OnPasswordChanged() =>
+        await confirmPasswordField?.Validate()!;
+
     /// <summary>
     /// Alterna a visibilidade do campo "Nova Senha".
     /// </summary>
@@ -247,18 +197,6 @@
     /// </summary>
     private void ToggleConfirmPasswordVisibility() =>
         showConfirmPassword = !showConfirmPassword;
-
-    /// <summary>
-    /// Função de pesquisa para o autocomplete de setores.
-    /// Filtra a lista de setores com base no valor de pesquisa do usuário.
-    /// </summary>
-    private Task<IEnumerable<SectorRequestDTO>> SearchSectors(string value, CancellationToken cancellationToken)
-    {
-        if (string.IsNullOrEmpty(value))
-            return Task.FromResult<IEnumerable<SectorRequestDTO>>(_allSectors!);
-
-        return Task.FromResult(_allSectors!.Where(s => s.Name.Contains(value, StringComparison.OrdinalIgnoreCase) || s.Acronym.Contains(value, StringComparison.OrdinalIgnoreCase)));
-    }
 
     /// <summary>
     /// Retorna o nome de exibição amigável para cada função (RoleEnum).
@@ -280,21 +218,8 @@
     /// Executado ao inicializar o componente.
     /// Responsável por carregar os setores e preparar o formulário.
     /// </summary>
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        PagedResultDTO<SectorRequestDTO>? result = await _sectorServices.GetAllAsync();
-
-        if (_sectorServices is not null)
-            _allSectors = result?.Items?.ToList() ?? new List<SectorRequestDTO>();
-
-        if (_allSectors != null && !_allSectors.Any())
-        {
-            Snackbar.Add(
-                "Não foi possível carregar a lista de setores. O cadastro de usuários pode não funcionar corretamente.",
-                severity: Severity.Warning
-            );
-        }
-
         maspString = User.Masp == 0 ? string.Empty : User.Masp.ToString();
 
         StateHasChanged();

@@ -186,7 +186,7 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
 
         try
         {
-            PagedResultDTO<SectorResponseDTO> result = 
+            PagedResultDTO<SectorResponseDTO> result =
                 await sector.GetAllAsync();
 
             if (result.Items == null || result.Items.Count == 0)
@@ -210,8 +210,77 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
                 message: LogErrorMessages.GetAllError);
 
             return StatusCode(
-                statusCode: StatusCodes.Status500InternalServerError, 
+                statusCode: StatusCodes.Status500InternalServerError,
                 value: new ErrorResponse("Ocorreu um erro inesperado ao buscar todos os setores."));
+        }
+    }
+
+    /// <summary>
+    /// Obtém uma lista reduzida de setores para popular caixas de seleção (selects) no front-end.
+    /// </summary>
+    /// <param name="pageNumber">
+    /// Número da página (inicia em 1)
+    /// </param>
+    /// <param name="pageSize">
+    /// <param name="searchString">
+    /// Texto opcional utilizado para filtrar os setores pelo nome ou sigla.
+    /// </param>
+    /// Quantidade de registros por página.
+    /// </param>
+    /// <returns>
+    /// Retorna um <see cref="OkObjectResult"/> contendo um objeto do tipo <see cref="PagedResultDTO{SectorBasicListDTO}"/> 
+    /// com até 20 setores correspondentes ao filtro informado.
+    /// </returns>
+    /// <response code="200">
+    /// Retorna 200 (OK) com a lista de setores e o total de registros encontrados.
+    /// Se nenhum registro for encontrado, a lista é retornada vazia.
+    /// </response>
+    /// <response code="500">
+    /// Retorna 500 (Internal Server Error) em caso de erro inesperado durante a consulta.
+    /// </response>
+    /// <remarks>
+    /// Ação: <b>Listar setores para seleção</b>.  
+    /// - Utilizado para popular campos de seleção no front-end.  
+    /// - Limita automaticamente o resultado a 20 registros.  
+    /// - Aceita filtro opcional por nome ou sigla.  
+    /// - Retorna o total de registros para paginação e exibição.
+    /// </remarks>
+    [HttpGet("selection")]
+    [ProducesResponseType(typeof(IEnumerable<PagedResultDTO<SectorBasicListDTO>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<IEnumerable<PagedResultDTO<SectorBasicListDTO>>>> GetSectorsToSelection(int pageNumber = 1, int pageSize = 10, string? searchString = null)
+    {
+        _logger.LogInformation<Sector>(
+            message: LogInfoMessages.GetAllRequest);
+
+        try
+        {
+            PagedResultDTO<SectorBasicListDTO> result =
+                await sector.GetSectorsToSelection(pageNumber, pageSize, searchString);
+
+            if (result.Items == null || result.Items.Count == 0)
+            {
+                _logger.LogWarning<Sector>(
+                    message: LogWarningMessages.Empty);
+
+                return Ok(Enumerable.Empty<SectorResponseDTO>());
+            }
+
+            _logger.LogInformation<Sector>(
+                message: LogSuccessMessages.FoundAll,
+                args: result.Items.Count);
+
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError<Sector>(
+                exception: ex,
+                message: LogErrorMessages.GetAllError);
+
+            return StatusCode(
+                statusCode: StatusCodes.Status500InternalServerError,
+                value: new ErrorResponse("Ocorreu um erro inesperado ao buscar os setores para seleção."));
         }
     }
 
