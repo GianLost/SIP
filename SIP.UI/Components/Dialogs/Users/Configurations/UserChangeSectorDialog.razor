@@ -1,4 +1,6 @@
-﻿@using SIP.UI.Domain.DTOs.Users.Configurations
+﻿@using SIP.UI.Domain.DTOs.Sectors.Pagination
+@using SIP.UI.Domain.DTOs.Users.Configurations
+@using SIP.UI.Components.Selectors
 @using SIP.UI.Domain.DTOs.Sectors.Request
 @using SIP.UI.Domain.Services.Sectors
 @using SIP.UI.Domain.Services.Users
@@ -20,21 +22,7 @@
         <MudForm @ref="form" @bind-IsValid="isValid">
 
             <MudItem>
-                <MudAutocomplete T="SectorRequestDTO"
-                                 Label="Setor"
-                                 @bind-Value="selectedSector"
-                                 SearchFunc="SearchSectors"
-                                 For="() => selectedSector"
-                                 Required="true"
-                                 Dense="true"
-                                 RequiredError="Selecione um setor!"
-                                 Variant="Variant.Outlined"
-                                 Margin="Margin.Normal"
-                                 Class="mb-3"
-                                 ToStringFunc="@(s => s == null ? string.Empty : $"{s.Acronym} - {s.Name}")"
-                                 Clearable="true"
-                                 Placeholder="Selecione o setor..."
-                                 MaxItems="100" />
+                <SectorAutocomplete @bind-Value="selectedSector" />
             </MudItem>
 
         </MudForm>
@@ -62,7 +50,7 @@
     [Parameter]
     public User Users { get; set; } = new();
 
-    private SectorRequestDTO? selectedSector;
+    private SectorBasicListDTO? selectedSector;
 
     private List<SectorRequestDTO> _allSectors = new();
 
@@ -87,8 +75,17 @@
         var result = await _sectorServices.GetAllAsync();
         _allSectors = result?.Items?.ToList() ?? new List<SectorRequestDTO>();
 
-        // Inicializa o selectedSector encontrando o DTO correspondente ao Users.SectorId (se existir)
-        selectedSector = _allSectors.FirstOrDefault(s => s.Id == Users.SectorId);
+        // Converte de SectorRequestDTO para SectorBasicListDTO
+        var currentSector = _allSectors.FirstOrDefault(s => s.Id == Users.SectorId);
+        if (currentSector != null)
+        {
+            selectedSector = new SectorBasicListDTO
+            {
+                Id = currentSector.Id,
+                Name = currentSector.Name,
+                Acronym = currentSector.Acronym
+            };
+        }
     }
 
     private async Task SubmitAsync()

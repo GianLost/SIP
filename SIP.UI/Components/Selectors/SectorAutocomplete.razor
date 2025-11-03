@@ -1,113 +1,142 @@
 ﻿@using SIP.UI.Domain.DTOs.Sectors.Pagination
 @using SIP.UI.Domain.Services.Sectors
 @using MudBlazor
+@using Microsoft.AspNetCore.Components.Web.Virtualization
+@using System.Threading
 
-<MudAutocomplete T="SectorBasicListDTO"
-                 @bind-Value="Value"
-                 Label="@Label"
-                 SearchFunc="LoadSectorsLazy"
-                 ToStringFunc="@(s => s == null ? null : $"{s.Name} ({s.Acronym})")"
-                 Variant="Variant.Outlined"
-                 Dense="true"
-                 Margin="Margin.Normal"
-                 Clearable="true"
-                 CoerceText="false"
-                 ResetValueOnEmptyText="false"
-                 Placeholder="@Placeholder"
-                 DebounceInterval="400"
-                 OpenIcon="@Icons.Material.Filled.ArrowDropDown"
-                 Adornment="Adornment.End"
-                 Required="@Required"
-                 RequiredError="@RequiredError" />
-                 
+@implements IDisposable
+
+@inject SectorService SectorService
+
+<MudTextField @bind-Value="searchTerm"
+              Label="Setor"
+              Variant="Variant.Outlined"
+              Adornment="Adornment.End"
+              AdornmentIcon="@(showList? Icons.Material.Filled.ArrowDropUp : Icons.Material.Filled.ArrowDropDown)"
+              AdornmentColor="Color.Inherit"
+              @onclick="TogglePopover"
+              Clearable="true"
+              OnClearButtonClick="ClearSelection"
+              ReadOnly="false"
+              Immediate="true"
+              @onkeyup="@((e) => OnSearchTermInput(e))" />
+
+<MudPopover Open="showList"
+            AnchorOrigin="Origin.BottomLeft"
+            TransformOrigin="Origin.TopLeft"
+            Class="sector-autocomplete-popover">
+
+    <div class="sector-autocomplete-scroll-container">
+        <Virtualize TItem="SectorBasicListDTO"
+                    ItemsProvider="LoadSectorsVirtualizedAsync"
+                    OverscanCount="2"
+                    @key="virtualizeKey">
+
+            <ItemContent Context="sector">
+                <div class="pa-2 mud-ripple" @onclick="(() => SelectItem(sector))">
+                    @sector.Name (@sector.Acronym)
+                </div>
+            </ItemContent>
+        </Virtualize>
+    </div>
+</MudPopover>
+
 @code {
-    [Inject] private SectorService SectorService { get; set; } = default!;
+    private string? searchTerm;
+    private bool showList = false;
+    private SectorBasicListDTO? lastSelectedValue;
+    private Guid virtualizeKey = Guid.NewGuid();
+    private Timer? searchTimer;
+    private readonly int debounceDelay = 300; // 300ms é um bom padrão para debounce
 
-    [Parameter] public SectorBasicListDTO? Value { get; set; }
-    [Parameter] public EventCallback<SectorBasicListDTO?> ValueChanged { get; set; }
+    [Parameter]
+    public SectorBasicListDTO? Value { get; set; }
 
-    [Parameter] public string Label { get; set; } = "Setor";
-    [Parameter] public string Placeholder { get; set; } = "Digite ou selecione um setor...";
-    [Parameter] public bool Required { get; set; } = false;
-    [Parameter] public string RequiredError { get; set; } = "Selecione um setor!";
+    [Parameter]
+    public EventCallback<SectorBasicListDTO?> ValueChanged { get; set; }
 
-    private List<SectorBasicListDTO> sectors = new();
-    private string? lastSearch;
-    private int currentPage = 1;
-    private int totalCount = 0;
-    private bool hasMoreResults = false;
-    private bool isLoading = false;
+    public void Dispose() => searchTimer?.Dispose();
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnParametersSet()
     {
-        await LoadInitialSectorsAsync();
-    }
-
-    private async Task LoadInitialSectorsAsync()
-    {
-        isLoading = true;
-
-        try
+        if (Value != null && Value != lastSelectedValue)
         {
-            currentPage = 1;
-            var result = await SectorService.GetSectorsBySelection(currentPage, 10, "");
-
-            if (result?.Items != null)
-            {
-                sectors.Clear();
-                sectors.AddRange(result.Items);
-                totalCount = result.TotalCount;
-                hasMoreResults = sectors.Count < totalCount;
-                currentPage++;
-            }
+            searchTerm = $"{Value.Name} ({Value.Acronym})";
+            lastSelectedValue = Value;
         }
-        finally
+        else if (Value == null && lastSelectedValue != null)
         {
-            isLoading = false;
+            searchTerm = null;
+            lastSelectedValue = null;
         }
     }
 
-    private async Task<IEnumerable<SectorBasicListDTO>> LoadSectorsLazy(string value, CancellationToken cancellationToken)
+    private void TogglePopover()
     {
-        // Caso o usuário apenas abra o seletor, retorna os já carregados inicialmente
-        if (string.IsNullOrWhiteSpace(value))
-            return sectors;
-
-        bool newSearch = value != lastSearch;
-
-        if (newSearch)
+        showList = !showList;
+        // Força a atualização APENAS ao ABRIR, garantindo que o filtro digitado seja lido
+        if (showList)
         {
-            currentPage = 1;
-            sectors.Clear();
-            lastSearch = value;
+            virtualizeKey = Guid.NewGuid();
         }
+        StateHasChanged();
+    }
 
-        if (isLoading || (!hasMoreResults && !newSearch))
-            return sectors;
+    private void SelectItem(SectorBasicListDTO selectedSector)
+    {
+        searchTerm = $"{selectedSector.Name} ({selectedSector.Acronym})";
+        showList = false;
+        lastSelectedValue = selectedSector;
+        ValueChanged.InvokeAsync(selectedSector);
+    }
 
-        isLoading = true;
+    private void ClearSelection()
+    {
+        searchTerm = null;
+        lastSelectedValue = null;
+        ValueChanged.InvokeAsync(null);
+        showList = false;
 
-        try
+        // Limpa e recarrega a lista sem filtro
+        virtualizeKey = Guid.NewGuid();
+        StateHasChanged();
+    }
+
+    private void OnSearchTermInput(KeyboardEventArgs e)
+    {
+        // 1. Abre a lista
+        showList = true;
+
+        // 2. Limpa o timer anterior
+        searchTimer?.Dispose();
+
+        // 3. Inicia debounce (300ms)
+        searchTimer = new Timer(async _ =>
         {
-            var result = await SectorService.GetSectorsBySelection(currentPage, 10, value);
-
-            if (result?.Items?.Any() == true)
+            // Usa InvokeAsync para voltar ao contexto de UI Thread
+            await InvokeAsync(() =>
             {
-                sectors.AddRange(result.Items.Where(i => !sectors.Any(s => s.Id == i.Id)));
-                totalCount = result.TotalCount;
-                hasMoreResults = sectors.Count < totalCount;
-                currentPage++;
-            }
-            else
-            {
-                hasMoreResults = false;
-            }
-        }
-        finally
-        {
-            isLoading = false;
-        }
+                // CRÍTICO: Força o Virtualize a reiniciar a busca com o searchTerm atualizado.
+                virtualizeKey = Guid.NewGuid();
+                StateHasChanged();
+            });
+        }, null, debounceDelay, Timeout.Infinite);
+    }
 
-        return sectors;
+    private async ValueTask<ItemsProviderResult<SectorBasicListDTO>> LoadSectorsVirtualizedAsync(ItemsProviderRequest request)
+    {
+        // Define o tamanho da página. O Virtualize pede o que ele precisa (request.Count).
+        int pageSize = Math.Max(request.Count, 10);
+        int pageNumber = (request.StartIndex / pageSize) + 1;
+
+        // Lê o 'searchTerm' atualizado.
+        string search = (searchTerm ?? string.Empty).Trim();
+
+        var result = await SectorService.GetSectorsBySelection(pageNumber, pageSize, search);
+
+        if (result == null || result.Items == null)
+            return new ItemsProviderResult<SectorBasicListDTO>(Array.Empty<SectorBasicListDTO>(), 0);
+
+        return new ItemsProviderResult<SectorBasicListDTO>(result.Items, result.TotalCount);
     }
 }

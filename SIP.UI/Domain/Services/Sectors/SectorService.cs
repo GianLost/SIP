@@ -68,17 +68,27 @@ public class SectorService(HttpClient http)
     {
         try
         {
-            string uri = $"{BaseEndpoints<Sector>._getToSelection}pageNumber{pageNumber}&pageSize={pageSize}&searchString={searchString}";
+            string uri = $"{BaseEndpoints<Sector>._getToSelection}pageNumber={pageNumber}&pageSize={pageSize}&searchString={searchString}";
 
-            var request = 
+            var request =
                 await _http.GetFromJsonAsync<PagedResultDTO<SectorBasicListDTO>>(
                     requestUri: uri);
+
+            if (request is null)
+            {
+                return new PagedResultDTO<SectorBasicListDTO>();
+            }
 
             return request;
         }
         catch (HttpRequestException ex)
         {
-            Console.WriteLine($"Falha ao carregar a lista de setores para seleção: {ex.Message}");
+            Console.WriteLine($"Falha de CONEXÃO ao carregar a lista de setores: {ex.Message}");
+            return null;
+        }
+        catch (JsonException ex)
+        {
+            Console.WriteLine($"Falha de DESSERIALIZAÇÃO JSON. A API pode ter retornado um erro: {ex.Message}");
             return null;
         }
     }

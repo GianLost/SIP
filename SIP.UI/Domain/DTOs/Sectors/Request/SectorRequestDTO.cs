@@ -1,5 +1,4 @@
-﻿using SIP.UI.Domain.DTOs.Users.Request;
-using SIP.UI.Models.Sectors;
+﻿using SIP.UI.Models.Sectors;
 
 namespace SIP.UI.Domain.DTOs.Sectors.Request;
 
