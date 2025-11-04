@@ -42,48 +42,35 @@
 </MudDialog>
 
 @code {
-    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
 
-    private MudForm? form;
-    private bool isValid;
+    [CascadingParameter] 
+    IMudDialogInstance MudDialog { get; set; } = default!;
 
     [Parameter]
     public User Users { get; set; } = new();
 
+    private bool isValid;
+
+    private MudForm? form;
     private SectorBasicListDTO? selectedSector;
-
-    private List<SectorRequestDTO> _allSectors = new();
-
-    /// <summary>
-    /// Função de pesquisa para o autocomplete de setores.
-    /// Filtra a lista de setores com base no valor de pesquisa do usuário.
-    /// </summary>
-    private Task<IEnumerable<SectorRequestDTO>> SearchSectors(string value, CancellationToken cancellationToken)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-            return Task.FromResult<IEnumerable<SectorRequestDTO>>(_allSectors);
-
-        var filtered = _allSectors
-            .Where(s => s.Name.Contains(value, StringComparison.OrdinalIgnoreCase)
-                     || s.Acronym.Contains(value, StringComparison.OrdinalIgnoreCase));
-
-        return Task.FromResult<IEnumerable<SectorRequestDTO>>(filtered);
-    }
 
     protected override async Task OnInitializedAsync()
     {
-        var result = await _sectorServices.GetAllAsync();
-        _allSectors = result?.Items?.ToList() ?? new List<SectorRequestDTO>();
+        if (Users?.SectorId == null || Users.SectorId == Guid.Empty)
+            return;
 
-        // Converte de SectorRequestDTO para SectorBasicListDTO
-        var currentSector = _allSectors.FirstOrDefault(s => s.Id == Users.SectorId);
-        if (currentSector != null)
+        var sectorResult = 
+            await _sectorServices.GetByIdAsync(Users.SectorId);
+
+        var sector = sectorResult!.Items!.FirstOrDefault();
+
+        if (sector != null)
         {
             selectedSector = new SectorBasicListDTO
             {
-                Id = currentSector.Id,
-                Name = currentSector.Name,
-                Acronym = currentSector.Acronym
+                Id = sector.Id,
+                Name = sector.Name,
+                Acronym = sector.Acronym
             };
         }
     }

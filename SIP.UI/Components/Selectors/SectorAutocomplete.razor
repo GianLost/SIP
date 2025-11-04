@@ -42,12 +42,17 @@
 </MudPopover>
 
 @code {
+
     private string? searchTerm;
     private bool showList = false;
     private SectorBasicListDTO? lastSelectedValue;
     private Guid virtualizeKey = Guid.NewGuid();
     private Timer? searchTimer;
-    private readonly int debounceDelay = 300; // 300ms é um bom padrão para debounce
+    private readonly int debounceDelay = 300; // tempo para debounce
+
+    private readonly int MaxCachedPages = 5; // cache de até 5 páginas por termo
+    private readonly Dictionary<int, List<SectorBasicListDTO>> pageCache = new();
+    private int totalItemCount = 0;
 
     [Parameter]
     public SectorBasicListDTO? Value { get; set; }
@@ -74,11 +79,14 @@
     private void TogglePopover()
     {
         showList = !showList;
-        // Força a atualização APENAS ao ABRIR, garantindo que o filtro digitado seja lido
+
         if (showList)
         {
+            // sempre que abrir, reseta cache e força recarga
+            pageCache.Clear();
             virtualizeKey = Guid.NewGuid();
         }
+
         StateHasChanged();
     }
 
@@ -96,47 +104,64 @@
         lastSelectedValue = null;
         ValueChanged.InvokeAsync(null);
         showList = false;
-
-        // Limpa e recarrega a lista sem filtro
+        pageCache.Clear();
+        totalItemCount = 0;
         virtualizeKey = Guid.NewGuid();
         StateHasChanged();
     }
 
     private void OnSearchTermInput(KeyboardEventArgs e)
     {
-        // 1. Abre a lista
         showList = true;
-
-        // 2. Limpa o timer anterior
         searchTimer?.Dispose();
 
-        // 3. Inicia debounce (300ms)
         searchTimer = new Timer(async _ =>
         {
-            // Usa InvokeAsync para voltar ao contexto de UI Thread
             await InvokeAsync(() =>
             {
-                // CRÍTICO: Força o Virtualize a reiniciar a busca com o searchTerm atualizado.
+                // 🔹 Limpa cache e contador total
+                pageCache.Clear();
+                totalItemCount = 0;
+
+                // 🔹 Força o Virtualize a recarregar a busca com o novo termo
                 virtualizeKey = Guid.NewGuid();
+
                 StateHasChanged();
             });
         }, null, debounceDelay, Timeout.Infinite);
     }
 
+
     private async ValueTask<ItemsProviderResult<SectorBasicListDTO>> LoadSectorsVirtualizedAsync(ItemsProviderRequest request)
     {
-        // Define o tamanho da página. O Virtualize pede o que ele precisa (request.Count).
         int pageSize = Math.Max(request.Count, 10);
         int pageNumber = (request.StartIndex / pageSize) + 1;
-
-        // Lê o 'searchTerm' atualizado.
         string search = (searchTerm ?? string.Empty).Trim();
 
+        // 🔹 verifica se já temos essa página em cache
+        if (pageCache.TryGetValue(pageNumber, out var cachedItems))
+        {
+            return new ItemsProviderResult<SectorBasicListDTO>(cachedItems, totalItemCount);
+        }
+
+        // 🔹 busca da API
         var result = await SectorService.GetSectorsBySelection(pageNumber, pageSize, search);
 
         if (result == null || result.Items == null)
             return new ItemsProviderResult<SectorBasicListDTO>(Array.Empty<SectorBasicListDTO>(), 0);
 
-        return new ItemsProviderResult<SectorBasicListDTO>(result.Items, result.TotalCount);
+        totalItemCount = result.TotalCount;
+
+        // 🔹 adiciona ao cache e controla limite
+        pageCache[pageNumber] = result.Items.ToList();
+
+        if (pageCache.Count > MaxCachedPages)
+        {
+            var oldest = pageCache.Keys.OrderBy(k => k).First();
+            pageCache.Remove(oldest);
+        }
+
+        return new ItemsProviderResult<SectorBasicListDTO>(result.Items, totalItemCount);
     }
+
 }
