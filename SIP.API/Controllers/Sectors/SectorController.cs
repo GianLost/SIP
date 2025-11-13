@@ -218,10 +218,10 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
     /// <summary>
     /// Obtém uma lista reduzida de setores para popular caixas de seleção (selects) no front-end.
     /// </summary>
-    /// <param name="pageNumber">
-    /// Número da página (inicia em 1)
+    /// <param name="skip">
+    /// Número da página (inicia em 0)
     /// </param>
-    /// <param name="pageSize">
+    /// <param name="take">
     /// <param name="searchString">
     /// Texto opcional utilizado para filtrar os setores pelo nome ou sigla.
     /// </param>
@@ -246,9 +246,12 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
     /// - Retorna o total de registros para paginação e exibição.
     /// </remarks>
     [HttpGet("selection")]
-    [ProducesResponseType(typeof(IEnumerable<PagedResultDTO<SectorBasicListDTO>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PagedResultDTO<SectorBasicListDTO>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<IEnumerable<PagedResultDTO<SectorBasicListDTO>>>> GetSectorsToSelection(int pageNumber = 1, int pageSize = 10, string? searchString = null)
+    public async Task<ActionResult<IEnumerable<PagedResultDTO<SectorBasicListDTO>>>> GetSectorsToSelection(
+    [FromQuery] int skip = 0, 
+    [FromQuery] int take = 15, 
+    [FromQuery] string? searchString = null)
     {
         _logger.LogInformation<Sector>(
             message: LogInfoMessages.GetAllRequest);
@@ -256,14 +259,20 @@ public class SectorController(ISector sector, ILogger<SectorController> logger) 
         try
         {
             PagedResultDTO<SectorBasicListDTO> result =
-                await sector.GetSectorsToSelection(pageNumber, pageSize, searchString);
+                await sector.GetSectorsToSelection(skip, take, searchString);
 
             if (result.Items == null || result.Items.Count == 0)
             {
                 _logger.LogWarning<Sector>(
                     message: LogWarningMessages.Empty);
 
-                return Ok(Enumerable.Empty<SectorResponseDTO>());
+                // Return an empty paged result with the correct DTO type so the client
+                // always receives the expected shape (items + totalCount).
+                return Ok(new PagedResultDTO<SectorBasicListDTO>
+                {
+                    Items = [],
+                    TotalCount = result.TotalCount
+                });
             }
 
             _logger.LogInformation<Sector>(

@@ -12,7 +12,7 @@ public readonly struct BaseEndpoints<T>
     public static readonly string _count = $"{_base}/count";
     public static readonly string _getAll = _base;
     public static readonly string _getPaged = $"{_base}/paged?";
-    public static readonly string _getToSelection = $"{_base}/selection?";
+    public static readonly string _getToSelection = $"{_base}/selection";
     public static readonly string _getById = $"{_base}/";
     public static readonly string _update = $"{_base}/";
     public static readonly string _delete = $"{_base}/";

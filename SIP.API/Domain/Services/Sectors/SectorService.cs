@@ -94,23 +94,36 @@ public class SectorService(ApplicationContext context, EntityCacheManager cache)
 
     }
 
-    public async Task<PagedResultDTO<SectorBasicListDTO>> GetSectorsToSelection(int pageNumber = 1, int pageSize = 10, string? searchString = null)
-    { 
-        IQueryable<Sector> query = 
+    /// <inheritdoc/>
+    public async Task<PagedResultDTO<SectorBasicListDTO>> GetSectorsToSelection(
+    int skip = 0, 
+    int take = 15, 
+    string? searchString = null)
+    {
+        // normalize parameters
+        take = Math.Clamp(take, 1, MaxPageSize);
+        skip = Math.Max(0, skip);
+
+        IQueryable<Sector> query =
             _context.Sectors.AsNoTracking();
 
-        if(!string.IsNullOrEmpty(searchString))
+        if (!string.IsNullOrEmpty(searchString))
         {
-            query = query.Where(s => s.Acronym.Contains(searchString) || s.Name.Contains(searchString));
+            string normalized = searchString.Trim().ToLower();
+            query = query.Where(s =>
+                EF.Functions.Like(s.Acronym.ToLower(), $"%{normalized}%") ||
+                EF.Functions.Like(s.Name.ToLower(), $"%{normalized}%"));
         }
 
         string cacheKey = EntityCacheManager.BuildScopedCacheKey(CacheKeys.SectorsTotalCount, searchString, null);
         int totalCount = await _cache.GetOrSetCountAsync(cacheKey, () => query.CountAsync(), EntityType);
-        
+
+        // ensure deterministic ordering to make Skip/Take stable across calls
         var items = await query
             .OrderBy(s => s.Name)
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize)
+            .ThenBy(s => s.Id)
+            .Skip(skip)
+            .Take(take)
             .Select(s => new SectorBasicListDTO
             {
                 Id = s.Id,
@@ -118,6 +131,8 @@ public class SectorService(ApplicationContext context, EntityCacheManager cache)
                 Name = s.Name
             })
             .ToListAsync();
+
+        items ??= [];
 
         return new PagedResultDTO<SectorBasicListDTO>
         {

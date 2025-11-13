@@ -1,0 +1,14 @@
+﻿.sector-autocomplete-popover {
+    width: 25rem !important; /* ou use 100% se quiser acompanhar o input */
+    max-width: 25rem !important;
+}
+
+.sector-autocomplete-scroll-container {
+    width: 25rem;
+    max-height: 11.5rem;
+    overflow-y: auto;
+    background-color: var(--mud-palette-surface);
+    border: 1px solid var(--mud-palette-lines-default);
+    border-radius: 4px;
+    box-shadow: var(--mud-elevation-3);
+}

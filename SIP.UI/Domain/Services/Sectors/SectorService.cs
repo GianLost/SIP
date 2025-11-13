@@ -64,22 +64,36 @@ public class SectorService(HttpClient http)
         }
     }
 
-    public async Task<PagedResultDTO<SectorBasicListDTO>?> GetSectorsBySelection(int pageNumber = 1, int pageSize = 10, string? searchString = null)
+    public async Task<PagedResultDTO<SectorBasicListDTO>?> GetSectorsBySelection(int skip = 0, int take = 15, string? searchString = null, CancellationToken cancellationToken = default)
     {
         try
         {
-            string uri = $"{BaseEndpoints<Sector>._getToSelection}pageNumber={pageNumber}&pageSize={pageSize}&searchString={searchString}";
+            take = Math.Max(1, take);
+            string encodedSearch = string.IsNullOrWhiteSpace(searchString) ? string.Empty : Uri.EscapeDataString(searchString);
+
+            // API expects query parameters named skip and take
+            string uri = $"{BaseEndpoints<Sector>._getToSelection}?skip={skip}&take={take}&searchString={encodedSearch}";
 
             var request =
                 await _http.GetFromJsonAsync<PagedResultDTO<SectorBasicListDTO>>(
-                    requestUri: uri);
+                    requestUri: uri,
+                    cancellationToken: cancellationToken);
 
             if (request is null)
             {
-                return new PagedResultDTO<SectorBasicListDTO>();
+                return new PagedResultDTO<SectorBasicListDTO>
+                {
+                    Items = [],
+                    TotalCount = 0
+                };
             }
 
             return request;
+        }
+        catch (OperationCanceledException)
+        {
+            // Let the caller handle cancellation
+            throw;
         }
         catch (HttpRequestException ex)
         {
@@ -109,7 +123,7 @@ public class SectorService(HttpClient http)
     public async Task<List<UserBasicListDTO>> GetUsersBySectorAsync(Guid sectorId)
     {
         string uri = $"{BaseEndpoints<Sector>._getById}{sectorId}/users";
-        return await _http.GetFromJsonAsync<List<UserBasicListDTO>>(uri) ?? [];
+        return await _http.GetFromJsonAsync<List<UserBasicListDTO>>(uri) ?? new List<UserBasicListDTO>();
     }
 
     public async Task UpdateAsync(SectorUpdateDTO setor)

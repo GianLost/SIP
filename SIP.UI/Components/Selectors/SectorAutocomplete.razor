@@ -1,8 +1,10 @@
-﻿@using SIP.UI.Domain.DTOs.Sectors.Pagination
+﻿@using SIP.UI.Domain.DTOs.Default.Pagination
+@using SIP.UI.Domain.DTOs.Sectors.Pagination
 @using SIP.UI.Domain.Services.Sectors
 @using MudBlazor
 @using Microsoft.AspNetCore.Components.Web.Virtualization
 @using System.Threading
+@using System.Linq
 
 @implements IDisposable
 
@@ -26,7 +28,7 @@
             TransformOrigin="Origin.TopLeft"
             Class="sector-autocomplete-popover">
 
-    <div class="sector-autocomplete-scroll-container">
+    <div class="sector-autocomplete-scroll-container" role="listbox">
         <Virtualize TItem="SectorBasicListDTO"
                     ItemsProvider="LoadSectorsVirtualizedAsync"
                     OverscanCount="2"
@@ -38,21 +40,42 @@
                 </div>
             </ItemContent>
         </Virtualize>
+
+        @* Informational messages shown when no items or on load error *@
+        @if (!isLoadingItems && loadError)
+        {
+            <div class="pa-4 text-center mud-text-secondary">Erro ao carregar os registros. Tente novamente.</div>
+        }
+        else if (!isLoadingItems && noItems)
+        {
+            var term = string.IsNullOrWhiteSpace(searchTerm) ? "" : $" \"{searchTerm}\"";
+            <div class="pa-4 text-center mud-text-secondary">Nenhum registro encontrado @term.</div>
+        }
     </div>
 </MudPopover>
 
 @code {
-
     private string? searchTerm;
+    private string? previousSearch = string.Empty;
     private bool showList = false;
     private SectorBasicListDTO? lastSelectedValue;
     private Guid virtualizeKey = Guid.NewGuid();
-    private Timer? searchTimer;
-    private readonly int debounceDelay = 300; // tempo para debounce
+    private CancellationTokenSource? debounceCts;
+    private readonly int debounceDelay = 300; // increased to reduce frequent calls
 
-    private readonly int MaxCachedPages = 5; // cache de até 5 páginas por termo
-    private readonly Dictionary<int, List<SectorBasicListDTO>> pageCache = new();
+    // cache by absolute index (startIndex -> item)
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<int, SectorBasicListDTO> indexCache = new();
     private int totalItemCount = 0;
+
+    // UI state for messages
+    private bool isLoadingItems = false;
+    private bool loadError = false;
+    private bool noItems = false;
+
+    private readonly int ApiPageSize = 15; // alinhar com backend
+    private readonly int MaxCachedPages = 5;
+    private readonly SemaphoreSlim fetchLock = new(1, 1);
+    private CancellationTokenSource? fetchCts;
 
     [Parameter]
     public SectorBasicListDTO? Value { get; set; }
@@ -60,7 +83,13 @@
     [Parameter]
     public EventCallback<SectorBasicListDTO?> ValueChanged { get; set; }
 
-    public void Dispose() => searchTimer?.Dispose();
+    public void Dispose()
+    {
+        debounceCts?.Dispose();
+        fetchCts?.Cancel();
+        fetchCts?.Dispose();
+        fetchLock.Dispose();
+    }
 
     protected override void OnParametersSet()
     {
@@ -79,15 +108,14 @@
     private void TogglePopover()
     {
         showList = !showList;
-
         if (showList)
         {
-            // sempre que abrir, reseta cache e força recarga
-            pageCache.Clear();
+            indexCache.Clear();
             virtualizeKey = Guid.NewGuid();
+            // reset UI indicators when opening
+            loadError = false;
+            noItems = false;
         }
-
-        StateHasChanged();
     }
 
     private void SelectItem(SectorBasicListDTO selectedSector)
@@ -104,64 +132,346 @@
         lastSelectedValue = null;
         ValueChanged.InvokeAsync(null);
         showList = false;
-        pageCache.Clear();
+        indexCache.Clear();
         totalItemCount = 0;
         virtualizeKey = Guid.NewGuid();
         StateHasChanged();
     }
 
-    private void OnSearchTermInput(KeyboardEventArgs e)
+    private async Task OnSearchTermInput(KeyboardEventArgs e)
     {
         showList = true;
-        searchTimer?.Dispose();
+        debounceCts?.Cancel();
+        debounceCts?.Dispose();
 
-        searchTimer = new Timer(async _ =>
+        debounceCts = new CancellationTokenSource();
+        var token = debounceCts.Token;
+
+        try
         {
-            await InvokeAsync(() =>
+            await Task.Delay(debounceDelay, token);
+            if (!token.IsCancellationRequested)
             {
-                // 🔹 Limpa cache e contador total
-                pageCache.Clear();
-                totalItemCount = 0;
+                await InvokeAsync(() =>
+                {
+                    fetchCts?.Cancel();
+                    fetchCts?.Dispose();
+                    fetchCts = null;
 
-                // 🔹 Força o Virtualize a recarregar a busca com o novo termo
-                virtualizeKey = Guid.NewGuid();
+                    indexCache.Clear();
+                    totalItemCount = 0;
+                    previousSearch = searchTerm?.Trim();
 
-                StateHasChanged();
-            });
-        }, null, debounceDelay, Timeout.Infinite);
+                    virtualizeKey = Guid.NewGuid();
+                    StateHasChanged();
+                });
+            }
+        }
+        catch (TaskCanceledException)
+        {
+            // expected when typing quickly
+        }
     }
-
 
     private async ValueTask<ItemsProviderResult<SectorBasicListDTO>> LoadSectorsVirtualizedAsync(ItemsProviderRequest request)
     {
-        int pageSize = Math.Max(request.Count, 10);
-        int pageNumber = (request.StartIndex / pageSize) + 1;
+        int start = Math.Max(request.StartIndex, 0);
+        int count = Math.Max(request.Count, 1);
         string search = (searchTerm ?? string.Empty).Trim();
 
-        // 🔹 verifica se já temos essa página em cache
-        if (pageCache.TryGetValue(pageNumber, out var cachedItems))
+        // reset indicators for each provider invocation
+        isLoadingItems = true;
+        loadError = false;
+        noItems = false;
+        await InvokeAsync(StateHasChanged);
+
+        // if search changed externally (not cleared via OnSearchTermInput) handle it
+        if (previousSearch != search)
         {
-            return new ItemsProviderResult<SectorBasicListDTO>(cachedItems, totalItemCount);
+            // new search -> clear cache and cancel pending
+            indexCache.Clear();
+            totalItemCount = 0;
+            previousSearch = search;
+            if (fetchCts is { IsCancellationRequested: false })
+            {
+                try { fetchCts.Cancel(); } catch { }
+            }
+            fetchCts?.Dispose();
+            fetchCts = null;
+
+            // force re-render key if desired
+            // virtualizeKey = Guid.NewGuid();
         }
 
-        // 🔹 busca da API
-        var result = await SectorService.GetSectorsBySelection(pageNumber, pageSize, search);
-
-        if (result == null || result.Items == null)
-            return new ItemsProviderResult<SectorBasicListDTO>(Array.Empty<SectorBasicListDTO>(), 0);
-
-        totalItemCount = result.TotalCount;
-
-        // 🔹 adiciona ao cache e controla limite
-        pageCache[pageNumber] = result.Items.ToList();
-
-        if (pageCache.Count > MaxCachedPages)
+        // Check if requested range is fully cached
+        bool allCached = true;
+        var resultItems = new List<SectorBasicListDTO>(count);
+        for (int i = 0; i < count; i++)
         {
-            var oldest = pageCache.Keys.OrderBy(k => k).First();
-            pageCache.Remove(oldest);
+            if (indexCache.TryGetValue(start + i, out var item))
+            {
+                resultItems.Add(item);
+            }
+            else
+            {
+                allCached = false;
+                break;
+            }
         }
 
-        return new ItemsProviderResult<SectorBasicListDTO>(result.Items, totalItemCount);
+        if (allCached)
+        {
+            isLoadingItems = false;
+            noItems = (totalItemCount == 0);
+            await InvokeAsync(StateHasChanged);
+            return new ItemsProviderResult<SectorBasicListDTO>(resultItems, totalItemCount);
+        }
+
+        // Acquire lock to avoid duplicate concurrent fetches
+        await fetchLock.WaitAsync();
+        try
+        {
+            // Recheck cache inside lock (another fetch may have populated)
+            allCached = true;
+            resultItems.Clear();
+            for (int i = 0; i < count; i++)
+            {
+                if (indexCache.TryGetValue(start + i, out var item))
+                    resultItems.Add(item);
+                else
+                {
+                    allCached = false;
+                    break;
+                }
+            }
+
+            if (allCached)
+            {
+                isLoadingItems = false;
+                noItems = (totalItemCount == 0);
+                await InvokeAsync(StateHasChanged);
+                return new ItemsProviderResult<SectorBasicListDTO>(resultItems, totalItemCount);
+            }
+
+            // Align fetchStart to API page boundary
+            int fetchStart = (start / ApiPageSize) * ApiPageSize;
+            int pageIndex = fetchStart / ApiPageSize; // API expects pageNumber (page index)
+
+            // Determine how many pages are required to cover the requested range [start, start+count)
+            int neededItems = (start + count) - fetchStart;
+            int requiredPages = Math.Max(1, (int)Math.Ceiling(neededItems / (double)ApiPageSize));
+            int fetchTake = requiredPages * ApiPageSize;
+
+            // Bound fetchTake so we don't request absurdly large values
+            fetchTake = Math.Min(fetchTake, ApiPageSize * MaxCachedPages);
+
+            // Ensure a cancellation token exists for this component (only canceled on search change / dispose)
+            if (fetchCts == null)
+                fetchCts = new CancellationTokenSource();
+            var ct = fetchCts.Token;
+
+            // Call UI service using page-based parameters
+            try
+            {
+                // Fetch page-by-page so API offsets map correctly to absolute indexes
+                for (int p = pageIndex; p < pageIndex + requiredPages; p++)
+                {
+                    if (ct.IsCancellationRequested)
+                        break;
+
+                    try
+                    {
+                        var pageResult = await SectorService.GetSectorsBySelection(p * ApiPageSize, ApiPageSize, search, ct);
+                        if (pageResult?.Items != null)
+                        {
+                            totalItemCount = pageResult.TotalCount;
+                            int pageBase = p * ApiPageSize;
+                            int ridx = 0;
+                            // write page atomically into cache
+                            var pageItems = pageResult.Items.ToList();
+                            foreach (var item in pageItems)
+                            {
+                                int absoluteIndex = pageBase + ridx;
+                                indexCache.TryAdd(absoluteIndex, item);
+                                ridx++;
+                            }
+                        }
+                    }
+                    catch (OperationCanceledException) when (ct.IsCancellationRequested)
+                    {
+                        break;
+                    }
+                    catch
+                    {
+                        // ignore page fetch failures and continue with other pages
+                        loadError = true;
+                    }
+                }
+            }
+            catch
+            {
+                // swallow
+                loadError = true;
+            }
+
+            // Evict oldest entries when cache grows beyond limit (keep most recent window around current start)
+            int maxCachedItems = ApiPageSize * MaxCachedPages;
+            if (indexCache.Count > maxCachedItems)
+            {
+                // keep window centered at current start
+                var keysToKeep = Enumerable.Range(Math.Max(0, start - ApiPageSize), maxCachedItems).ToHashSet();
+                var keysToRemove = indexCache.Keys.Where(k => !keysToKeep.Contains(k)).ToList();
+                foreach (var k in keysToRemove)
+                    indexCache.TryRemove(k, out _);
+            }
+
+            // If there are known items but the cache doesn't contain the requested start, attempt one targeted retry
+            bool hasKnownItems = totalItemCount > 0;
+            if (hasKnownItems && !indexCache.ContainsKey(start))
+            {
+                try
+                {
+                    // small targeted fetch for the page containing 'start'
+                    var retryResult = await SectorService.GetSectorsBySelection(pageIndex * ApiPageSize, ApiPageSize, search, ct);
+                    if (retryResult?.Items != null)
+                    {
+                        int ridx = 0;
+                        foreach (var item in retryResult.Items)
+                        {
+                            int absoluteIndex = fetchStart + ridx;
+                            indexCache.TryAdd(absoluteIndex, item);
+                            ridx++;
+                        }
+                    }
+                }
+                catch
+                {
+                    // ignore retry failures
+                    loadError = true;
+                }
+            }
+
+            // Build final response list (may be partial)
+            var finalList = new List<SectorBasicListDTO>();
+            for (int i = 0; i < count; i++)
+            {
+                if (indexCache.TryGetValue(start + i, out var it))
+                    finalList.Add(it);
+                else
+                    break;
+            }
+
+            // If we returned nothing but there are items known to exist beyond start, try a small synchronous retry
+            if (finalList.Count == 0 && totalItemCount > start)
+            {
+                int startPage = fetchStart / ApiPageSize;
+                for (int attempt = 0; attempt < 2 && finalList.Count == 0; attempt++)
+                {
+                    try
+                    {
+                        var pageResult = await SectorService.GetSectorsBySelection(startPage * ApiPageSize, ApiPageSize, search, fetchCts?.Token ?? CancellationToken.None);
+                        if (pageResult?.Items != null)
+                        {
+                            int ridx = 0;
+                            foreach (var item in pageResult.Items)
+                            {
+                                int absoluteIndex = fetchStart + ridx;
+                                indexCache.TryAdd(absoluteIndex, item);
+                                ridx++;
+                            }
+
+                            // rebuild
+                            finalList.Clear();
+                            for (int i = 0; i < count; i++)
+                            {
+                                if (indexCache.TryGetValue(start + i, out var it))
+                                    finalList.Add(it);
+                                else
+                                    break;
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        // ignore
+                        loadError = true;
+                    }
+
+                    if (finalList.Count == 0)
+                        await Task.Delay(50);
+                }
+            }
+
+            // If we didn't fill the requested window but there are known items, try fetching missing pages (limited)
+            if (hasKnownItems && finalList.Count < count)
+            {
+                // determine which page indexes intersect requested window
+                int windowStartPage = fetchStart / ApiPageSize;
+                int windowEndPage = ((start + count - 1) / ApiPageSize);
+
+                // collect missing page indexes
+                var missingPages = new List<int>();
+                for (int p = windowStartPage; p <= windowEndPage; p++)
+                {
+                    int pageBaseIndex = p * ApiPageSize;
+                    bool pageHasAny = Enumerable.Range(pageBaseIndex, ApiPageSize).Any(i => indexCache.ContainsKey(i));
+                    if (!pageHasAny)
+                        missingPages.Add(p);
+                }
+
+                // limit retries to avoid explosion
+                int maxRetries = Math.Min(3, missingPages.Count);
+                for (int i = 0; i < maxRetries; i++)
+                {
+                    int pageToFetch = missingPages[i];
+                    try
+                    {
+                        var pageResult = await SectorService.GetSectorsBySelection(pageToFetch * ApiPageSize, ApiPageSize, search, ct);
+                        if (pageResult?.Items != null)
+                        {
+                            int ridx = 0;
+                            int pageBase = pageToFetch * ApiPageSize;
+                            foreach (var item in pageResult.Items)
+                            {
+                                int absoluteIndex = pageBase + ridx;
+                                indexCache.TryAdd(absoluteIndex, item);
+                                ridx++;
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        // ignore failures
+                        loadError = true;
+                    }
+                }
+
+                // rebuild finalList
+                finalList.Clear();
+                for (int i = 0; i < count; i++)
+                {
+                    if (indexCache.TryGetValue(start + i, out var it))
+                        finalList.Add(it);
+                    else
+                        break;
+                }
+            }
+
+            // finalize UI state
+            isLoadingItems = false;
+            noItems = (totalItemCount == 0);
+            if (noItems && !loadError)
+            {
+                // ensure UI updates
+                await InvokeAsync(StateHasChanged);
+            }
+
+            // Return whatever we have; include total count so Virtualize can continue fetching
+            return new ItemsProviderResult<SectorBasicListDTO>(finalList, totalItemCount);
+        }
+        finally
+        {
+            fetchLock.Release();
+        }
     }
-
 }
