@@ -1,64 +1,103 @@
 ﻿@using MudBlazor
 @using SIP.UI.Models.Sectors
+@using System.Linq
 
-<MudDialog Style="width:450px">
+<MudDialog>
 
-    @* Conteúdo do diálogo *@
     <DialogContent>
 
-        @* Formulário com os campos de edição, gerenciando a validação *@
-        <MudForm @ref="form" @bind-IsValid="isValid" ErrorsChanged="OnErrorsChanged">
+        <div class="dialog-content">
 
-            @* Campo para o nome da secretaria com validação e ícone *@
-            <MudTextField @bind-Value="Sector.Name" Label="Nome da Secretaria" For=@(() => Sector.Name) Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Business" Required="true" RequiredError="O nome da secretaria é obrigatório!" Variant="Variant.Outlined" Margin="Margin.Normal" />
+            <MudForm @ref="form" @bind-IsValid="isValid" ErrorsChanged="OnErrorsChanged">
 
-            @* Campo para a sigla da secretaria com validação e ícone *@
-            <MudTextField @bind-Value="Sector.Acronym" Label="Sigla" For=@(() => Sector.Acronym) Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.ShortText" Required="true" RequiredError="A sigla é obrigatória!" Variant="Variant.Outlined" Margin="Margin.Normal" />
+                <MudGrid Spacing="5">
 
-            @* Campo para o telefone com máscara, validação personalizada e ícone *@
-            <MudTextField @bind-Value="Sector.Phone" Label="Telefone" Mask="@PhoneMask" Immediate="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Phone" Variant="Variant.Outlined" Margin="Margin.Normal" Placeholder="(XX) XXXXX-XXXX" HelperText="Formato: (DDD) 9XXXX-XXXX ou (DDD) XXXX-XXXX" Validation="@((string arg) => IsValidPhoneNumber(arg) ? null : "Telefone inválido. Use (DDD) 9XXXX-XXXX ou (DDD) XXXX-XXXX.")" Required="true" RequiredError="O telefone é obrigatório!" />
+                    <MudItem xs="12">
+                        <MudTextField @bind-Value="Sector.Name"
+                                      Counter="150"
+                                      Label="Nome da Secretaria"
+                                      Adornment="Adornment.End" 
+                                      AdornmentIcon="@Icons.Material.Filled.Info"
+                                      Required="true"
+                                      RequiredError="O nome da secretaria é obrigatório!"
+                                      Variant="Variant.Outlined"
+                                      Immediate="true"
+                                      Clearable="true"
+                                      MaxLength="150"
+                                      Placeholder="Ex: Secretaria Municipal de Saúde"
+                                      HelperText="Nome completo da unidade." />
+                    </MudItem>
 
-        </MudForm>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="Sector.Acronym"
+                                      Counter="20"
+                                      Label="Sigla"
+                                      Adornment="Adornment.End" 
+                                      AdornmentIcon="@Icons.Material.Filled.Abc"
+                                      Required="true"
+                                      RequiredError="A sigla é obrigatória!"
+                                      Variant="Variant.Outlined"
+                                      Immediate="true"
+                                      Clearable="true"
+                                      MaxLength="20"
+                                      Placeholder="Ex: SESAU"
+                                      HelperText="Acrônimo da unidade." />
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="Sector.Phone"
+                                      Label="Telefone"
+                                      Adornment="Adornment.End" 
+                                      AdornmentIcon="@Icons.Material.Filled.Phone"
+                                      Mask="@PhoneMask"
+                                      Placeholder="(XX) XXXXX-XXXX"
+                                      Required="true"
+                                      RequiredError="O telefone é obrigatório!"
+                                      Variant="Variant.Outlined"
+                                      HelperText="Formato: (DDD) 9XXXX-XXXX ou (DDD) XXXX-XXXX" 
+                                      Validation="@((string arg) => IsValidPhoneNumber(arg) ? null : "Telefone inválido. Use (DDD) 9XXXX-XXXX ou (DDD) XXXX-XXXX.")" />
+                    </MudItem>
+
+                </MudGrid>
+
+            </MudForm>
+
+        </div>
 
     </DialogContent>
 
-    @* @* Botões de ações *@
     <DialogActions>
-        <MudStack Row="true" Class="justify-end pa-4">
-            <MudButton OnClick="Submit" Color="Color.Primary" Variant="Variant.Filled" Disabled="!isValid" Class="mr-3">
+        <div class="dialog-actions">
+            <MudButton OnClick="Submit"
+                       Color="Color.Primary"
+                       Variant="Variant.Filled"
+                       Disabled="!isValid"
+                       Class="action-button">
+                <MudIcon Icon="@Icons.Material.Filled.Save" Size="Size.Small" />
                 Salvar
             </MudButton>
-            <MudButton Color="Color.Secondary" Variant="Variant.Outlined" OnClick="Cancel">
+
+            <MudButton OnClick="Cancel"
+                       Color="Color.Secondary"
+                       Variant="Variant.Text"
+                       Class="action-button cancel-button">
+                <MudIcon Icon="@Icons.Material.Filled.Close" Size="Size.Small" />
                 Cancelar
             </MudButton>
-        </MudStack>
+        </div>
     </DialogActions>
 
 </MudDialog>
 
 @code {
 
-    /// <summary>
-    /// A instância do diálogo do MudBlazor para controlar as ações do diálogo (fechar, cancelar).
-    /// É injetada automaticamente pelo framework.
-    /// </summary>
-    [CascadingParameter] 
+    [CascadingParameter]
     IMudDialogInstance MudDialog { get; set; } = default!;
 
-    /// <summary>
-    /// O objeto de setor que está sendo editado. Este parâmetro é passado pelo componente pai.
-    /// </summary>
     [Parameter]
     public BaseSector Sector { get; set; } = default!;
 
-    /// <summary>
-    /// Referência ao componente MudForm, usada para chamar o método de validação.
-    /// </summary>
     private MudForm? form;
-
-    /// <summary>
-    /// Indicates if the form is currently valid.
-    /// </summary>
     private bool isValid = false;
 
     /// <summary>
@@ -71,31 +110,6 @@
     );
 
     /// <summary>
-    /// Chamado quando a validação do formulário muda.
-    /// Força o componente a renderizar novamente para atualizar o estado dos botões.
-    /// </summary>
-    private void OnErrorsChanged() => 
-        StateHasChanged();
-
-    /// <summary>
-    /// Acionado ao clicar no botão 'Salvar'.
-    /// Valida o formulário e, se for válido, fecha o diálogo com o objeto Sector modificado.
-    /// </summary>
-    private async Task Submit()
-    {
-        await form!.Validate();
-
-        if (isValid)
-            MudDialog.Close(DialogResult.Ok(Sector));
-    }
-
-    /// <summary>
-    /// Cancela a operação e fecha o diálogo sem salvar nenhuma alteração.
-    /// </summary>
-    private void Cancel() => 
-        MudDialog.Cancel();
-
-    /// <summary>
     /// Valida o formato do número de telefone (aceita 10 ou 11 dígitos numéricos).
     /// </summary>
     /// <param name="phone">String do telefone a ser validada.</param>
@@ -103,9 +117,23 @@
     private bool IsValidPhoneNumber(string? phone)
     {
         if (string.IsNullOrWhiteSpace(phone)) return false;
-            var digits = new string(phone.Where(char.IsDigit).ToArray());
+        var digits = new string(phone.Where(char.IsDigit).ToArray());
 
         // Accepts (XX) XXXX-XXXX or (XX) 9XXXX-XXXX
         return digits.Length == 10 || digits.Length == 11;
+    }
+
+    private void OnErrorsChanged() =>
+        StateHasChanged();
+
+    private void Cancel() =>
+        MudDialog.Cancel();
+
+    private async Task Submit()
+    {
+        await form!.Validate();
+
+        if (isValid)
+            MudDialog.Close(DialogResult.Ok(Sector));
     }
 }

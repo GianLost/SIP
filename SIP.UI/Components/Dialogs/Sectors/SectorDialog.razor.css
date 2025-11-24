@@ -1,0 +1,16 @@
+﻿.dialog-content {
+    padding: 2rem;
+}
+
+.dialog-grid {
+    margin-top: 0.5rem;
+}
+
+.dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    margin-top: 0rem;
+    margin-right: 2rem;
+}

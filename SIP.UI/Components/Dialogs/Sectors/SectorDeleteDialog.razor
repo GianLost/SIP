@@ -1,85 +1,80 @@
-﻿@using MudBlazor
-@using SIP.UI.Domain.DTOs.Sectors.Pagination
-@using SIP.UI.Models.Sectors
+﻿@using SIP.UI.Domain.DTOs.Sectors.Pagination
+@using MudBlazor
 
 <MudDialog>
 
-    @* Conteúdo do diálogo *@
     <DialogContent>
+        <div class="dialog-delete-content">
 
+            <MudAlert Severity="Severity.Error"
+                      Variant="Variant.Text"
+                      Dense="true"
+                      Class="mb-3"
+                      Icon="@Icons.Material.Filled.Error">
+                Deseja excluir permanentemente o setor abaixo?
+                Esta ação é <b>irreversível</b>.
+            </MudAlert>
 
-        @* Cabeçalho do diálogo *@
-        <MudStack AlignItems="AlignItems.Center" Spacing="2">
+            <MudPaper Class="pa-4 mb-4" Outlined="true" Square="true">
+                <MudStack Spacing="1">
 
-            @* Ícone de lixeira *@
-            <MudIcon Icon="@Icons.Material.Filled.DeleteForever" Class="mb-2" Color="Color.Error" Size="Size.Large" />
+                    <MudText Typo="Typo.subtitle1">
+                        <b>Setor selecionado</b>
+                    </MudText>
 
-            <MudText Typo="Typo.h5" Align="Align.Center" class="mb-2" Color="Color.Error">
-                Confirmar exclusão de setor
-            </MudText>
+                    <MudDivider Light="true" Class="my-1" />
 
-        </MudStack>
+                    <MudText Class="paper-text" Typo="Typo.body1">
+                        @SectorToDelete?.Acronym - @SectorToDelete?.Name
+                    </MudText>
 
-        @* Texto de aviso *@
-        <MudPaper Class="pa-3 mt-3" Elevation="0" Style="background-color: rgba(255, 0, 0, 0.05); border-radius: 8px;">
+                </MudStack>
+            </MudPaper>
 
-            @* Texto de aviso *@
-            <MudText Class="mb-4">
-                Você tem certeza que deseja excluir permanentemente o setor abaixo?
-            </MudText>
+            <MudAlert Severity="Severity.Warning"
+                      Variant="Variant.Text"
+                      Dense="true"
+                      Icon="@Icons.Material.Filled.Warning">
+                <b>Atenção:</b> Esta ação não poderá ser desfeita.
+            </MudAlert>
 
-            @* Dados do relacionados a exclusão *@
-            <MudStack Spacing="0">
-                <MudText Typo="Typo.body2">Nome: <b>(@SectorToDelete?.Acronym) - @SectorToDelete?.Name</b></MudText>
-            </MudStack>
-
-        </MudPaper>
-
-        @* Texto de aviso *@
-        <MudAlert Severity="Severity.Warning" Variant="Variant.Text" Dense="true" Class="mt-4" Icon="@Icons.Material.Filled.Warning">
-            <b>Atenção:</b> Esta ação não pode ser desfeita.
-        </MudAlert>
-
+        </div>
     </DialogContent>
 
-    @* Botões de ações *@
     <DialogActions>
-        <MudButton Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete" OnClick="Submit">
-            Excluir
-        </MudButton>
-        <MudButton Color="Color.Secondary" Variant="Variant.Outlined" OnClick="Cancel">
-            Cancelar
-        </MudButton>
+        <div class="dialog-delete-actions">
+
+            <MudButton Color="Color.Error"
+                       Variant="Variant.Filled"
+                       StartIcon="@Icons.Material.Filled.Delete"
+                       Class="action-button"
+                       OnClick="Submit">
+                Excluir
+            </MudButton>
+
+            <MudButton Color="Color.Secondary"
+                       Variant="Variant.Outlined"
+                       Class="action-button cancel-button"
+                       OnClick="Cancel">
+                Cancelar
+            </MudButton>
+
+        </div>
     </DialogActions>
 
 </MudDialog>
 
 @code {
 
-    /// <summary>
-    /// A instância do diálogo do MudBlazor para controlar as ações do diálogo.
-    /// É injetada automaticamente pelo framework.
-    /// </summary>
-    [CascadingParameter] 
+    [CascadingParameter]
     IMudDialogInstance MudDialog { get; set; } = default!;
 
-    /// <summary>
-    /// O objeto de setor a ser excluído. Este parâmetro é passado pelo componente pai.
-    /// </summary>
-    [Parameter] 
+    [Parameter]
     public SectorListItemDTO? SectorToDelete { get; set; }
 
-    /// <summary>
-    /// Confirma a exclusão e fecha o diálogo com um resultado positivo.
-    /// Isso sinaliza ao componente pai que a operação de exclusão deve ser executada.
-    /// </summary>
     private void Submit() => 
         MudDialog.Close(DialogResult.Ok(true));
 
-    /// <summary>
-    /// Cancela a operação e fecha o diálogo sem qualquer alteração.
-    /// </summary
     private void Cancel() => 
         MudDialog.Cancel();
-
 }
