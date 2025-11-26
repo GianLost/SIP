@@ -9,7 +9,8 @@
 @using SIP.UI.Domain.DTOs.Sectors.Request
 @using SIP.UI.Domain.DTOs.Users.Pagination
 @using SIP.UI.Domain.DTOs.Users.Request
-@using SIP.UI.Domain.Helpers.DataFormatting.Strings
+@using SIP.UI.Domain.Helpers.PhoneFormatting
+@using SIP.UI.Domain.Helpers.Strings
 @using SIP.UI.Domain.Services.Sectors
 @using SIP.UI.Models.Sectors
 @using SIP.UI.Models.Users
@@ -116,7 +117,7 @@
 
                 <MudTd DataLabel="Nome">@sector.Name.ToUppercase()</MudTd>
                 <MudTd DataLabel="Sigla">@sector.Acronym.ToUppercase()</MudTd>
-                <MudTd DataLabel="Telefone">@FormatPhoneNumber(@sector.Phone)</MudTd>
+                <MudTd DataLabel="Telefone">@PhoneExtensions.FormatPhoneNumber(@sector.Phone)</MudTd>
 
             </RowTemplate>
 
@@ -352,24 +353,6 @@
             SortDirection.Descending => "desc",
             _ => string.Empty
         };
-    
-    /// <summary>
-    /// Formats a phone number string.
-    /// </summary>
-    /// <param name="phoneNumber">Phone number to format.</param>
-    /// <returns>Formatted phone number (DDD) 9XXXX-XXXX ou (DDD) XXXX-XXXX.</returns>
-    private string FormatPhoneNumber(string? phoneNumber)
-    {
-        if (string.IsNullOrWhiteSpace(phoneNumber)) return string.Empty;
-            string digitsOnly = new string(phoneNumber.Where(char.IsDigit).ToArray());
-
-        return digitsOnly.Length switch
-        {
-            11 => $"({digitsOnly[..2]}) {digitsOnly.Substring(2, 5)}-{digitsOnly[7..]}",
-            10 => $"({digitsOnly[..2]}) {digitsOnly.Substring(2, 4)}-{digitsOnly[6..]}",
-            _ => phoneNumber
-        };
-    }
 
     @* Comportamento dos Dialogs *@
 

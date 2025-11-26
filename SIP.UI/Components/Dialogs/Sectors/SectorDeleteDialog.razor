@@ -1,61 +1,123 @@
 ﻿@using SIP.UI.Domain.DTOs.Sectors.Pagination
 @using MudBlazor
+@using SIP.UI.Domain.Helpers.PhoneFormatting
+@using SIP.UI.Domain.Services.Sectors
+
+@inject SectorService SectorService
 
 <MudDialog>
-
     <DialogContent>
         <div class="dialog-delete-content">
 
             <MudAlert Severity="Severity.Error"
                       Variant="Variant.Text"
                       Dense="true"
-                      Class="mb-3"
-                      Icon="@Icons.Material.Filled.Error">
-                Deseja excluir permanentemente o setor abaixo?
-                Esta ação é <b>irreversível</b>.
+                      Class="d-flex flex-row justify-content-center mb-2 alert-centered-icon"
+                      Icon="@Icons.Material.Filled.ErrorOutline">
+                <p style="margin: auto; text-align: justify;">
+                    Você está prestes a <b>** EXCLUIR PERMANENTEMENTE **</b> o setor: <b>@SectorToDelete?.Acronym - @SectorToDelete?.Name</b>.
+                </p>
             </MudAlert>
 
             <MudPaper Class="pa-4 mb-4" Outlined="true" Square="true">
-                <MudStack Spacing="1">
 
-                    <MudText Typo="Typo.subtitle1">
-                        <b>Setor selecionado</b>
-                    </MudText>
+                <MudText Class="d-flex flex-row justify-content-between" Typo="Typo.h6">
+                    <b>Setor selecionado</b>
 
-                    <MudDivider Light="true" Class="my-1" />
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="0">
 
-                    <MudText Class="paper-text" Typo="Typo.body1">
-                        @SectorToDelete?.Acronym - @SectorToDelete?.Name
-                    </MudText>
+                        <MudTooltip Placement="Placement.Right"
+                                    Arrow="true"
+                                    Color="Color.Inherit">
 
-                </MudStack>
+                            <ChildContent>
+                                <MudChip T="int"
+                                         Color="Color.Primary"
+                                         Variant="Variant.Filled"
+                                         Size="Size.Small"
+                                         Class="cursor-pointer">
+                                    @($"Usuários: {UsersCount}")
+                                </MudChip>
+                            </ChildContent>
+
+                            <TooltipContent>
+                                <MudPaper Class="pa-3 rounded-lg" Elevation="3" Style="max-width: 230px;">
+                                    <MudText Typo="Typo.subtitle2" Color="Color.Primary" Class="mb-1">
+                                        <MudIcon Icon="@Icons.Material.Filled.PersonPin" Size="Size.Small" />
+                                        usuários vinculados
+                                    </MudText>
+
+                                    <MudDivider Light="true" Class="my-1" />
+
+                                    <MudText Class="text-start" Typo="Typo.body2" Color="Color.Inherit">
+                                        Quantidade total de usuários atualmente vinculados
+                                        ao setor selecionado.
+                                    </MudText>
+                                </MudPaper>
+                            </TooltipContent>
+
+                        </MudTooltip>
+
+                    </MudStack>
+                </MudText>
+
+                <MudDivider Light="true" Class="my-1" />
+
+                <MudText Typo="Typo.body2" Class="mb-2">
+                    <b>Setor:</b> @SectorToDelete?.Acronym - @SectorToDelete?.Name
+                </MudText>
+
+                <MudDivider Light="true" Class="my-1" />
+
+                <MudText Typo="Typo.body2">
+                    <b>Telefone:</b> @PhoneExtensions.FormatPhoneNumber(SectorToDelete?.Phone)
+                </MudText>
             </MudPaper>
 
             <MudAlert Severity="Severity.Warning"
                       Variant="Variant.Text"
                       Dense="true"
-                      Icon="@Icons.Material.Filled.Warning">
-                <b>Atenção:</b> Esta ação não poderá ser desfeita.
+                      Class="d-flex flex-row justify-content-center mb-2 alert-centered-icon"
+                      Icon="@Icons.Material.Filled.WarningAmber">
+
+                <p style="margin: auto; text-align: justify;">
+                    <b>Atenção:</b> Esta ação não poderá ser desfeita.
+                </p>
+
             </MudAlert>
+
+            <MudText Typo="Typo.subtitle2" Class="mt-2 mb-2">
+                Para confirmar a exclusão, digite o nome completo correspondente ao setor: <b>@SectorToDelete?.Acronym - @SectorToDelete?.Name</b>
+            </MudText>
+
+            <MudTextField T="string"
+                          Label="Confirmar exclusão"
+                          Variant="Variant.Outlined"
+                          @bind-Value="_confirmationText"
+                          Margin="Margin.Dense"
+                          Immediate="true"
+                          Required="true"
+                          HelperText="O texto deve ser idêntico ao nome do setor acima." />
 
         </div>
     </DialogContent>
 
     <DialogActions>
-        <div class="dialog-delete-actions">
-
+        <div class="px-2 py-1 dialog-actions">
+  
             <MudButton Color="Color.Error"
                        Variant="Variant.Filled"
-                       StartIcon="@Icons.Material.Filled.Delete"
-                       Class="action-button"
-                       OnClick="Submit">
+                       OnClick="Submit"
+                       Disabled="@(SectorToDelete is null || !_isConfirmationValid)">
+                <MudIcon Icon="@Icons.Material.Filled.DeleteForever" Size="Size.Small" />
                 Excluir
             </MudButton>
 
             <MudButton Color="Color.Secondary"
-                       Variant="Variant.Outlined"
+                       Variant="Variant.Text"
                        Class="action-button cancel-button"
                        OnClick="Cancel">
+                <MudIcon Icon="@Icons.Material.Filled.Close" Size="Size.Small" />
                 Cancelar
             </MudButton>
 
@@ -63,6 +125,15 @@
     </DialogActions>
 
 </MudDialog>
+
+<style>
+
+    /* Garante que o container do ícone e o ícone se alinhem corretamente */
+    .dialog-delete-content .alert-centered-icon .mud-alert-icon{
+        align-self: center !important;
+    }
+
+</style>
 
 @code {
 
@@ -72,9 +143,36 @@
     [Parameter]
     public SectorListItemDTO? SectorToDelete { get; set; }
 
-    private void Submit() => 
-        MudDialog.Close(DialogResult.Ok(true));
+    [Parameter]
+    public int UsersCount { get; set; }
 
-    private void Cancel() => 
+    private string _confirmationText = string.Empty;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (SectorToDelete?.Id != null)
+        {
+            try
+            {
+                var users = await SectorService.GetUsersBySectorAsync(SectorToDelete.Id);
+                UsersCount = users?.Count ?? 0;
+            }
+            catch
+            {
+                UsersCount = 0;
+            }
+        }
+    }
+
+    private bool _isConfirmationValid =>
+        _confirmationText.Trim().Equals($"{SectorToDelete?.Acronym} - {SectorToDelete?.Name}", StringComparison.OrdinalIgnoreCase);
+
+    private void Submit()
+    {
+        if (_isConfirmationValid)
+            MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    private void Cancel() =>
         MudDialog.Cancel();
 }

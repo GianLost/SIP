@@ -1,4 +1,4 @@
-﻿namespace SIP.UI.Domain.Helpers.DataFormatting.Strings;
+﻿namespace SIP.UI.Domain.Helpers.Strings;
 
 /// <summary>
 /// Métodos de extensão para manipulação de strings.
