@@ -139,11 +139,20 @@
                     </MudTooltip>
                 </MudTd>
 
-                <MudTd Style="text-align: center;" DataLabel="Status">
-                    <MudTooltip Text="@(user.Status ? "Ativo" : "Inativo")" Arrow="true" Placement="Placement.Left">
-                        <MudIcon Icon="@Icons.Material.Filled.Circle" Color="@(user.Status? Color.Success: Color.Error)" Size="Size.Small" />
-                    </MudTooltip>
+                <MudTd DataLabel="Status">
+                    @* Ícone de status do usuário *@
+                    <ChildContent>
+                        <MudChip T="string"
+                                 Color="@(user.Status ? Color.Success : Color.Error)"
+                                 Variant="Variant.Filled"
+                                 Size="Size.Small"
+                                 Class="fw-bold"
+                                 Style="min-width: 6vh;">
+                            @(user.Status ? "Ativo" : "Inativo")
+                        </MudChip>
+                    </ChildContent>
                 </MudTd>
+
                 <MudTd Class="mud-table-cell-truncate" DataLabel="Masp">
                     <MudTooltip Text="@user.Masp!.ToString()">
                         <span>@user.Masp</span>

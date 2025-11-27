@@ -82,8 +82,8 @@
 
                                 <TooltipContent>
                                     <MudPaper Class="pa-3 rounded-lg" Elevation="3" Style="max-width: 13rem">
-                                        <MudText Typo="Typo.subtitle2" Color="Color.Primary" Class="mb-1">
-                                            <MudIcon Icon="@Icons.Material.Filled.SettingsApplications" Size="Size.Small" />
+                                        <MudText Typo="Typo.subtitle2" Color="Color.Primary" Class="d-flex flex-row mb-1">
+                                            <MudIcon class="mr-2" Icon="@Icons.Material.Filled.SettingsApplications" Size="Size.Small" />
                                             Menu de opções
                                         </MudText>
 
@@ -99,15 +99,37 @@
                         }
                     </MudStack>
 
-                    <MudStack Row="true" AlignItems="AlignItems.Center">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="0">
                         <MudTextField T="string" ValueChanged="@OnSearch" Immediate="false" DebounceInterval="300" Placeholder="digite sua busca..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="m-auto" Clearable="true" Style="max-width: 300px;" />
 
                         @* Menu de Exportação - Always visible, not dependent on selection *@
-                        <MudTooltip Text="Exportar para formatos compatíveis ..." Arrow="true" Placement="Placement.Bottom">
-                            <MudMenu Icon="@Icons.Material.Filled.MoreVert" Color="Color.Primary" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
-                                <MudMenuItem OnClick="ExportToCsv">Exportar CSV</MudMenuItem>
-                                <MudMenuItem OnClick="ExportToPdf">Exportar PDF</MudMenuItem>
-                            </MudMenu>
+                        <MudTooltip
+                            Arrow="true" 
+                            Placement="Placement.Right"
+                            Color="Color.Inherit">
+
+                            <ChildContent>
+                                <MudMenu Icon="@Icons.Material.Filled.MoreVert" Color="Color.Primary" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                                    <MudMenuItem OnClick="ExportToCsv">Exportar CSV</MudMenuItem>
+                                    <MudMenuItem OnClick="ExportToPdf">Exportar PDF</MudMenuItem>
+                                </MudMenu>
+                            </ChildContent>
+
+                            <TooltipContent>
+                                <MudPaper Class="pa-3 rounded-lg" Elevation="3" Style="max-width: 13rem">
+                                    <MudText Typo="Typo.subtitle2" Color="Color.Primary" Class="d-flex flex-row mb-1">
+                                        <MudIcon Class="mr-2" Icon="@Icons.Material.Filled.FilePresent" Size="Size.Small" />
+                                        Exportar para
+                                    </MudText>
+
+                                    <MudDivider Light="true" Class="my-1" />
+
+                                    <MudText Style="text-align: justify;" Typo="Typo.body2" Color="Color.Inherit">
+                                        Utilize este menu para exportar os dados exibidos na tabela para formatos CSV ou PDF.
+                                    </MudText>
+                                </MudPaper>
+                            </TooltipContent>
+                            
                         </MudTooltip>
                     </MudStack>
 
@@ -142,8 +164,8 @@
 
                         <TooltipContent>
                             <MudPaper Class="pa-3 rounded-lg" Elevation="3" Style="max-width: 11.5rem">
-                                <MudText Typo="Typo.subtitle2" Color="Color.Primary" Class="mb-1">
-                                    <MudIcon Icon="@Icons.Material.Filled.PersonPin" Size="Size.Small" />
+                                <MudText Typo="Typo.subtitle2" Color="Color.Primary" Class="d-flex flex-row mb-1">
+                                    <MudIcon Class="mr-2" Icon="@Icons.Material.Filled.PersonPin" Size="Size.Small" />
                                     Exibir usuários
                                 </MudText>
 
@@ -202,9 +224,16 @@
 
                                             <MudTd DataLabel="Status">
                                                 @* Ícone de status do usuário *@
-                                                <MudTooltip Text="@(user.Status ? "Ativo" : "Inativo")" Arrow="true" Placement="Placement.Left">
-                                                    <MudIcon Icon="@Icons.Material.Filled.Circle" Color="@(user.Status ? Color.Success : Color.Error)" Size="Size.Small" />
-                                                </MudTooltip>
+                                                <ChildContent>
+                                                    <MudChip T="string"
+                                                             Color="@(user.Status ? Color.Success : Color.Error)"
+                                                             Variant="Variant.Filled"
+                                                             Size="Size.Small"
+                                                             Class="fw-bold"
+                                                             Style="min-width: 6vh;">
+                                                        @(user.Status ? "Ativo" : "Inativo")
+                                                    </MudChip>
+                                                </ChildContent>
                                             </MudTd>
 
                                             <MudTd DataLabel="MASP">@user.Masp</MudTd>
@@ -239,7 +268,7 @@
 
             @* Componente Mudblazor para inserir o seletor de registros por página da tabela. *@
             <PagerContent>
-                <MudTablePager PageSizeOptions="new int[] { 15, 25, 50, 100 }" />
+                <MudTablePager RowsPerPageString="Registros por página:" PageSizeOptions="new int[] { 15, 25, 50, 100 }" />
             </PagerContent>
 
         </MudTable>

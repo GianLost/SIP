@@ -47,11 +47,13 @@
                 }
             </MudDrawerHeader>
 
-            <MudNavMenu Class="full-width-nav" Color="Color.Primary">
+            <MudNavMenu Class="full-width-nav" Bordered="true" Color="Color.Primary">
 
-                <MudNavLink Href="/" Icon="@Icons.Material.Filled.Home" Match="NavLinkMatch.All">
+                <MudNavLink Class="mt-1" Href="/" Icon="@Icons.Material.Filled.Home" Match="NavLinkMatch.All">
                     Início
                 </MudNavLink>
+
+                <MudDivider Light="true" Class="my-1" />
 
                 <MudNavLink Href="/sectors" Icon="@Icons.Material.Filled.Business">
                     Secretarias
@@ -65,7 +67,7 @@
                     Protocolos
                 </MudNavLink>
 
-                <MudDivider />
+                <MudDivider Light="true" Class="my-1" />
 
                 <MudNavLink Href="/settings" Icon="@Icons.Material.Filled.Settings">
                     Configurações
@@ -77,7 +79,7 @@
 
             </MudNavMenu>
 
-            <MudSpacer />
+            <MudSpacer  />
 
             <MudContainer Class="m-auto p-1">
                 <MudIconButton Icon="@Icons.Material.Filled.Brightness4"
