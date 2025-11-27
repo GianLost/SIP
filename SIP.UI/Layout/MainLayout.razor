@@ -1,90 +1,112 @@
 ﻿@using MudBlazor
-
 @inherits LayoutComponentBase
 @inject IJSRuntime JS
 
-@* Importação dos componentes do MudBlazor *@
 <MudThemeProvider @ref="_mudThemeProvider" IsDarkMode="@_isDarkMode" Theme="@(_isDarkMode? DarkTheme : LightTheme)" />
+
 <MudDialogProvider />
 <MudSnackbarProvider />
 <MudPopoverProvider />
 
-@* Layout principal *@
-<MudLayout>
+<MudLayout Class="mud-height-full">
 
-    @* AppBar *@
+    <!-- APPBAR -->
     <MudAppBar Elevation="1">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu"
+                       Color="Color.Inherit"
+                       Edge="Edge.Start"
+                       OnClick="ToggleDrawer" />
 
-        @* Ícone de barras do menu lateral retrátil *@
-        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
-
-        <MudText Typo="Typo.h6" Class="ml-4">SIP - SISTEMA INTERNO DE PROTOCOLO</MudText>
+        <MudText Typo="Typo.h6" Class="ml-4">
+            SIP - SISTEMA INTERNO DE PROTOCOLO
+        </MudText>
 
         <MudSpacer />
 
-        @* Ícone de notificações *@
-        <MudTooltip Text="atualizações" Arrow="true" Placement="Placement.Bottom">
-            <MudIconButton Class="ms-4" Icon="@Icons.Material.Filled.Notifications" Color="Color.Inherit" Edge="Edge.End" />
-        </MudTooltip>
-
-        @* Ícone de login *@
-        <MudTooltip Text="Fazer login" Arrow="true" Placement="Placement.Bottom">
-            <MudIconButton Class="ms-4" Icon="@Icons.Material.Filled.Person" Color="Color.Inherit" Edge="Edge.End" />
-        </MudTooltip>
-
+        <MudIconButton Icon="@Icons.Material.Filled.Notifications" Color="Color.Inherit" />
+        <MudIconButton Icon="@Icons.Material.Filled.Person" Color="Color.Inherit" />
     </MudAppBar>
 
-    @* Menu lateral retrátil *@
-    <MudDrawer @bind-Open="_isDrawerOpened" Elevation="2">
+    <!-- CONTAINER OBRIGATÓRIO -->
+    <MudDrawerContainer Class="mud-height-full">
 
-        @* Cabeçalho do menu lateral retrátil *@
-        <MudDrawerHeader>
-            <MudStack Spacing="0">
-                <MudText Typo="Typo.h6">Menu Principal</MudText>
-            </MudStack>
-        </MudDrawerHeader>
+        <!-- DRAWER MINI CORRETO -->
+        <MudDrawer @bind-Open="_isDrawerOpen" 
+                   Color="Color.Inherit"
+                   Variant="DrawerVariant.Mini"
+                   OpenMiniOnHover="true"
+                   Fixed="true"
+                   ClipMode="DrawerClipMode.Never"
+                   Elevation="2"
+                   Breakpoint="Breakpoint.None">
 
-        @* Opções de navegação do menu *@
-        <MudNavMenu Color="Color.Primary" Bordered="true" Class="custom-nav-menu">
-            <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Início</MudNavLink>
-            <MudNavLink Href="/sectors" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Business">Secretarias</MudNavLink>
-            <MudNavLink Href="/users" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.People">Usuários</MudNavLink>
-            <MudNavLink Href="/protocols" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Book">Protocolos</MudNavLink>
-            <MudDivider Class="my-2" />
-            <MudNavLink Href="/settings" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Settings">Configurações</MudNavLink>
-            <MudNavLink Href="/help" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Help">Ajuda</MudNavLink>
-        </MudNavMenu>
+            <MudDrawerHeader>
+                @if (_isDrawerOpen)
+                {
+                    <MudText Typo="Typo.subtitle1">Menu</MudText>
+                }
+            </MudDrawerHeader>
 
-        <MudSpacer />
+            <MudNavMenu Class="full-width-nav" Color="Color.Primary">
 
-        @* Ícone para alteração de tema *@
-        <MudTooltip Text="Alterar tema" Arrow="true" Placement="Placement.Left">
-            <MudStack Row="true">
-                <MudIconButton Icon="@Icons.Material.Filled.Brightness4" Color="Color.Inherit" Edge="Edge.End" OnClick="ToggleTheme" />
-            </MudStack>
-        </MudTooltip>
+                <MudNavLink Href="/" Icon="@Icons.Material.Filled.Home" Match="NavLinkMatch.All">
+                    Início
+                </MudNavLink>
 
-    </MudDrawer>
+                <MudNavLink Href="/sectors" Icon="@Icons.Material.Filled.Business">
+                    Secretarias
+                </MudNavLink>
 
-    @* Renderização do conteúdo *@
-    <MudMainContent @onclick="CloseDrawerOnMainContentClick">
-        @Body
-    </MudMainContent>
+                <MudNavLink Href="/users" Icon="@Icons.Material.Filled.People">
+                    Usuários
+                </MudNavLink>
+
+                <MudNavLink Href="/protocols" Icon="@Icons.Material.Filled.Book">
+                    Protocolos
+                </MudNavLink>
+
+                <MudDivider />
+
+                <MudNavLink Href="/settings" Icon="@Icons.Material.Filled.Settings">
+                    Configurações
+                </MudNavLink>
+
+                <MudNavLink Href="/help" Icon="@Icons.Material.Filled.Help">
+                    Ajuda
+                </MudNavLink>
+
+            </MudNavMenu>
+
+            <MudSpacer />
+
+            <MudContainer Class="m-auto p-1">
+                <MudIconButton Icon="@Icons.Material.Filled.Brightness4"
+                               OnClick="ToggleTheme"
+                               Class="mb-2 toggle-theme"
+                               Color="Color.Inherit" />
+            </MudContainer>
+
+        </MudDrawer>
+
+        <!-- CONTEÚDO PRINCIPAL -->
+        <MudMainContent Class="main-content">
+            @Body
+        </MudMainContent>
+
+    </MudDrawerContainer>
 
 </MudLayout>
 
 @code {
 
-    // Altere para `false` para que o menu comece fechado.
-    private bool _isDrawerOpened = false;
-
+    private bool _isDrawerOpen = false;
     private bool _isDarkMode = true;
+
     private MudThemeProvider? _mudThemeProvider;
 
-    // Define os temas claro e escuro
-    private MudTheme LightTheme = new MudTheme()
+    private MudTheme LightTheme = new()
     {
-        PaletteLight = new PaletteLight()
+        PaletteLight = new()
         {
             Primary = Colors.Blue.Default,
             AppbarBackground = Colors.Blue.Default,
@@ -93,48 +115,32 @@
         }
     };
 
-    private MudTheme DarkTheme = new MudTheme()
+    private MudTheme DarkTheme = new()
     {
-        PaletteDark = new PaletteDark()
+        PaletteDark = new()
         {
             Primary = Colors.Cyan.Darken2,
-            Black = "#27272f",
             AppbarBackground = Colors.Cyan.Darken2,
             AppbarText = "#ffffff",
             Background = "#27272f"
         }
     };
 
-    // Injeta o MudThemeProvider para detectar o tema do sistema
     protected override async Task OnInitializedAsync()
     {
-        // Tenta carregar a preferência do usuário do localStorage
-        string theme = await JS.InvokeAsync<string>("localStorage.getItem", "sip-theme");
+        var theme = await JS.InvokeAsync<string>("localStorage.getItem", "sip-theme");
 
         if (!string.IsNullOrEmpty(theme))
             _isDarkMode = theme == "dark";
-
         else if (_mudThemeProvider is not null)
             _isDarkMode = await _mudThemeProvider.GetSystemDarkModeAsync();
     }
 
-    // Método para alternar o estado do drawer
-    void DrawerToggle() => 
-        _isDrawerOpened = !_isDrawerOpened;
+    private void ToggleDrawer() => _isDrawerOpen = !_isDrawerOpen;
 
-    // Método para fechar o drawer ao clicar no MainContent, se ele estiver aberto
-    void CloseDrawerOnMainContentClick()
-    {
-        if (_isDrawerOpened)
-            _isDrawerOpened = false;
- 
-    }
-
-    // Método para alternar o tema entre claro e escuro
     private async Task ToggleTheme()
     {
         _isDarkMode = !_isDarkMode;
         await JS.InvokeVoidAsync("localStorage.setItem", "sip-theme", _isDarkMode ? "dark" : "light");
-        StateHasChanged();
     }
 }

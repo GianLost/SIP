@@ -43,36 +43,58 @@
                         @* Menu de Ações para setores selecionados *@
                         @if (_selectedSectors.Any())
                         {
-                            <MudTooltip Text="@($"Ações aplicáveis para {_selectedSectors.Count} secretaria(s) selecionada(s)")" Arrow="true" Placement="Placement.Bottom">
-                                <MudMenu Dense="true" Icon="@Icons.Material.Filled.SettingsApplications" Color="Color.Primary" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
-                                    @* Ações visíveis apenas quando exatamente UMA secretaria é selecionada *@
-                                    @if (_selectedSectors.Count == 1)
-                                    {
-                                        <MudMenuItem OnClick="@(() => ShowEditDialog(_selectedSectors.First()))">
-                                            <MudStack Row="true" AlignItems="AlignItems.Center">
-                                                <MudIcon Icon="@Icons.Material.Filled.Edit" Size="Size.Small" />
-                                                <MudText Typo="Typo.body2">Editar</MudText>
-                                            </MudStack>
-                                        </MudMenuItem>
-                                        <MudDivider Class="my-2" />
-                                        <MudMenuItem OnClick="@(() => ShowDeleteDialog(_selectedSectors.First()))" Style="color: var(--mud-palette-error);">
-                                            <MudStack Row="true" AlignItems="AlignItems.Center">
-                                                <MudIcon Icon="@Icons.Material.Filled.Delete" Size="Size.Small" />
-                                                <MudText Typo="Typo.body2">Excluir</MudText>
-                                            </MudStack>
-                                        </MudMenuItem>
-                                    }
-                                    @* Ação visível apenas quando MÚLTIPLAS secretarias são selecionadas *@
-                                    @if (_selectedSectors.Count > 1)
-                                    {
-                                        <MudMenuItem OnClick="ShowDeleteSelectedSectorsDialog" Style="color: var(--mud-palette-error);">
-                                            <MudStack Row="true" AlignItems="AlignItems.Center">
-                                                <MudIcon Icon="@Icons.Material.Filled.Delete" Size="Size.Small" />
-                                                <MudText Typo="Typo.body2">Excluir</MudText>
-                                            </MudStack>
-                                        </MudMenuItem>
-                                    }
-                                </MudMenu>
+                            <MudTooltip
+                                Arrow="true" 
+                                Placement="Placement.Right"
+                                Color="Color.Inherit">
+
+                                <ChildContent>
+                                    <MudMenu Dense="true" Icon="@Icons.Material.Filled.SettingsApplications" Color="Color.Primary" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                                        @* Ações visíveis apenas quando exatamente UMA secretaria é selecionada *@
+                                        @if (_selectedSectors.Count == 1)
+                                        {
+                                            <MudMenuItem OnClick="@(() => ShowEditDialog(_selectedSectors.First()))">
+                                                <MudStack Row="true" AlignItems="AlignItems.Center">
+                                                    <MudIcon Icon="@Icons.Material.Filled.Edit" Size="Size.Small" />
+                                                    <MudText Typo="Typo.body2">Editar</MudText>
+                                                </MudStack>
+                                            </MudMenuItem>
+                                            <MudDivider Class="my-2" />
+                                            <MudMenuItem OnClick="@(() => ShowDeleteDialog(_selectedSectors.First()))" Style="color: var(--mud-palette-error);">
+                                                <MudStack Row="true" AlignItems="AlignItems.Center">
+                                                    <MudIcon Icon="@Icons.Material.Filled.Delete" Size="Size.Small" />
+                                                    <MudText Typo="Typo.body2">Excluir</MudText>
+                                                </MudStack>
+                                            </MudMenuItem>
+                                        }
+                                        @* Ação visível apenas quando MÚLTIPLAS secretarias são selecionadas *@
+                                        @if (_selectedSectors.Count > 1)
+                                        {
+                                            <MudMenuItem OnClick="ShowDeleteSelectedSectorsDialog" Style="color: var(--mud-palette-error);">
+                                                <MudStack Row="true" AlignItems="AlignItems.Center">
+                                                    <MudIcon Icon="@Icons.Material.Filled.Delete" Size="Size.Small" />
+                                                    <MudText Typo="Typo.body2">Excluir</MudText>
+                                                </MudStack>
+                                            </MudMenuItem>
+                                        }
+                                    </MudMenu>
+                                </ChildContent>
+
+                                <TooltipContent>
+                                    <MudPaper Class="pa-3 rounded-lg" Elevation="3" Style="max-width: 13rem">
+                                        <MudText Typo="Typo.subtitle2" Color="Color.Primary" Class="mb-1">
+                                            <MudIcon Icon="@Icons.Material.Filled.SettingsApplications" Size="Size.Small" />
+                                            Menu de opções
+                                        </MudText>
+
+                                        <MudDivider Light="true" Class="my-1" />
+
+                                        <MudText Style="text-align: justify;" Typo="Typo.body2" Color="Color.Inherit">
+                                            @($"Clique para expandir o menu e operar sob {_selectedSectors.Count} secretaria(s) selecionada(s)")
+                                        </MudText>
+                                    </MudPaper>
+                                </TooltipContent>
+
                             </MudTooltip>
                         }
                     </MudStack>
@@ -110,8 +132,29 @@
             <RowTemplate Context="sector">
 
                 <MudTd>
-                    <MudTooltip Text="usuários vinculados ..." Arrow="true" Placement="Placement.Left">
-                        <MudIconButton Icon="@(sector.ShowUsers? Icons.Material.Filled.People : Icons.Material.Filled.PeopleOutline)" Color="Color.Primary" Size="Size.Small" OnClick="@(() => ToggleShowUsers(sector))" />
+                    <MudTooltip Placement="Placement.Left"
+                                    Arrow="true"
+                                    Color="Color.Inherit">
+
+                        <ChildContent>
+                            <MudIconButton Icon="@(sector.ShowUsers? Icons.Material.Filled.People : Icons.Material.Filled.PeopleOutline)" Color="Color.Primary" Size="Size.Small" OnClick="@(() => ToggleShowUsers(sector))" />
+                        </ChildContent>
+
+                        <TooltipContent>
+                            <MudPaper Class="pa-3 rounded-lg" Elevation="3" Style="max-width: 11.5rem">
+                                <MudText Typo="Typo.subtitle2" Color="Color.Primary" Class="mb-1">
+                                    <MudIcon Icon="@Icons.Material.Filled.PersonPin" Size="Size.Small" />
+                                    Exibir usuários
+                                </MudText>
+
+                                <MudDivider Light="true" Class="my-1" />
+
+                                <MudText Style="text-align: justify;" Typo="Typo.body2" Color="Color.Inherit">
+                                    clique para expandir a vizualização de usuários vinculados à este setor.
+                                </MudText>
+                            </MudPaper>
+                        </TooltipContent>
+
                     </MudTooltip>
                 </MudTd>
 
@@ -393,7 +436,7 @@
         }
         else
         {
-            Snackbar.Add("Inserção de setor cancelada.", Severity.Info);
+            Snackbar.Add($"Inserção de setor cancelada.", Severity.Info);
         }
     }
 
