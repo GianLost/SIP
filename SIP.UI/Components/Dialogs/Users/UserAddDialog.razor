@@ -21,113 +21,175 @@
         </MudStack>
     </TitleContent>
 
-    @* Conteúdo do diálogo *@
     <DialogContent>
 
-        @* Formulário de adição *@
-        <MudForm @ref="form" @bind-IsValid="isValid" ErrorsChanged="OnErrorsChanged">
+        <div class="dialog-content">
+            <MudForm
+                @ref="form" 
+                @bind-IsValid="isValid" 
+                ErrorsChanged="OnErrorsChanged">
 
-            <MudGrid Spacing="2">
+                <MudGrid Spacing="5">
 
-                @* Campo MASP *@
-                <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="maspString"
-                                  Label="Masp"
-                                  Adornment="Adornment.Start"
-                                  AdornmentIcon="@Icons.Material.Filled.ConfirmationNumber"
-                                  Required="true"
-                                  RequiredError="O MASP é obrigatório!"
-                                  Variant="Variant.Outlined"
-                                  Margin="Margin.Normal"
-                                  Immediate="true"
-                                  OnBlur="SyncMaspToModel" />
-                </MudItem>
+                    <MudItem xs="6">
+                        <MudTextField @bind-Value="maspString"
+                                      Counter="50"
+                                      Label="Masp"
+                                      Adornment="Adornment.End"
+                                      AdornmentIcon="@Icons.Material.Filled.FormatListNumbered"
+                                      Required="true"
+                                      RequiredError="O MASP é obrigatório!"
+                                      Variant="Variant.Outlined"
+                                      Immediate="true"
+                                      Clearable="true"
+                                      Placeholder="Ex: 12345"
+                                      HelperText="Matrícula do usuário."
+                                      MaxLength="50"
+                                      OnBlur="SyncMaspToModel" />
+                    </MudItem>
 
-                @* Campo nome completo *@
-                <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="User.Name" Label="Name" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.PeopleOutline" Required="true" RequiredError="O nome é obrigatório!" Variant="Variant.Outlined" Margin="Margin.Normal" />
-                </MudItem>
+                    <MudItem xs="6">
+                        <MudTextField @bind-Value="User.Name"
+                                      Counter="150"
+                                      Label="Name" 
+                                      Adornment="Adornment.End"
+                                      AdornmentIcon="@Icons.Material.Filled.PeopleOutline" 
+                                      Required="true" 
+                                      RequiredError="O nome é obrigatório!" 
+                                      Variant="Variant.Outlined" 
+                                      Immediate="true"
+                                      Clearable="true"
+                                      MaxLength="150"
+                                      Placeholder="Ex: Maria Souza de Assis"
+                                      HelperText="Nome completo do usuário." />
+                    </MudItem>
 
-                @* Campo login *@
-                <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="User.Login" Label="Login" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.People" Required="true" RequiredError="O login é obrigatório!" Variant="Variant.Outlined" Margin="Margin.Normal" />
-                </MudItem>
+                    <MudItem xs="6">
+                        <MudTextField @bind-Value="User.Login" 
+                                      Counter="50"
+                                      Label="Login" 
+                                      Adornment="Adornment.End" 
+                                      AdornmentIcon="@Icons.Material.Filled.People" 
+                                      Required="true" 
+                                      RequiredError="O login é obrigatório!" 
+                                      Variant="Variant.Outlined" 
+                                      Immediate="true"
+                                      Clearable="true"
+                                      MaxLength="50"
+                                      Placeholder="Ex: maria.souza"
+                                      HelperText="Nome de login do usuário." />
+                    </MudItem>
 
-                @* Campo email *@
-                <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="User.Email" Label="Email" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Email" Required="true" RequiredError="O email é obrigatório!" Variant="Variant.Outlined" Margin="Margin.Normal" />
-                </MudItem>
+                    <MudItem xs="6">
+                        <MudTextField @bind-Value="User.Email" 
+                                      Counter="200"
+                                      Label="Email" 
+                                      Adornment="Adornment.End" 
+                                      AdornmentIcon="@Icons.Material.Filled.Email" 
+                                      Required="true" 
+                                      RequiredError="O email é obrigatório!" 
+                                      Variant="Variant.Outlined" 
+                                      Immediate="true"
+                                      Clearable="true"
+                                      MaxLength="200"
+                                      Placeholder="Ex: maria@gmail.com"
+                                      HelperText="Email do usuário." />
+                    </MudItem>
 
-                @* Campos de Senha e Confirmação de Senha (presentes na adição) *@
-                <MudItem xs="12" sm="6">
-                    <MudTextField T="string"
-                                  @bind-Value="User.Password"
-                                  Label="Nova Senha"
-                                  Variant="Variant.Outlined"
-                                  Margin="Margin.Normal"
-                                  InputType="@(showNewPassword ? InputType.Text : InputType.Password)"
-                                  Required="true"
-                                  RequiredError="A nova senha é obrigatória!"
-                                  For="@(() => User.Password)"
-                                  Validation="(string value) => ValidateNewPassword(value)"
-                                  Adornment="Adornment.End"
-                                  IconSize="Size.Small"
-                                  AdornmentIcon="@(showNewPassword ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"
-                                  OnAdornmentClick="ToggleNewPasswordVisibility"
-                                  Immediate="true"
-                                  OnBlur="OnPasswordChanged"/>
-                </MudItem>
+                    <MudItem xs="12">
+                        <MudTextField T="string"
+                                      Counter="255"
+                                      @bind-Value="User.Password"
+                                      Label="Nova Senha"
+                                      Variant="Variant.Outlined"
+                                      InputType="@(showNewPassword ? InputType.Text : InputType.Password)"
+                                      Required="true"
+                                      RequiredError="A nova senha é obrigatória!"
+                                      For="@(() => User.Password)"
+                                      Validation="(string value) => ValidateNewPassword(value)"
+                                      Adornment="Adornment.End"
+                                      IconSize="Size.Small"
+                                      AdornmentIcon="@(showNewPassword ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"
+                                      OnAdornmentClick="ToggleNewPasswordVisibility"
+                                      Immediate="true"
+                                      OnBlur="OnPasswordChanged"
+                                      Clearable="true"
+                                      MaxLength="255"
+                                      Placeholder="Digite sua senha..."
+                                      HelperText="Senha do usuário." />
+                    </MudItem>
 
-                <MudItem xs="12" sm="6">
-                    <MudTextField T="string"
-                                  @ref="confirmPasswordField"
-                                  @bind-Value="ConfirmPassword"
-                                  Label="Confirmar Senha"
-                                  Variant="Variant.Outlined"
-                                  Margin="Margin.Normal"
-                                  InputType="@(showConfirmPassword? InputType.Text: InputType.Password)"
-                                  Required="true"
-                                  RequiredError="A confirmação de senha é obrigatória!"
-                                  For="@(() => ConfirmPassword)"
-                                  Validation="(string value) => ValidateConfirmPassword(value)"
-                                  Adornment="Adornment.End"
-                                  IconSize="Size.Small"
-                                  AdornmentIcon="@(showConfirmPassword? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"
-                                  OnAdornmentClick="ToggleConfirmPasswordVisibility" 
-                                  Immediate="true"/>
-                </MudItem>
+                    <MudItem xs="12">
+                        <MudTextField T="string"
+                                      Counter="255"
+                                      @ref="confirmPasswordField"
+                                      @bind-Value="ConfirmPassword"
+                                      Label="Confirmar Senha"
+                                      Variant="Variant.Outlined"
+                                      InputType="@(showConfirmPassword? InputType.Text: InputType.Password)"
+                                      Required="true"
+                                      RequiredError="A confirmação de senha é obrigatória!"
+                                      For="@(() => ConfirmPassword)"
+                                      Validation="(string value) => ValidateConfirmPassword(value)"
+                                      Adornment="Adornment.End"
+                                      IconSize="Size.Small"
+                                      AdornmentIcon="@(showConfirmPassword? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"
+                                      OnAdornmentClick="ToggleConfirmPasswordVisibility"
+                                      Immediate="true" 
+                                      Clearable="true"
+                                      MaxLength="255"
+                                      Placeholder="Confirme sua senha..."
+                                      HelperText="Confirme a senha de usuário." />
+                    </MudItem>
 
-                @* Caixa de seleção para selecionar o setor do usuário *@
-                <MudItem Style="margin-top: 0.5rem;" xs="12" sm="6">
-                    <SectorAutocomplete @bind-Value="selectedSector" />
-                </MudItem>
+                    <MudDivider Light="true" Class="ml-2 mt-4 mb-0"></MudDivider>
 
-                @* Caixa de seleção para selecionar o nível de acesso do usuário *@
-                <MudItem xs="12" sm="6">
-                    <MudSelect T="RoleEnum" Label="Função (Role)" @bind-Value="User.Role" Required="true" Dense="true" RequiredError="Selecione uma função!" Variant="Variant.Outlined" Margin="Margin.Normal">
-                        @foreach (RoleEnum role in Enum.GetValues(typeof(RoleEnum)))
-                        {
-                            <MudSelectItem Value="role">@GetRoleDisplayName(role)</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudItem>
+                    <MudItem xs="6">
+                        <SectorAutocomplete @bind-Value="selectedSector" />
+                    </MudItem>
 
-            </MudGrid>
+                    <MudItem xs="6">
+                        <MudSelect 
+                            T="RoleEnum" 
+                            Label="Função (Role)" 
+                            @bind-Value="User.Role" 
+                            Required="true" 
+                            Dense="true" 
+                            RequiredError="Selecione uma função!" 
+                            Variant="Variant.Outlined"
+                            HelperText="Nível de acesso do usuário.">
+                            @foreach (RoleEnum role in Enum.GetValues(typeof(RoleEnum)))
+                            {
+                                <MudSelectItem Value="role">@GetRoleDisplayName(role)</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
 
-        </MudForm>
+                </MudGrid>
+
+            </MudForm>
+        </div>
 
     </DialogContent>
 
-    @* Botões de ação *@
     <DialogActions>
-        <MudStack Row="true" Class="justify-end pa-4">
-            <MudButton OnClick="Submit" Color="Color.Primary" Variant="Variant.Filled" Disabled="!isValid" Class="mr-3">
+        <div class="dialog-actions">
+            <MudButton OnClick="Submit"
+                       Color="Color.Primary"
+                       Variant="Variant.Filled"
+                       Disabled="!isValid"
+                       Class="action-button">
+                <MudIcon Icon="@Icons.Material.Filled.Save" Size="Size.Small" />
                 Salvar
             </MudButton>
-            <MudButton Color="Color.Secondary" Variant="Variant.Outlined" OnClick="Cancel">
+
+            <MudButton OnClick="Cancel"
+                       Color="Color.Secondary"
+                       Variant="Variant.Text">
+                <MudIcon Icon="@Icons.Material.Filled.Close" Size="Size.Small" />
                 Cancelar
             </MudButton>
-        </MudStack>
+        </div>
     </DialogActions>
 
 </MudDialog>

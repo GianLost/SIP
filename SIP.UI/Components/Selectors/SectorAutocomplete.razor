@@ -11,7 +11,7 @@
 @inject SectorService SectorService
 
 <MudTextField @bind-Value="searchTerm"
-              Label="Setor"
+              Label="Setor*"
               Variant="Variant.Outlined"
               Adornment="Adornment.End"
               AdornmentIcon="@(showList? Icons.Material.Filled.ArrowDropUp : Icons.Material.Filled.ArrowDropDown)"
@@ -21,7 +21,9 @@
               OnClearButtonClick="ClearSelection"
               ReadOnly="false"
               Immediate="true"
-              @onkeyup="@((e) => OnSearchTermInput(e))" />
+              @onkeyup="@((e) => OnSearchTermInput(e))"
+              Placeholder="Selecione o setor"
+              HelperText="Vincule o usuário à um setor."/>
 
 <MudPopover Open="showList"
             AnchorOrigin="Origin.BottomLeft"
