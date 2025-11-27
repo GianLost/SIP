@@ -4,6 +4,21 @@
 
 <MudDialog>
 
+    <TitleContent>
+        @if (string.IsNullOrEmpty(Sector.Name))
+        {
+            <MudStack Class="page-title">
+                <MudText Typo="Typo.h6">SECRETARIAS <span>| CRIAR</span></MudText>
+            </MudStack>
+        }
+        else
+        {
+            <MudStack Class="page-title">
+                <MudText Typo="Typo.h6">SECRETARIAS <span>| EDITAR</span></MudText>
+            </MudStack>
+        }
+    </TitleContent>
+
     <DialogContent>
 
         <div class="dialog-content">

@@ -1,0 +1,24 @@
+﻿/* =============================================== */
+/* == Estilos Customizados para a barra de navegação == */
+/* =============================================== */
+
+.mud-layout {
+    height: 100vh;
+}
+
+.mud-drawer {
+    height: 100vh !important;
+}
+
+.mud-appbar {
+    position: sticky;
+}
+
+.main-content {
+    height: 100vh;
+    overflow-y: auto;
+}
+
+.full-width-nav .mud-nav-link {
+    color: var(--mud-palette-text-secondary);
+}

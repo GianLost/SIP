@@ -1,0 +1,28 @@
+﻿/* =============================================== */
+/* == Estilos Customizados para os Diálogos == */
+/* =============================================== */
+
+.dialog-content {
+    padding: 1rem;
+}
+
+.dialog-grid {
+    margin-top: 0.5rem;
+}
+
+.dialog-content .alert-centered-icon .mud-alert-icon {
+    align-self: center !important;
+}
+
+.cursor-pointer {
+    margin-top: -0.75rem;
+}
+
+.dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 0.5rem;
+    margin-top: 0rem;
+    margin-right: 1.5rem;
+}

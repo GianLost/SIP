@@ -1,0 +1,8 @@
+﻿/* =============================================== */
+/* == Estilos Customizados para os tooltips (dicas) == */
+/* =============================================== */
+
+.tooltip-body {
+    width: 11.5rem !important;
+    text-align: start !important;
+}

@@ -25,6 +25,10 @@
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 
+<MudStack Class="main-page-title">
+    <MudText Typo="Typo.h6">USUÁRIOS <span>| INÍCIO</span></MudText>
+</MudStack>
+
 <MudContainer MaxWidth="MaxWidth.Large" Class="my-8 px-4">
 
     <MudStack Row="true" AlignItems="AlignItems.Stretch" Class="mb-3 ml-3">
@@ -146,8 +150,7 @@
                                  Color="@(user.Status ? Color.Success : Color.Error)"
                                  Variant="Variant.Filled"
                                  Size="Size.Small"
-                                 Class="fw-bold"
-                                 Style="min-width: 6vh;">
+                                 Class="status-chip">
                             @(user.Status ? "Ativo" : "Inativo")
                         </MudChip>
                     </ChildContent>

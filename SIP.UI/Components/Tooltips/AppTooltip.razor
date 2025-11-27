@@ -1,0 +1,78 @@
+﻿@using MudBlazor
+
+<MudTooltip Arrow="true"
+            Placement="@Placement"
+            Color="@Color">
+
+    <ChildContent>
+        @ChildContent
+    </ChildContent>
+
+    <TooltipContent>
+        <MudPaper Class="pa-3 rounded-lg"
+                  Elevation="@Elevation"
+                  Style="@($"max-width: {MaxWidth};")">
+
+            <MudText Typo="Typo.subtitle2"
+                     Color="@TitleColor"
+                     Class="d-flex flex-row mb-1">
+
+                @if (!string.IsNullOrEmpty(Icon))
+                {
+                    <MudIcon Class="mr-2"
+                             Icon="@Icon"
+                             Size="Size.Small" />
+                }
+
+                @Title
+            </MudText>
+
+            <MudDivider Light="true" Class="my-1" />
+
+            <MudText Typo="Typo.body2"
+                     Color="@TextColor"
+                     Class="tooltip-body">
+
+                @Description
+            </MudText>
+
+        </MudPaper>
+    </TooltipContent>
+
+</MudTooltip>
+
+@code {
+
+    [Parameter, EditorRequired] 
+    public RenderFragment ChildContent { get; set; }
+
+    // Textos
+    [Parameter, EditorRequired] 
+    public string Title { get; set; }
+
+    [Parameter, EditorRequired] 
+    public string Description { get; set; }
+
+    // Aparência
+    [Parameter] 
+    public string Icon { get; set; } = Icons.Material.Filled.Info;
+
+    [Parameter] 
+    public Color TitleColor { get; set; } = Color.Primary;
+
+    [Parameter] 
+    public Color TextColor { get; set; } = Color.Inherit;
+
+    [Parameter] 
+    public Color Color { get; set; } = Color.Inherit;
+
+    // Layout
+    [Parameter] 
+    public Placement Placement { get; set; } = Placement.Right;
+
+    [Parameter] 
+    public string MaxWidth { get; set; } = "13rem";
+
+    [Parameter] 
+    public int Elevation { get; set; } = 3;
+}
