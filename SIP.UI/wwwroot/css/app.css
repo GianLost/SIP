@@ -35,6 +35,14 @@ body {
     color: #a6a6a6;
 }
 
+.pass-form {
+    width: 22rem !important;
+}
+
+.sector-form {
+    width: 30rem !important;
+}
+
 #blazor-error-ui {
     background: lightyellow;
     bottom: 0;

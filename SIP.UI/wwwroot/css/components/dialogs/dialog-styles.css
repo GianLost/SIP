@@ -26,3 +26,25 @@
     margin-top: 0rem;
     margin-right: 1.5rem;
 }
+
+.dialog-actions .mud-button-root {
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.dialog-actions .mud-icon-root {
+    margin-right: 0.2rem;
+    margin-top: -0.2rem;
+}
+
+.no-copy {
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    -ms-user-select: none !important;
+    -moz-user-select: none !important;
+}
+
+/* Remove menu de contexto (botão direito) */
+.no-copy {
+    -webkit-touch-callout: none !important;
+}

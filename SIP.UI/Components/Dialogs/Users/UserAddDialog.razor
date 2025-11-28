@@ -1,4 +1,5 @@
 ﻿@using MudBlazor
+@using SIP.UI.Components.Passwords
 @using SIP.UI.Components.Selectors
 @using SIP.UI.Domain.DTOs.Default.Pagination
 @using SIP.UI.Domain.DTOs.Sectors.Pagination
@@ -98,8 +99,9 @@
 
                     <MudItem xs="12">
                         <MudTextField T="string"
+                                      Value="User.Password"
+                                      ValueChanged="@(async (string v) => await OnPasswordValueChanged(v))"
                                       Counter="255"
-                                      @bind-Value="User.Password"
                                       Label="Nova Senha"
                                       Variant="Variant.Outlined"
                                       InputType="@(showNewPassword ? InputType.Text : InputType.Password)"
@@ -112,11 +114,13 @@
                                       AdornmentIcon="@(showNewPassword ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"
                                       OnAdornmentClick="ToggleNewPasswordVisibility"
                                       Immediate="true"
-                                      OnBlur="OnPasswordChanged"
+                                      DebounceInterval="0"
                                       Clearable="true"
                                       MaxLength="255"
                                       Placeholder="Digite sua senha..."
                                       HelperText="Senha do usuário." />
+
+                        <PasswordStrengthBar @bind-Password="passwordForStrength" />
                     </MudItem>
 
                     <MudItem xs="12">
@@ -213,6 +217,9 @@
     private bool showNewPassword;
     private bool showConfirmPassword;
     private string ConfirmPassword { get; set; } = string.Empty;
+
+    private string passwordForStrength = default!;
+
     private MudTextField<string>? confirmPasswordField;
 
     private bool isValid;
@@ -251,8 +258,20 @@
         return null;
     }
 
-    private async Task OnPasswordChanged() =>
-        await confirmPasswordField?.Validate()!;
+    private async Task OnPasswordValueChanged(string v)
+    {
+        // atualiza o model real
+        User.Password = v;
+
+        // atualiza o "estado" que alimenta a barra
+        passwordForStrength = v;
+
+        // opcional: força validação do campo de confirmação
+        await confirmPasswordField!.Validate();
+
+        // força re-render
+        StateHasChanged();
+    }
 
     /// <summary>
     /// Alterna a visibilidade do campo "Nova Senha".
@@ -289,6 +308,7 @@
     protected override void OnInitialized()
     {
         maspString = User.Masp == 0 ? string.Empty : User.Masp.ToString();
+        User.Password = string.Empty;
 
         StateHasChanged();
     }

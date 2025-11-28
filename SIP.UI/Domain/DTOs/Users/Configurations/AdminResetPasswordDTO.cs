@@ -12,6 +12,6 @@ public class AdminResetPasswordDTO
 
     [Required(ErrorMessage = "A senha é obrigatória.")]
     [StringLength(255, MinimumLength = 8, ErrorMessage = "A senha deve ter entre 8 e 255 caracteres.")]
-    [RegularExpression(ConstExpressions.StrongPasswordRegex, ErrorMessage = "A senha deve conter pelo menos uma letra maiúscula, uma minúscula, um número e um caractere especial.")]
+    [RegularExpression(ConstExpressions.StrongPasswordRegex, ErrorMessage = "A senha deve conter letras, números e símbolos.")]
     public string Password { get; set; } = string.Empty;
 }
