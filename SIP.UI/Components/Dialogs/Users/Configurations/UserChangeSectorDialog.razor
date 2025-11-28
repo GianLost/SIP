@@ -18,9 +18,9 @@
     </TitleContent>
 
     <DialogContent>
-        <MudText Typo="Typo.h6" Class="mb-4">
+        <MudText Typo="Typo.subtitle1" Class="p-2">
             Alterar Setor para
-            <MudText Typo="Typo.h6" Color="Color.Primary" Class="font-semibold" Inline="true">
+            <MudText Typo="Typo.subtitle1" Color="Color.Primary" Class="fw-bold" Inline="true">
                 @Users.Login
             </MudText>
         </MudText>
@@ -35,14 +35,23 @@
     </DialogContent>
 
     <DialogActions>
-        <MudStack Row="true" Class="justify-end pa-4">
-            <MudButton OnClick="SubmitAsync" Color="Color.Primary" Variant="Variant.Filled" Disabled="!isValid" Class="mr-3">
+        <div class="dialog-actions">
+            <MudButton OnClick="SubmitAsync"
+                       Color="Color.Primary"
+                       Variant="Variant.Filled"
+                       Disabled="!isValid"
+                       Class="action-button">
+                <MudIcon Icon="@Icons.Material.Filled.Save" Size="Size.Small" />
                 Salvar
             </MudButton>
-            <MudButton Color="Color.Secondary" Variant="Variant.Outlined" OnClick="Cancel">
+
+            <MudButton OnClick="Cancel"
+                       Color="Color.Secondary"
+                       Variant="Variant.Text">
+                <MudIcon Icon="@Icons.Material.Filled.Close" Size="Size.Small" />
                 Cancelar
             </MudButton>
-        </MudStack>
+        </div>
     </DialogActions>
 
 </MudDialog>

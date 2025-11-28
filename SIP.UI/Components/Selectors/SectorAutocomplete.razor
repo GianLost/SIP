@@ -38,7 +38,7 @@
 
             <ItemContent Context="sector">
                 <div class="pa-2 mud-ripple" @onclick="(() => SelectItem(sector))">
-                    @sector.Name (@sector.Acronym)
+                    @sector.Acronym - @sector.Name
                 </div>
             </ItemContent>
         </Virtualize>
@@ -97,7 +97,7 @@
     {
         if (Value != null && Value != lastSelectedValue)
         {
-            searchTerm = $"{Value.Name} ({Value.Acronym})";
+            searchTerm = $"{Value.Name}";
             lastSelectedValue = Value;
         }
         else if (Value == null && lastSelectedValue != null)
@@ -122,7 +122,7 @@
 
     private void SelectItem(SectorBasicListDTO selectedSector)
     {
-        searchTerm = $"{selectedSector.Name} ({selectedSector.Acronym})";
+        searchTerm = $"{selectedSector.Acronym} - {selectedSector.Name}";
         showList = false;
         lastSelectedValue = selectedSector;
         ValueChanged.InvokeAsync(selectedSector);
