@@ -1,0 +1,66 @@
+﻿@using MudBlazor
+
+<div class="d-flex flex-column align-items-start justify-content-center gap-2">
+
+    <div class="toggle-container"
+         role="switch"
+         aria-checked="@Value"
+         @onclick="Toggle">
+
+        <div class="toggle-track @(Value ? "on" : "off")">
+            <div class="toggle-thumb"></div>
+        </div>
+    </div>
+
+    <div class="d-flex flex-row align-center">
+        <MudIcon Icon="@(Value? ActiveIcon : InactiveIcon)"
+                 Color="@(Value ? ActiveColor : InactiveColor)" />
+
+        <MudText Typo="Typo.subtitle2"
+                 Color="@(Value ? ActiveColor : InactiveColor)"
+                 Class="ml-1 mt-1">
+            @(Value? ActiveText : InactiveText)
+        </MudText>
+    </div>
+
+</div>
+
+@code {
+
+    [CascadingParameter] 
+    public MudForm? Form { get; set; }
+
+    [Parameter] 
+    public bool Value { get; set; }
+
+    [Parameter] 
+    public EventCallback<bool> ValueChanged { get; set; }
+
+    [Parameter] 
+    public string ActiveText { get; set; } = "Usuário ativo";
+
+    [Parameter] 
+    public string InactiveText { get; set; } = "Usuário desativado";
+
+    [Parameter] 
+    public string ActiveIcon { get; set; } = Icons.Material.Filled.CheckCircle;
+
+    [Parameter] 
+    public string InactiveIcon { get; set; } = Icons.Material.Filled.Block;
+
+    [Parameter] 
+    public Color ActiveColor { get; set; } = Color.Success;
+
+    [Parameter] 
+    public Color InactiveColor { get; set; } = Color.Error;
+
+    private async Task Toggle()
+    {
+        Value = !Value;
+
+        await ValueChanged.InvokeAsync(Value);
+
+        if (Form != null)
+            await Form.Validate();
+    }
+}

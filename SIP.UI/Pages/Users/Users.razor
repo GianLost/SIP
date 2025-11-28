@@ -4,6 +4,7 @@
 @using MudBlazor.Utilities
 @using SIP.UI.Components.Dialogs.Users
 @using SIP.UI.Components.Dialogs.Users.Configurations
+@using SIP.UI.Components.Tooltips
 @using SIP.UI.Domain.DTOs.Default.Pagination
 @using SIP.UI.Domain.DTOs.Protocols.Pagination
 @using SIP.UI.Domain.DTOs.Users
@@ -38,18 +39,43 @@
         </MudButton>
     </MudStack>
 
-    <MudPaper Class="pa-4 ma-2" Elevation="1">
+    <MudPaper 
+        Class="pa-4 ma-2" 
+        Elevation="1">
 
-        <MudTable T="UserListItemDTO" ServerData="LoadServerData" Dense="true" Hover="true" Bordered="false" @ref="table" RowsPerPage="pageSize" LoadingProgressColor="Color.Primary" SortLabel="sortLabel" Loading="@isLoading" Elevation="0" MultiSelection="true" @bind-SelectedItems="_selectedUsers">
+        <MudTable 
+            T="UserListItemDTO" 
+            ServerData="LoadServerData"
+            Dense="true" 
+            Hover="true" 
+            Bordered="false"
+            @ref="table" 
+            RowsPerPage="pageSize" 
+            LoadingProgressColor="Color.Primary" 
+            SortLabel="sortLabel" 
+            Loading="@isLoading" 
+            Elevation="0" 
+            MultiSelection="true" 
+            @bind-SelectedItems="_selectedUsers">
 
             <ToolBarContent>
 
-                <MudStack Style="width: 100%; margin-left: -0.75rem;" Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
-                    <MudStack Row="true" AlignItems="AlignItems.Center">
+                <MudStack 
+                    Style="width: 100%; margin-left: -0.75rem;" 
+                    Row="true" AlignItems="AlignItems.Center" 
+                    Justify="Justify.SpaceBetween">
+
+                    <MudStack 
+                        Row="true" 
+                        AlignItems="AlignItems.Center">
+
                         @* Menu de Ações para usuários selecionados *@
                         @if (_selectedUsers.Any())
                         {
-                            <MudTooltip Text="@($"Ações aplicáveis para {_selectedUsers.Count} usuário(s) selecionado(s)")" Arrow="true" Placement="Placement.Bottom">
+                            <AppTooltip Title="Menu de opções"
+                                        Description="@($"Clique para expandir o menu e operar sob {_selectedUsers.Count} usuário(s) selecionado(s)")"
+                                        Icon="@Icons.Material.Filled.SettingsApplications"
+                                        Placement="Placement.Right">
                                 <MudMenu Dense="true" Icon="@Icons.Material.Filled.SettingsApplications" Color="Color.Primary" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
                                     @* Actions visible only when exactly ONE user is selected *@
                                     @if (_selectedUsers.Count == 1)
@@ -91,20 +117,30 @@
                                         </MudMenuItem>
                                     }
                                 </MudMenu>
-                            </MudTooltip>
+                            </AppTooltip>
                         }
                     </MudStack>
 
                     <MudStack Row="true" AlignItems="AlignItems.Center">
                         <MudTextField T="string" ValueChanged="@OnSearch" Immediate="false" DebounceInterval="300" Placeholder="digite sua busca..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="m-auto" Clearable="true" Style="max-width: 300px;" />
 
-                        @* Menu de Exportação - Always visible, not dependent on selection *@
-                        <MudTooltip Text="Exportar para formatos compatíveis ..." Arrow="true" Placement="Placement.Bottom">
-                            <MudMenu Icon="@Icons.Material.Filled.MoreVert" Color="Color.Primary" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                        @* Tooltip customizado para dicas de funcionamento do componente *@
+                        <AppTooltip Title="Exportar para"
+                                    Description="Utilize este menu para exportar os dados exibidos na tabela para formatos CSV ou PDF."
+                                    Icon="@Icons.Material.Filled.FilePresent">
+
+                            @* Componente do menu de exportação de registros da tabela *@
+                            <MudMenu Icon="@Icons.Material.Filled.MoreVert"
+                                     Color="Color.Primary"
+                                     AnchorOrigin="Origin.BottomRight"
+                                     TransformOrigin="Origin.TopRight">
+
                                 <MudMenuItem OnClick="ExportToCsv">Exportar CSV</MudMenuItem>
                                 <MudMenuItem OnClick="ExportToPdf">Exportar PDF</MudMenuItem>
+
                             </MudMenu>
-                        </MudTooltip>
+
+                        </AppTooltip>
                     </MudStack>
 
                 </MudStack>
@@ -115,7 +151,7 @@
                 <MudTh Style="width: 10px;"></MudTh>
 
                 <MudTh Style="font-weight: bold;">
-                    <MudTableSortLabel SortLabel="Status"  SortBy="new Func<UserListItemDTO, object>(x => x.Status)">Status</MudTableSortLabel>
+                    <MudTableSortLabel SortLabel="Status" SortBy="new Func<UserListItemDTO, object>(x => x.Status)">Status</MudTableSortLabel>
                 </MudTh>
 
                 <MudTh Style="font-weight: bold;">
@@ -137,10 +173,28 @@
 
             <RowTemplate Context="user">
 
-                <MudTd Style="text-align: center;">
-                    <MudTooltip Text="Vizualizar protocolos ..." Arrow="true" Placement="Placement.Bottom">
-                        <MudIconButton Icon="@(user.ShowProtocols? @Icons.Material.Filled.MenuBook : @Icons.Material.Outlined.Book)" Color="Color.Primary" Size="Size.Small" OnClick="@(() => ToggleShowProtocols(user))" />
-                    </MudTooltip>
+                <MudTd Style="tuser-toggle-cell">
+
+                    <div class="user-toggle-wrapper">
+                        @if (_selectedUsers.Any(s => s.Id == user.Id))
+                        {
+                            @* Tooltip customizado para dicas de funcionamento do componente *@
+                            <AppTooltip Title="Exibir protocolos"
+                                        Description="Clique para expandir a visualização de protocolos vinculados a este usuário."
+                                        Icon="@Icons.Material.Filled.Book"
+                                        Placement="Placement.Left">
+
+                                @* Botão de exibição dos usuários relacionados ao setor *@
+                                <MudIconButton Icon="@(user.ShowProtocols? @Icons.Material.Filled.MenuBook : @Icons.Material.Outlined.Book)"
+                                               Color="Color.Primary"
+                                               Size="Size.Small"
+                                               OnClick="@(() => ToggleShowProtocols(user))" />
+
+                            </AppTooltip>
+                        }
+
+                    </div>
+
                 </MudTd>
 
                 <MudTd DataLabel="Status">
@@ -150,7 +204,7 @@
                                  Color="@(user.Status ? Color.Success : Color.Error)"
                                  Variant="Variant.Filled"
                                  Size="Size.Small"
-                                 Class="status-chip">
+                                 Class="status-chip m-0">
                             @(user.Status ? "Ativo" : "Inativo")
                         </MudChip>
                     </ChildContent>
@@ -269,7 +323,7 @@
     private string GetButtonClass() =>
         $"mud-elevation-3 animated-fab-button-manual-icon {(_isModalOpen ? "force-expanded-button" : "")}";
 
-    protected override void OnInitialized() => 
+    protected override void OnInitialized() =>
         _selectedUsers.Clear();
 
     private async Task<TableData<UserListItemDTO>> LoadServerData(TableState state, CancellationToken cancellationToken)
@@ -296,10 +350,10 @@
                 searchString);
 
             return new TableData<UserListItemDTO>
-                {
-                    Items = users!.Items,
-                    TotalItems = users.TotalCount
-                };
+            {
+                Items = users!.Items,
+                TotalItems = users.TotalCount
+            };
         }
         catch (Exception ex)
         {

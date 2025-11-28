@@ -157,7 +157,8 @@
     }
 
     private bool _isConfirmationValid =>
-        _confirmationText.Trim().Equals($"{SectorToDelete?.Acronym} - {SectorToDelete?.Name}", StringComparison.OrdinalIgnoreCase);
+        _confirmationText.Trim().Equals($"{SectorToDelete?.Acronym} - {SectorToDelete?.Name}",
+        StringComparison.OrdinalIgnoreCase);
 
     private void Submit()
     {

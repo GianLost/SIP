@@ -1,7 +1,11 @@
 ﻿@using MudBlazor
+@using SIP.UI.Components.Tooltips
 @using SIP.UI.Domain.DTOs.Users.Pagination
+@using SIP.UI.Domain.Services.Users
 @using SIP.UI.Models.Sectors
 @using SIP.UI.Models.Users
+
+@inject UserService UserService
 
 <MudDialog>
 
@@ -11,52 +15,122 @@
         </MudStack>
     </TitleContent>
 
-    @* Conteúdo do diálogo *@
     <DialogContent>
 
-        @* Cabeçalho do diálogo *@
-        <MudStack AlignItems="AlignItems.Center" Spacing="2">
+        <div class="dialog-content">
 
-            @* Ícone de lixeira *@
-            <MudIcon Icon="@Icons.Material.Filled.DeleteForever" Class="mb-2" Color="Color.Error" Size="Size.Large" />
+            <MudAlert Severity="Severity.Error"
+                      Variant="Variant.Text"
+                      Dense="true"
+                      Class="alert-centered-icon mb-4"
+                      Icon="@Icons.Material.Filled.ErrorOutline">
+                <p style="margin: auto; text-align: justify;">
+                    Você está prestes a <b>** EXCLUIR PERMANENTEMENTE **</b> o usuário: <b>@UserToDelete?.Name</b>.
+                </p>
+            </MudAlert>
 
-            <MudText Typo="Typo.h5" Align="Align.Center" class="mb-2" Color="Color.Error">
-                Confirmar exclusão de usuário
+            <MudPaper Class="pa-4 mb-4" Outlined="true" Square="true">
+
+                <MudText Class="d-flex flex-row justify-content-between" Typo="Typo.h6">
+                    <b>Usuário selecionado</b>
+
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="0">
+
+                        <AppTooltip 
+                            Title="protocolos vinculados"
+                            Description="Quantidade total de protocolos atualmente vinculados ao usuário selecionado."
+                            Icon="@Icons.Material.Filled.Book" 
+                            Placement="Placement.Right" 
+                            Color="Color.Inherit">
+
+                            <ChildContent>
+                                <MudChip T="int"
+                                         Color="Color.Primary"
+                                         Variant="Variant.Filled"
+                                         Size="Size.Medium"
+                                         Icon="@Icons.Material.Filled.Book"
+                                         Class="cursor-pointer fw-bold">
+                                    @($": {ProtocolsCount}")
+                                </MudChip>
+                            </ChildContent>
+
+                        </AppTooltip>
+
+                    </MudStack>
+                </MudText>
+
+                <MudDivider Light="true" Class="my-1" />
+
+                <MudText Typo="Typo.body2" Class="mt-2 mb-2">
+                    <b>Nome:</b> @UserToDelete?.Name
+                </MudText>
+
+                <MudDivider Light="true" Class="my-1" />
+
+                <MudText Typo="Typo.body2" Class="mt-2 mb-2">
+                    <b>Login:</b> @UserToDelete?.Login
+                </MudText>
+
+                <MudDivider Light="true" Class="my-1" />
+
+                <MudText Typo="Typo.body2" Class="mt-2 mb-2">
+                    <b>Setor:</b> @UserToDelete?.Sector
+                </MudText>
+
+                <MudDivider Light="true" />
+            </MudPaper>
+
+            <MudAlert Severity="Severity.Warning"
+                      Variant="Variant.Text"
+                      Dense="true"
+                      Class="alert mb-4"
+                      Icon="@Icons.Material.Filled.WarningAmber">
+
+                <p style="margin: auto; text-align: justify;">
+                    <b>Atenção:</b> Esta ação não poderá ser desfeita.
+                </p>
+
+            </MudAlert>
+
+            <MudDivider Light="true" Class="mb-4" />
+
+            <MudText Typo="Typo.subtitle2" Class="mt-2 mb-2">
+                Para confirmar a exclusão, digite o nome completo correspondente ao usuário: <b>@UserToDelete?.Name</b>
             </MudText>
 
-        </MudStack>
-
-        @* Informações do usuário que será excluído *@
-        <MudPaper Class="pa-3 mt-3" Elevation="0" Style="background-color: rgba(255, 0, 0, 0.05); border-radius: 8px;">
-
-            @* Texto de aviso *@
-            <MudText Class="mb-4">
-                Você tem certeza que deseja excluir permanentemente o usuário abaixo?
-            </MudText>
-
-            <MudStack Spacing="0">
-                <MudText Typo="Typo.body2">Nome: <b>@UserToDelete?.Name</b></MudText>
-                <MudText Typo="Typo.body2">Login: <b>@UserToDelete?.Login</b></MudText>
-                <MudText Typo="Typo.body2" Class="mt-2">Setor: <b>@UserToDelete?.Sector</b></MudText>
-            </MudStack>
-
-        </MudPaper>
-
-        @* Texto de aviso *@
-        <MudAlert Severity="Severity.Warning" Variant="Variant.Text" Dense="true" Class="mt-4" Icon="@Icons.Material.Filled.Warning">
-            <b>Atenção:</b> Esta ação não pode ser desfeita.
-        </MudAlert>
+            <MudTextField T="string"
+                          Label="Confirmar exclusão"
+                          Variant="Variant.Outlined"
+                          @bind-Value="_confirmationText"
+                          Margin="Margin.Normal"
+                          Immediate="true"
+                          Required="true"
+                          RequiredError="Informe o nome do usuário para prosseguir."
+                          HelperText="O texto deve ser idêntico ao nome do usuário acima." />
+        </div>
 
     </DialogContent>
 
-    @* Botões de ação *@
     <DialogActions>
-        <MudButton Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete" OnClick="Submit">
-            Excluir
-        </MudButton>
-        <MudButton Color="Color.Secondary" Variant="Variant.Outlined" OnClick="Cancel">
-            Cancelar
-        </MudButton>
+        <div class="dialog-actions">
+
+            <MudButton Color="Color.Error"
+                       Variant="Variant.Filled"
+                       OnClick="Submit"
+                       Disabled="@(UserToDelete is null || !_isConfirmationValid)">
+                <MudIcon Icon="@Icons.Material.Filled.DeleteForever" Size="Size.Small" />
+                Excluir
+            </MudButton>
+
+            <MudButton Color="Color.Secondary"
+                       Variant="Variant.Text"
+                       Class="action-button cancel-button"
+                       OnClick="Cancel">
+                <MudIcon Icon="@Icons.Material.Filled.Close" Size="Size.Small" />
+                Cancelar
+            </MudButton>
+
+        </div>
     </DialogActions>
 
 </MudDialog>
@@ -76,6 +150,31 @@
     /// </summary>
     [Parameter]
     public UserListItemDTO UserToDelete { get; set; } = new();
+
+    [Parameter]
+    public int ProtocolsCount { get; set; }
+
+    private string _confirmationText = string.Empty;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (UserToDelete?.Id != null)
+        {
+            try
+            {
+                var protocols = await UserService.GetCreatedProtocolsByUserAsync(UserToDelete.Id);
+                ProtocolsCount = protocols?.Count ?? 0;
+            }
+            catch
+            {
+                ProtocolsCount = 0;
+            }
+        }
+    }
+
+    private bool _isConfirmationValid =>
+        _confirmationText.Trim().Equals($"{UserToDelete?.Name}", 
+        StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
     /// Confirma a exclusão do usuário.

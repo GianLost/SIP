@@ -1,4 +1,5 @@
 ﻿@using MudBlazor
+@using SIP.UI.Components.Switches
 @using SIP.UI.Domain.DTOs.Users
 @using SIP.UI.Domain.Services.Sectors
 @using SIP.UI.Domain.Enums
@@ -16,51 +17,94 @@
         </MudStack>
     </TitleContent>
 
-    @* Conteúdo do diálogo *@
     <DialogContent>
 
-        @* Formulário de edição *@
-        <MudForm @ref="form" @bind-IsValid="isValid" ErrorsChanged="OnErrorsChanged">
+        <MudForm 
+            @ref="form" 
+            @bind-IsValid="isValid" 
+            ErrorsChanged="OnErrorsChanged">
 
             <MudGrid Spacing="2">
 
-                @* Campo MASP *@
-                <MudItem xs="12" sm="6">
+                <MudItem xs="6">
                     <MudTextField @bind-Value="maspString"
+                                  Counter="50"
                                   Label="Masp"
-                                  Adornment="Adornment.Start"
-                                  AdornmentIcon="@Icons.Material.Filled.ConfirmationNumber"
+                                  Adornment="Adornment.End"
+                                  AdornmentIcon="@Icons.Material.Filled.FormatListNumbered"
                                   Required="true"
                                   RequiredError="O MASP é obrigatório!"
                                   Variant="Variant.Outlined"
-                                  Margin="Margin.Normal"
                                   Immediate="true"
+                                  Clearable="true"
+                                  Placeholder="Ex: 12345"
+                                  HelperText="Matrícula do usuário."
+                                  MaxLength="50"
                                   OnBlur="SyncMaspToModel" />
                 </MudItem>
 
-                @* Campo Nome Completo *@
-                <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="User.Name" Label="Nome Completo" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.PeopleOutline" Required="true" RequiredError="O nome é obrigatório!" Variant="Variant.Outlined" Margin="Margin.Normal" />
+                <MudItem xs="6">
+                    <MudTextField @bind-Value="User.Name"
+                                  Counter="150"
+                                  Label="Name"
+                                  Adornment="Adornment.End"
+                                  AdornmentIcon="@Icons.Material.Filled.PeopleOutline"
+                                  Required="true"
+                                  RequiredError="O nome é obrigatório!"
+                                  Variant="Variant.Outlined"
+                                  Immediate="true"
+                                  Clearable="true"
+                                  MaxLength="150"
+                                  Placeholder="Ex: Maria Souza de Assis"
+                                  HelperText="Nome completo do usuário." />
                 </MudItem>
 
-                @* Campo Login *@
-                <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="User.Login" Label="Login" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.People" Required="true" RequiredError="O login é obrigatório!" Variant="Variant.Outlined" Margin="Margin.Normal" />
+                <MudItem xs="6">
+                    <MudTextField @bind-Value="User.Login"
+                                  Counter="50"
+                                  Label="Login"
+                                  Adornment="Adornment.End"
+                                  AdornmentIcon="@Icons.Material.Filled.People"
+                                  Required="true"
+                                  RequiredError="O login é obrigatório!"
+                                  Variant="Variant.Outlined"
+                                  Immediate="true"
+                                  Clearable="true"
+                                  MaxLength="50"
+                                  Placeholder="Ex: maria.souza"
+                                  HelperText="Nome de login do usuário." />
                 </MudItem>
 
-                @* Campo Email *@
-                <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="User.Email" Label="Email" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Email" Required="true" RequiredError="O email é obrigatório!" Variant="Variant.Outlined" Margin="Margin.Normal" />
+                <MudItem xs="6">
+                    <MudTextField @bind-Value="User.Email"
+                                  Counter="200"
+                                  Label="Email"
+                                  Adornment="Adornment.End"
+                                  AdornmentIcon="@Icons.Material.Filled.Email"
+                                  Required="true"
+                                  RequiredError="O email é obrigatório!"
+                                  Variant="Variant.Outlined"
+                                  Immediate="true"
+                                  Clearable="true"
+                                  MaxLength="200"
+                                  Placeholder="Ex: maria@gmail.com"
+                                  HelperText="Email do usuário." />
                 </MudItem>
 
-                @* Checkbox para ativar/inativar o usuário com label dinâmico *@
-                <MudItem xs="12" sm="6" Class="m-0">
-                    <MudCheckBox Size="Size.Small" @bind-Value="User.Status" Color="@Color.Primary"> @(User.Status == true ? "Desativar" : "Ativar")</MudCheckBox>
+                <MudItem xs="6">
+                    <StatusToggle @bind-Value="User.Status" />
                 </MudItem>
 
-                @* Caixa de seleção para definir o papel (Role) do usuário *@
-                <MudItem xs="12" sm="6" Class="m-0">
-                    <MudSelect T="RoleEnum" Label="Função (Role)" @bind-Value="User.Role" Required="true" Dense="true" RequiredError="Selecione uma função!" Variant="Variant.Outlined" Margin="Margin.Normal">
+                <MudItem xs="6" Class="m-0">
+                    <MudSelect 
+                               T="RoleEnum"
+                               Label="Função (Role)"
+                               @bind-Value="User.Role"
+                               Required="true"
+                               Dense="true"
+                               RequiredError="Selecione uma função!"
+                               Variant="Variant.Outlined"
+                               HelperText="Nível de acesso do usuário.">
                         @foreach (RoleEnum role in Enum.GetValues(typeof(RoleEnum)))
                         {
                             <MudSelectItem Value="role">@GetRoleDisplayName(role)</MudSelectItem>
@@ -74,16 +118,24 @@
 
     </DialogContent>
 
-    @* Botões de ação *@
     <DialogActions>
-        <MudStack Row="true" Class="justify-end pa-4">
-            <MudButton OnClick="Submit" Color="Color.Primary" Variant="Variant.Filled" Disabled="!isValid" Class="mr-3">
+        <div class="dialog-actions">
+            <MudButton OnClick="Submit"
+                       Color="Color.Primary"
+                       Variant="Variant.Filled"
+                       Disabled="!isValid"
+                       Class="action-button">
+                <MudIcon Icon="@Icons.Material.Filled.Save" Size="Size.Small" />
                 Salvar
             </MudButton>
-            <MudButton Color="Color.Secondary" Variant="Variant.Outlined" OnClick="Cancel">
+
+            <MudButton OnClick="Cancel"
+                       Color="Color.Secondary"
+                       Variant="Variant.Text">
+                <MudIcon Icon="@Icons.Material.Filled.Close" Size="Size.Small" />
                 Cancelar
-             </MudButton>
-        </MudStack>
+            </MudButton>
+        </div>
     </DialogActions>
 
 </MudDialog>
