@@ -55,8 +55,9 @@
             SortLabel="sortLabel" 
             Loading="@isLoading" 
             Elevation="0" 
-            MultiSelection="true" 
-            @bind-SelectedItems="_selectedUsers">
+            MultiSelection="true"
+            SelectedItems="_selectedUsers"
+            SelectedItemsChanged="OnSelectedItemsChanged">
 
             <ToolBarContent>
 
@@ -185,11 +186,12 @@
                                         Placement="Placement.Left">
 
                                 @* Botão de exibição dos usuários relacionados ao setor *@
-                                <MudIconButton Icon="@(user.ShowProtocols? @Icons.Material.Filled.MenuBook : @Icons.Material.Outlined.Book)"
-                                               Color="Color.Primary"
-                                               Size="Size.Small"
-                                               Class="p-0 m-0"
-                                               OnClick="@(() => ToggleShowProtocols(user))" />
+                                <MudIconButton 
+                                    Icon="@(openUserIds.Contains(user.Id) ? Icons.Material.Filled.MenuBook : Icons.Material.Outlined.Book)"
+                                    Color="Color.Primary" 
+                                    Size="Size.Small" 
+                                    Class="p-0 m-0" 
+                                    OnClick="@(() => ToggleShowProtocols(user))" />
 
                             </AppTooltip>
                         }
@@ -234,7 +236,7 @@
             </RowTemplate>
 
             <ChildRowContent Context="userDetail">
-                @if (userDetail.ShowProtocols)
+                @if (openUserIds.Contains(userDetail.Id))
                 {
                     var protocols = userProtocols.TryGetValue(userDetail.Id, out var u) ? u : new List<ProtocolBasicListDTO>();
                     <MudTr>
@@ -302,6 +304,12 @@
     // Dicionário para armazenar usuários carregados por setor
     private Dictionary<Guid, List<ProtocolBasicListDTO>> userProtocols = new();
 
+    // track which sector child rows are currently open (by Id)
+    private readonly HashSet<Guid> openUserIds = new();
+
+    // track previous selected ids to detect additions/removals reliably
+    private HashSet<Guid> _previousSelectedIds = new();
+
     private RenderFragment GetStatusChip(ProtocolStatus status)
     {
         var (text, icon, color) = GetStatusDetails(status);
@@ -331,9 +339,6 @@
     {
         isLoading = true;
         StateHasChanged();
-
-        // Clear selection when data reloads to prevent stale selections
-        _selectedUsers.Clear();
 
         pageSize = state.PageSize;
         string? sortLabel = state.SortLabel;
@@ -382,20 +387,72 @@
     /// <param name="user">The sector to toggle.</param>
     private async Task ToggleShowProtocols(UserListItemDTO user)
     {
-        user.ShowProtocols = !user.ShowProtocols;
-
-        if (user.ShowProtocols && !userProtocols.ContainsKey(user.Id))
+        if (openUserIds.Contains(user.Id))
         {
-            // Chamada assíncrona para buscar usuários do setor
-            var protocols = await _userService.GetCreatedProtocolsByUserAsync(user.Id);
-            userProtocols[user.Id] = protocols;
-            StateHasChanged();
-        }
-        else if (!user.ShowProtocols)
-        {
-            // Opcional: Remover usuários do dicionário para liberar memória
+            openUserIds.Remove(user.Id);
             userProtocols.Remove(user.Id);
         }
+        else
+        {
+            // collapse all others
+            foreach (var id in openUserIds.ToList())
+            {
+                openUserIds.Remove(id);
+                userProtocols.Remove(id);
+            }
+            // open this one
+            openUserIds.Add(user.Id);
+            if (!userProtocols.ContainsKey(user.Id))
+                userProtocols[user.Id] = await _userService.GetCreatedProtocolsByUserAsync(user.Id);
+        }
+        StateHasChanged();
+    }
+
+    private Task OnSelectedItemsChanged(HashSet<UserListItemDTO> selected)
+    {
+        // new selection ids (snapshot of the passed set)
+        var newIds = new HashSet<Guid>(selected.Select(s => s.Id));
+
+        // removed ids = previously selected but not in new selection
+        var removedIds = _previousSelectedIds.Except(newIds).ToList();
+        foreach (var id in removedIds)
+        {
+            if (openUserIds.Contains(id))
+            {
+                openUserIds.Remove(id);
+                userProtocols.Remove(id);
+            }
+        }
+
+        // added ids = newly selected
+        var addedIds = newIds.Except(_previousSelectedIds).ToList();
+        if (addedIds.Any())
+        {
+            // keep only last-added open: collapse others
+            var lastAddedId = addedIds.Last();
+            foreach (var id in openUserIds.ToList())
+            {
+                if (id != lastAddedId)
+                {
+                    openUserIds.Remove(id);
+                    userProtocols.Remove(id);
+                }
+            }
+        }
+
+        // update your selection references
+        _selectedUsers = selected;           // still useful for UI/menu
+        _previousSelectedIds = newIds;        // update snapshot
+
+        // if selection became empty, ensure all child rows closed
+        if (!newIds.Any())
+        {
+            openUserIds.Clear();
+            userProtocols.Clear();
+        }
+
+        StateHasChanged();
+        return Task.CompletedTask;
     }
 
     private async Task OnSearch(string value)

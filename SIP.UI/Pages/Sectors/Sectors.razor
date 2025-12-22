@@ -70,7 +70,8 @@
             SortLabel="sortLabel" 
             Elevation="0" 
             MultiSelection="true" 
-            @bind-SelectedItems="_selectedSectors">
+            SelectedItems="_selectedSectors"
+            SelectedItemsChanged="OnSelectedItemsChanged">
 
             @* Barra superior da tabela contendo o campo de filtragem e os botões de exportação *@
             <ToolBarContent>
@@ -261,10 +262,10 @@
 
                                 @* Botão de exibição dos usuários relacionados ao setor *@
                                 <MudIconButton 
-                                    Icon="@(sector.ShowUsers ? Icons.Material.Filled.People : Icons.Material.Filled.PeopleOutline)"
-                                    Color="Color.Primary"
-                                    Size="Size.Small"
-                                    Class="p-0 m-0"
+                                    Icon="@(openSectorIds.Contains(sector.Id) ? Icons.Material.Filled.People : Icons.Material.Filled.PeopleOutline)"
+                                    Color="Color.Primary" 
+                                    Size="Size.Small" 
+                                    Class="p-0 m-0" 
                                     OnClick="@(() => ToggleShowUsers(sector))" />
 
                             </AppTooltip>
@@ -283,7 +284,7 @@
             <ChildRowContent 
                 Context="sectorDetail">
 
-                @if (sectorDetail.ShowUsers)
+                @if (openSectorIds.Contains(sectorDetail.Id))
                 {
                     var users = sectorUsers.TryGetValue(sectorDetail.Id, out var u) ? u : new List<UserBasicListDTO>();
 
@@ -413,6 +414,12 @@
     private string? lastSortLabel;
     private bool _isModalOpen = false;
 
+    // track which sector child rows are currently open (by Id)
+    private readonly HashSet<Guid> openSectorIds = new();
+
+    // track previous selected ids to detect additions/removals reliably
+    private HashSet<Guid> _previousSelectedIds = new();
+
     /// <summary>
     /// Fornece a classe CSS para o botão FAB com base no estado do modal.
     /// </summary>
@@ -433,8 +440,6 @@
     {
         isLoading = true;
         StateHasChanged();
-
-        _selectedSectors.Clear();
 
         pageSize = state.PageSize;
         string? sortLabel = state.SortLabel;
@@ -480,25 +485,74 @@
     /// Toggles the visibility of related users for a sector.
     /// </summary>
     /// <param name="sector">The sector to toggle.</param>
-    private async void ToggleShowUsers(SectorListItemDTO sector)
+    private async Task ToggleShowUsers(SectorListItemDTO sector)
     {
-        sector.ShowUsers = !sector.ShowUsers;
-
-        if (sector.ShowUsers && !sectorUsers.ContainsKey(sector.Id))
+        if (openSectorIds.Contains(sector.Id))
         {
-            // busca usuários do setor
-            var users =
-                await _sectorService.GetUsersBySectorAsync(sector.Id);
-
-            sectorUsers[sector.Id] = users;
-
-            StateHasChanged();
-        }
-        else if (!sector.ShowUsers)
-        {
-            // Remove usuários do dicionário para liberar memória
+            openSectorIds.Remove(sector.Id);
             sectorUsers.Remove(sector.Id);
         }
+        else
+        {
+            // collapse all others
+            foreach (var id in openSectorIds.ToList())
+            {
+                openSectorIds.Remove(id);
+                sectorUsers.Remove(id);
+            }
+            // open this one
+            openSectorIds.Add(sector.Id);
+            if (!sectorUsers.ContainsKey(sector.Id))
+                sectorUsers[sector.Id] = await _sectorService.GetUsersBySectorAsync(sector.Id);
+        }
+        StateHasChanged();
+    }
+
+    private Task OnSelectedItemsChanged(HashSet<SectorListItemDTO> selected)
+    {
+        // new selection ids (snapshot of the passed set)
+        var newIds = new HashSet<Guid>(selected.Select(s => s.Id));
+
+        // removed ids = previously selected but not in new selection
+        var removedIds = _previousSelectedIds.Except(newIds).ToList();
+        foreach (var id in removedIds)
+        {
+            if (openSectorIds.Contains(id))
+            {
+                openSectorIds.Remove(id);
+                sectorUsers.Remove(id);
+            }
+        }
+
+        // added ids = newly selected
+        var addedIds = newIds.Except(_previousSelectedIds).ToList();
+        if (addedIds.Any())
+        {
+            // keep only last-added open: collapse others
+            var lastAddedId = addedIds.Last();
+            foreach (var id in openSectorIds.ToList())
+            {
+                if (id != lastAddedId)
+                {
+                    openSectorIds.Remove(id);
+                    sectorUsers.Remove(id);
+                }
+            }
+        }
+
+        // update your selection references
+        _selectedSectors = selected;           // still useful for UI/menu
+        _previousSelectedIds = newIds;        // update snapshot
+
+        // if selection became empty, ensure all child rows closed
+        if (!newIds.Any())
+        {
+            openSectorIds.Clear();
+            sectorUsers.Clear();
+        }
+
+        StateHasChanged();
+        return Task.CompletedTask;
     }
 
     /// <summary>
