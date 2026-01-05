@@ -8,15 +8,19 @@
 
 <MudDialog>
 
+    @* Título direcional *@
     <TitleContent>
         <MudStack Class="page-title">
             <MudText Typo="Typo.h6">SECRETARIAS <span>| EXCLUIR</span></MudText>
         </MudStack>
     </TitleContent>
 
+    @* Componente de organização do formulário *@
     <DialogContent>
+
         <div class="dialog-content no-copy">
 
+            @* Texto de alerta de exclusão inicial *@
             <MudAlert Severity="Severity.Error"
                       Variant="Variant.Text"
                       Dense="true"
@@ -27,8 +31,10 @@
                 </p>
             </MudAlert>
 
+            @* Componente de organização das informações de usuário *@
             <MudPaper Class="pa-4 mb-4" Outlined="true" Square="true">
 
+                @* Componente com as informações básicas do setor selecionado *@
                 <MudText Class="d-flex flex-row justify-content-between" Typo="Typo.h6">
                     <b>Setor selecionado</b>
 
@@ -41,6 +47,7 @@
                             Placement="Placement.Right" 
                             Color="Color.Inherit">
 
+                            @* Componente de contador de registros dos usuários vinculados *@
                             <ChildContent>
                                 <MudChip T="int"
                                          Color="Color.Primary"
@@ -59,19 +66,23 @@
 
                 <MudDivider Light="true" Class="my-1" />
 
+                @* Nome completo do setor (Acronym - Name) *@
                 <MudText Typo="Typo.body2" Class="mt-2 mb-2">
                     <b>Setor:</b> @SectorToDelete?.Acronym - @SectorToDelete?.Name
                 </MudText>
 
                 <MudDivider Light="true" Class="my-1" />
 
+                @* Número de telefone do setor formatado *@
                 <MudText Typo="Typo.body2" Class="mt-2 mb-2">
                     <b>Telefone:</b> @PhoneExtensions.FormatPhoneNumber(SectorToDelete?.Phone)
                 </MudText>
 
                 <MudDivider Light="true" />
+
             </MudPaper>
 
+            @* Texto de alerta de exclusão (reforço) *@
             <MudAlert Severity="Severity.Warning"
                       Variant="Variant.Text"
                       Dense="true"
@@ -86,10 +97,12 @@
 
             <MudDivider Light="true" Class="mb-4" />
 
+            @* Texto de auxílio para cumprimento de requitos para exclusão. *@
             <MudText Typo="Typo.subtitle2" Class="mt-2 mb-2">
                 Para confirmar a exclusão, digite o nome completo correspondente ao setor: <b>@SectorToDelete?.Acronym - @SectorToDelete?.Name</b>
             </MudText>
 
+            @* Campo para digitar o nome do setor a ser excluido para validar a exclusão. *@
             <MudTextField T="string"
                           Label="Confirmar exclusão"
                           Variant="Variant.Outlined"
@@ -101,11 +114,14 @@
                           HelperText="O texto deve ser idêntico ao nome do setor acima." />
 
         </div>
+
     </DialogContent>
 
+    @* Componente de organização dos botões de ação do formulário. *@
     <DialogActions>
         <div class="dialog-actions">
-  
+            
+            @* Botão excluir *@
             <MudButton Color="Color.Error"
                        Variant="Variant.Filled"
                        OnClick="Submit"
@@ -114,6 +130,7 @@
                 Excluir
             </MudButton>
 
+            @* Botão cancelar *@
             <MudButton Color="Color.Secondary"
                        Variant="Variant.Text"
                        Class="action-button cancel-button"

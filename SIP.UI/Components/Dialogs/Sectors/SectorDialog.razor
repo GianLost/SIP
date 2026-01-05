@@ -4,6 +4,7 @@
 
 <MudDialog>
 
+    @* Título direcional *@
     <TitleContent>
         @if (string.IsNullOrEmpty(Sector.Name))
         {
@@ -19,14 +20,17 @@
         }
     </TitleContent>
 
+    @* Componente de organização do formulário *@
     <DialogContent>
 
         <div class="dialog-content">
 
+            @* Formulário de registro/edição *@
             <MudForm Class="sector-form" @ref="form" @bind-IsValid="isValid" ErrorsChanged="OnErrorsChanged">
 
                 <MudGrid Spacing="5">
 
+                    @* Campo de nome do setor *@
                     <MudItem xs="12">
                         <MudTextField @bind-Value="Sector.Name"
                                       Counter="150"
@@ -43,6 +47,7 @@
                                       HelperText="Nome completo da unidade." />
                     </MudItem>
 
+                    @* Campo de Acrônimo do setor *@
                     <MudItem xs="12" sm="6">
                         <MudTextField @bind-Value="Sector.Acronym"
                                       Counter="20"
@@ -59,6 +64,7 @@
                                       HelperText="Acrônimo da unidade." />
                     </MudItem>
 
+                    @* Campo de telefone *@
                     <MudItem xs="12" sm="6">
                         <MudTextField @bind-Value="Sector.Phone"
                                       Label="Telefone"
@@ -81,8 +87,10 @@
 
     </DialogContent>
 
+    @* Componente de organização dos botões de ação do formulário. *@
     <DialogActions>
         <div class="dialog-actions">
+            @* Botão salvar *@
             <MudButton OnClick="Submit"
                        Color="Color.Primary"
                        Variant="Variant.Filled"
@@ -92,6 +100,7 @@
                 Salvar
             </MudButton>
 
+            @* Botão cancelar *@
             <MudButton OnClick="Cancel"
                        Color="Color.Secondary"
                        Variant="Variant.Text">
@@ -137,12 +146,21 @@
         return digits.Length == 10 || digits.Length == 11;
     }
 
+    /// <summary>
+    /// Binding para atualização do estado do formulário quando os erros mudam.
+    /// </summary>
     private void OnErrorsChanged() =>
         StateHasChanged();
 
+    /// <summary>
+    /// Binding para cancelar o diálogo sem salvar alterações.
+    /// </summary>
     private void Cancel() =>
         MudDialog.Cancel();
 
+    /// <summary>
+    /// Binding para validar e submeter o formulário.
+    /// </summary>
     private async Task Submit()
     {
         await form!.Validate();

@@ -108,6 +108,7 @@
                                     @* Ações visíveis apenas quando exatamente UMA secretaria é selecionada *@
                                     @if (_selectedSectors.Count == 1)
                                     {
+                                        @* Botão de edição *@
                                         <MudMenuItem 
                                             OnClick="@(() => ShowEditDialog(_selectedSectors.First()))">
 
@@ -124,6 +125,7 @@
 
                                         <MudDivider Class="my-2" />
 
+                                        @* Botão de exclusão *@
                                         <MudMenuItem 
                                             OnClick="@(() => ShowDeleteDialog(_selectedSectors.First()))" 
                                             Style="color: var(--mud-palette-error);">
@@ -142,6 +144,7 @@
                                     @* Ação visível apenas quando MÚLTIPLAS secretarias são selecionadas *@
                                     @if (_selectedSectors.Count > 1)
                                     {
+                                        @* Botão de múltipla exclusão *@
                                         <MudMenuItem 
                                             OnClick="ShowDeleteSelectedSectorsDialog" 
                                             Style="color: var(--mud-palette-error);">
@@ -296,6 +299,7 @@
                             <MudCard 
                                 Elevation="3">
 
+                                @* Cabeçalho com informações primárias do usuário *@
                                 <MudCardHeader>
 
                                     <CardHeaderContent>

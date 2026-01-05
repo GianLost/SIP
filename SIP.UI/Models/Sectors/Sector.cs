@@ -13,7 +13,6 @@ public class Sector
 
     [Required]
     [StringLength(20)]
-
     public string Acronym { get; set; } = string.Empty;
 
     [Required]

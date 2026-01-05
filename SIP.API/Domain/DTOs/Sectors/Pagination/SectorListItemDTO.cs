@@ -9,6 +9,4 @@ public class SectorListItemDTO : BaseSector
     public override string Name { get; set; } = string.Empty;
     public override string Acronym { get; set; } = string.Empty;
     public override string Phone { get; set; } = string.Empty;
-
-    public int UserCount { get; set; }
 }
