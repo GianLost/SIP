@@ -1,22 +1,27 @@
 ﻿@using MudBlazor
 
+@* Componente responsável por padronizar a exibição de tooltips no aplicativo, garantindo consistência visual, semântica e de comportamento. *@
 <MudTooltip Arrow="true"
             Placement="@Placement"
             Color="@Color">
-
+    
+    @* Conteúdo âncora do tooltip. Qualquer elemento passado aqui será o gatilho de exibição (hover, foco ou interação). *@
     <ChildContent>
         @ChildContent
     </ChildContent>
 
+    @* Conteúdo visual exibido dentro do tooltip *@
     <TooltipContent>
         <MudPaper Class="pa-3 rounded-lg"
                   Elevation="@Elevation"
                   Style="@($"max-width: {MaxWidth};")">
-
+            
+            @* Título do tooltip com ícone opcional *@
             <MudText Typo="Typo.subtitle2"
                      Color="@TitleColor"
                      Class="d-flex flex-row mb-1">
 
+                @* Renderiza o ícone apenas se informado *@
                 @if (!string.IsNullOrEmpty(Icon))
                 {
                     <MudIcon Class="mr-2"
@@ -24,11 +29,13 @@
                              Size="Size.Small" />
                 }
 
+                @* Texto do título *@
                 @Title
             </MudText>
 
             <MudDivider Light="true" Class="my-1" />
 
+            @* Texto descritivo do tooltip *@
             <MudText Typo="Typo.body2"
                      Color="@TextColor"
                      Class="tooltip-body">
@@ -43,36 +50,93 @@
 
 @code {
 
+    /// <summary>
+    /// Conteúdo que atua como âncora do tooltip.
+    /// </summary>
+    /// <remarks>
+    /// Este conteúdo é renderizado como elemento interativo que,
+    /// ao receber foco ou hover, exibe o tooltip padronizado.
+    /// </remarks>
     [Parameter, EditorRequired] 
     public RenderFragment ChildContent { get; set; }
 
-    // Textos
+    /// Título exibido no topo do tooltip.
+    /// </summary>
+    /// <remarks>
+    /// Deve ser curto, objetivo e descritivo,
+    /// funcionando como um resumo do conteúdo.
+    /// </remarks>
     [Parameter, EditorRequired] 
     public string Title { get; set; }
 
+    /// <summary>
+    /// Texto explicativo exibido no corpo do tooltip.
+    /// </summary>
+    /// <remarks>
+    /// Ideal para fornecer contexto adicional ou instruções
+    /// relacionadas ao elemento ancorado.
+    /// </remarks>
     [Parameter, EditorRequired] 
     public string Description { get; set; }
 
-    // Aparência
+    /// <summary>
+    /// Ícone exibido ao lado do título do tooltip.
+    /// </summary>
+    /// <remarks>
+    /// O ícone é opcional e pode ser removido definindo este
+    /// parâmetro como <c>null</c> ou string vazia.
+    /// </remarks>
     [Parameter] 
     public string Icon { get; set; } = Icons.Material.Filled.Info;
 
+    /// <summary>
+    /// Cor aplicada ao texto do título.
+    /// </summary>
     [Parameter] 
     public Color TitleColor { get; set; } = Color.Primary;
 
-    [Parameter] 
+    /// <summary>
+    /// Cor aplicada ao texto da descrição.
+    /// </summary>
+    [Parameter]
     public Color TextColor { get; set; } = Color.Inherit;
 
-    [Parameter] 
+    /// <summary>
+    /// Cor base do tooltip.
+    /// </summary>
+    /// <remarks>
+    /// Utilizada principalmente para herdar o tema do MudBlazor,
+    /// mantendo coerência com o design system do aplicativo.
+    /// </remarks>
+    [Parameter]
     public Color Color { get; set; } = Color.Inherit;
 
-    // Layout
-    [Parameter] 
+    /// <summary>
+    /// Define a posição do tooltip em relação ao elemento âncora.
+    /// </summary>
+    /// <remarks>
+    /// Valor padrão: <see cref="Placement.Right"/>.
+    /// </remarks>
+    [Parameter]
     public Placement Placement { get; set; } = Placement.Right;
 
-    [Parameter] 
+    /// <summary>
+    /// Largura máxima do tooltip.
+    /// </summary>
+    /// <remarks>
+    /// Utiliza unidade CSS (ex: rem, px, %).
+    /// Evita tooltips excessivamente largos em textos extensos.
+    /// </remarks>
+    [Parameter]
     public string MaxWidth { get; set; } = "13rem";
 
-    [Parameter] 
+    /// <summary>
+    /// Elevação visual aplicada ao container do tooltip.
+    /// </summary>
+    /// <remarks>
+    /// Controla a intensidade da sombra do <see cref="MudPaper"/>,
+    /// seguindo o padrão de elevação do Material Design.
+    /// </remarks>
+    [Parameter]
     public int Elevation { get; set; } = 3;
 }

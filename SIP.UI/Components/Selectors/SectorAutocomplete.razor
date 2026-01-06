@@ -5,11 +5,13 @@
 @using Microsoft.AspNetCore.Components.Web.Virtualization
 @using System.Threading
 @using System.Linq
+@using System.Collections.Concurrent
 
 @implements IDisposable
 
 @inject SectorService SectorService
 
+@* Componente seletor *@
 <MudTextField @bind-Value="searchTerm"
               Label="Setor*"
               Variant="Variant.Outlined"
@@ -25,12 +27,15 @@
               Placeholder="Selecione o setor"
               HelperText="Vincule o usuário à um setor."/>
 
+@* Componente de renderização da lita suspensa virtualizada *@
 <MudPopover Open="showList"
             AnchorOrigin="Origin.BottomLeft"
             TransformOrigin="Origin.TopLeft"
             Class="sector-autocomplete-popover">
 
     <div class="sector-autocomplete-scroll-container" role="listbox">
+
+        @* Virtualização dos registros para obtenção dinâmica e performática de registros com base na rolagem da lista *@
         <Virtualize TItem="SectorBasicListDTO"
                     ItemsProvider="LoadSectorsVirtualizedAsync"
                     OverscanCount="2"
@@ -43,7 +48,7 @@
             </ItemContent>
         </Virtualize>
 
-        @* Informational messages shown when no items or on load error *@
+        @* Mensagens informativas exibidas em caso de erro na busca de registros *@
         @if (!isLoadingItems && loadError)
         {
             <div class="pa-4 text-center mud-text-secondary">Erro ao carregar os registros. Tente novamente.</div>
@@ -63,28 +68,72 @@
     private SectorBasicListDTO? lastSelectedValue;
     private Guid virtualizeKey = Guid.NewGuid();
     private CancellationTokenSource? debounceCts;
-    private readonly int debounceDelay = 300; // increased to reduce frequent calls
+    private readonly int debounceDelay = 300; // Tempo de espera(em milissegundos) antes de disparar a busca.
 
-    // cache by absolute index (startIndex -> item)
-    private readonly System.Collections.Concurrent.ConcurrentDictionary<int, SectorBasicListDTO> indexCache = new();
+    /// <summary>
+    /// Cache concorrente indexado por posição absoluta dos itens,
+    /// utilizado para reduzir chamadas ao backend.
+    /// </summary>
+    private readonly ConcurrentDictionary<int, SectorBasicListDTO> indexCache = new();
+
+    /// <summary>
+    /// Quantidade total de registros disponíveis no backend.
+    /// </summary>
     private int totalItemCount = 0;
 
-    // UI state for messages
-    private bool isLoadingItems = false;
-    private bool loadError = false;
-    private bool noItems = false;
+    /// <summary>
+    /// Indica se os itens estão sendo carregados no momento.
+    /// </summary>
+    private bool isLoadingItems;
 
-    private readonly int ApiPageSize = 15; // alinhar com backend
+    /// <summary>
+    /// Indica se ocorreu erro durante a obtenção dos dados.
+    /// </summary>
+    private bool loadError;
+
+    /// <summary>
+    /// Indica se nenhuma informação foi encontrada para o termo atual.
+    /// </summary>
+    private bool noItems;
+
+    /// <summary>
+    /// Quantidade de registros retornados por página pela API.
+    /// Deve estar alinhado com o backend.
+    /// </summary>
+    private readonly int ApiPageSize = 15;
+
+    /// <summary>
+    /// Quantidade máxima de páginas mantidas simultaneamente no cache.
+    /// </summary>
     private readonly int MaxCachedPages = 5;
+
+    /// <summary>
+    /// Semáforo utilizado para evitar múltiplas requisições simultâneas.
+    /// </summary>
     private readonly SemaphoreSlim fetchLock = new(1, 1);
+
+    /// <summary>
+    /// Token de cancelamento utilizado para abortar buscas em andamento
+    /// quando o termo de pesquisa é alterado.
+    /// </summary>
     private CancellationTokenSource? fetchCts;
 
+    /// <summary>
+    /// Valor atualmente selecionado no componente.
+    /// </summary>
     [Parameter]
     public SectorBasicListDTO? Value { get; set; }
 
+    /// <summary>
+    /// Evento disparado quando o valor selecionado é alterado.
+    /// </summary>
     [Parameter]
     public EventCallback<SectorBasicListDTO?> ValueChanged { get; set; }
 
+    /// <summary>
+    /// Libera todos os recursos utilizados pelo componente,
+    /// incluindo tokens de cancelamento e semáforos.
+    /// </summary>
     public void Dispose()
     {
         debounceCts?.Dispose();
@@ -93,6 +142,10 @@
         fetchLock.Dispose();
     }
 
+    /// <summary>
+    /// Sincroniza o estado interno do componente quando o parâmetro
+    /// <see cref="Value"/> é alterado externamente.
+    /// </summary>
     protected override void OnParametersSet()
     {
         if (Value != null && Value != lastSelectedValue)
@@ -107,19 +160,29 @@
         }
     }
 
+    /// <summary>
+    /// Alterna a visibilidade da lista suspensa (popover).
+    /// Reinicia o cache e os indicadores de estado ao abrir.
+    /// </summary>
     private void TogglePopover()
     {
         showList = !showList;
+
         if (showList)
         {
             indexCache.Clear();
             virtualizeKey = Guid.NewGuid();
-            // reset UI indicators when opening
+
             loadError = false;
             noItems = false;
         }
     }
 
+    /// <summary>
+    /// Define o setor selecionado, atualiza o valor exibido
+    /// e notifica o componente pai.
+    /// </summary>
+    /// <param name="selectedSector">Setor selecionado pelo usuário.</param>
     private void SelectItem(SectorBasicListDTO selectedSector)
     {
         searchTerm = $"{selectedSector.Acronym} - {selectedSector.Name}";
@@ -128,6 +191,9 @@
         ValueChanged.InvokeAsync(selectedSector);
     }
 
+    /// <summary>
+    /// Limpa a seleção atual e reinicia o estado interno do componente.
+    /// </summary>
     private void ClearSelection()
     {
         searchTerm = null;
@@ -140,6 +206,11 @@
         StateHasChanged();
     }
 
+    /// <summary>
+    /// Manipula a digitação do usuário aplicando debounce
+    /// para evitar chamadas excessivas à API.
+    /// </summary>
+    /// <param name="e">Evento de teclado disparado pelo input.</param>
     private async Task OnSearchTermInput(KeyboardEventArgs e)
     {
         showList = true;
@@ -152,6 +223,7 @@
         try
         {
             await Task.Delay(debounceDelay, token);
+
             if (!token.IsCancellationRequested)
             {
                 await InvokeAsync(() =>
@@ -175,39 +247,216 @@
         }
     }
 
+    /// <summary>
+    /// Provedor de dados utilizado pelo componente <see cref="Virtualize"/> para
+    /// carregamento incremental (lazy loading) de setores de forma virtualizada,
+    /// performática e segura.
+    /// </summary>
+    /// <param name="request">
+    /// Objeto fornecido pelo Blazor contendo:
+    /// <list type="bullet">
+    /// <item>
+    /// <description><see cref="ItemsProviderRequest.StartIndex"/> – índice absoluto inicial solicitado.</description>
+    /// </item>
+    /// <item>
+    /// <description><see cref="ItemsProviderRequest.Count"/> – quantidade de itens esperados a partir do índice.</description>
+    /// </item>
+    /// </list>
+    /// Esses valores variam conforme a rolagem da lista virtualizada.
+    /// </param>
+    /// <returns>
+    /// Um <see cref="ItemsProviderResult{TItem}"/> contendo:
+    /// <list type="bullet">
+    /// <item>
+    /// <description>Os itens disponíveis no intervalo solicitado.</description>
+    /// </item>
+    /// <item>
+    /// <description>O total de registros existentes no backend, necessário para o correto funcionamento da virtualização.</description>
+    /// </item>
+    /// </list>
+    /// </returns>
+    /// <remarks>
+    /// <para>
+    /// Este método foi projetado para lidar com grandes volumes de dados,
+    /// evitando carregamento completo da base e reduzindo chamadas desnecessárias à API.
+    /// </para>
+    ///
+    /// <para>
+    /// <b>Principais responsabilidades:</b>
+    /// <list type="number">
+    /// <item>
+    /// <description>
+    /// Detectar mudanças no termo de busca e invalidar cache quando necessário.
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <description>
+    /// Reutilizar dados já carregados através de um cache indexado por posição absoluta.
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <description>
+    /// Alinhar requisições ao backend em páginas fixas (<c>ApiPageSize</c>),
+    /// mesmo que o Blazor solicite intervalos arbitrários.
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <description>
+    /// Garantir consistência em cenários concorrentes utilizando <see cref="SemaphoreSlim"/>.
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <description>
+    /// Cancelar requisições obsoletas quando o usuário altera rapidamente o termo de busca.
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <description>
+    /// Implementar estratégias de retry controlado para lidar com falhas pontuais da API.
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </para>
+    ///
+    /// <para>
+    /// <b>Estratégia de cache:</b>
+    /// <list type="bullet">
+    /// <item>
+    /// <description>
+    /// Os itens são armazenados em um <see cref="ConcurrentDictionary{TKey, TValue}"/>,
+    /// onde a chave representa o índice absoluto do item na lista total.
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <description>
+    /// O cache mantém apenas uma janela deslizante de páginas próximas à posição atual,
+    /// evitando crescimento ilimitado de memória.
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <description>
+    /// Quando os itens solicitados já estão totalmente no cache, nenhuma chamada
+    /// ao backend é realizada.
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </para>
+    ///
+    /// <para>
+    /// <b>Controle de concorrência:</b>
+    /// <list type="bullet">
+    /// <item>
+    /// <description>
+    /// O semáforo (<see cref="fetchLock"/>) impede que múltiplas requisições
+    /// simultâneas preencham o cache com dados duplicados.
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <description>
+    /// Antes de buscar dados, o cache é reavaliado dentro do lock para evitar
+    /// requisições redundantes.
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </para>
+    ///
+    /// <para>
+    /// <b>Cancelamento:</b>
+    /// <list type="bullet">
+    /// <item>
+    /// <description>
+    /// Um <see cref="CancellationTokenSource"/> é reutilizado durante a busca atual.
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <description>
+    /// Ao detectar alteração no termo de busca, todas as requisições em andamento
+    /// são canceladas imediatamente.
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </para>
+    ///
+    /// <para>
+    /// <b>Tolerância a falhas:</b>
+    /// <list type="bullet">
+    /// <item>
+    /// <description>
+    /// Falhas pontuais em páginas individuais não interrompem completamente o fluxo.
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <description>
+    /// O método tenta recuperar páginas ausentes quando existem registros conhecidos
+    /// (<c>TotalCount &gt; 0</c>).
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <description>
+    /// Em último caso, retorna um subconjunto parcial para não bloquear a renderização
+    /// do componente.
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </para>
+    ///
+    /// <para>
+    /// Este método nunca lança exceções para o consumidor (<see cref="Virtualize"/>),
+    /// garantindo estabilidade da UI mesmo em cenários adversos.
+    /// </para>
+    /// </remarks>
     private async ValueTask<ItemsProviderResult<SectorBasicListDTO>> LoadSectorsVirtualizedAsync(ItemsProviderRequest request)
     {
+        // Garante valores mínimos válidos vindos do Virtualize
         int start = Math.Max(request.StartIndex, 0);
         int count = Math.Max(request.Count, 1);
+
+        // Termo de busca normalizado (evita null e espaços)
         string search = (searchTerm ?? string.Empty).Trim();
 
-        // reset indicators for each provider invocation
+        // Atualiza indicadores visuais de estado da UI
         isLoadingItems = true;
         loadError = false;
         noItems = false;
         await InvokeAsync(StateHasChanged);
 
-        // if search changed externally (not cleared via OnSearchTermInput) handle it
+        // ============================================================
+        // DETECÇÃO DE MUDANÇA NO TERMO DE BUSCA
+        // ============================================================
+        // Caso o termo atual seja diferente do anterior, invalida todo
+        // o cache e cancela requisições pendentes.
         if (previousSearch != search)
         {
-            // new search -> clear cache and cancel pending
+            // Limpa cache quando os dados antigos não são mais válidos
             indexCache.Clear();
             totalItemCount = 0;
+
+            // Atualiza o termo de referência
             previousSearch = search;
+
+            // Cancela qualquer busca em andamento
             if (fetchCts is { IsCancellationRequested: false })
             {
-                try { fetchCts.Cancel(); } catch { }
+                try 
+                { 
+                    fetchCts.Cancel(); 
+                } 
+                catch { }
             }
+
+            // Libera o token anterior
             fetchCts?.Dispose();
             fetchCts = null;
-
-            // force re-render key if desired
-            // virtualizeKey = Guid.NewGuid();
         }
 
-        // Check if requested range is fully cached
+        // ============================================================
+        // VERIFICAÇÃO RÁPIDA DE CACHE (SEM LOCK)
+        // ============================================================
+        // Primeiro tenta atender a solicitação apenas com dados em cache,
+        // evitando custo de lock e chamadas ao backend.
         bool allCached = true;
         var resultItems = new List<SectorBasicListDTO>(count);
+
         for (int i = 0; i < count; i++)
         {
             if (indexCache.TryGetValue(start + i, out var item))
@@ -221,6 +470,7 @@
             }
         }
 
+        // Se todos os itens solicitados já estão em cache, retorna imediatamente
         if (allCached)
         {
             isLoadingItems = false;
@@ -229,13 +479,18 @@
             return new ItemsProviderResult<SectorBasicListDTO>(resultItems, totalItemCount);
         }
 
-        // Acquire lock to avoid duplicate concurrent fetches
+        // ============================================================
+        // CONTROLE DE CONCORRÊNCIA (LOCK)
+        // ============================================================
+        // Evita múltiplas requisições concorrentes buscando as mesmas páginas
         await fetchLock.WaitAsync();
         try
         {
-            // Recheck cache inside lock (another fetch may have populated)
+            // Revalida o cache agora dentro do lock, pois outro fetch
+            // pode ter sido concluído
             allCached = true;
             resultItems.Clear();
+
             for (int i = 0; i < count; i++)
             {
                 if (indexCache.TryGetValue(start + i, out var item))
@@ -255,27 +510,31 @@
                 return new ItemsProviderResult<SectorBasicListDTO>(resultItems, totalItemCount);
             }
 
-            // Align fetchStart to API page boundary
+            // ============================================================
+            // ALINHAMENTO DE PAGINAÇÃO COM O BACKEND
+            // ============================================================
+            // Ajusta o índice inicial para o início da página da API
             int fetchStart = (start / ApiPageSize) * ApiPageSize;
-            int pageIndex = fetchStart / ApiPageSize; // API expects pageNumber (page index)
+            int pageIndex = fetchStart / ApiPageSize;
 
-            // Determine how many pages are required to cover the requested range [start, start+count)
+            // Calcula quantas páginas são necessárias para cobrir
+            // o intervalo solicitado pelo Virtualize
             int neededItems = (start + count) - fetchStart;
             int requiredPages = Math.Max(1, (int)Math.Ceiling(neededItems / (double)ApiPageSize));
-            int fetchTake = requiredPages * ApiPageSize;
 
-            // Bound fetchTake so we don't request absurdly large values
+            // Limita o número máximo de páginas buscadas
+            int fetchTake = requiredPages * ApiPageSize;
             fetchTake = Math.Min(fetchTake, ApiPageSize * MaxCachedPages);
 
-            // Ensure a cancellation token exists for this component (only canceled on search change / dispose)
-            if (fetchCts == null)
-                fetchCts = new CancellationTokenSource();
+            // Inicializa token de cancelamento se necessário
+            fetchCts ??= new CancellationTokenSource();
             var ct = fetchCts.Token;
 
-            // Call UI service using page-based parameters
+            // ============================================================
+            // BUSCA DAS PÁGINAS NO BACKEND
+            // ============================================================
             try
             {
-                // Fetch page-by-page so API offsets map correctly to absolute indexes
                 for (int p = pageIndex; p < pageIndex + requiredPages; p++)
                 {
                     if (ct.IsCancellationRequested)
@@ -284,13 +543,16 @@
                     try
                     {
                         var pageResult = await SectorService.GetSectorsBySelection(p * ApiPageSize, ApiPageSize, search, ct);
+
                         if (pageResult?.Items != null)
                         {
                             totalItemCount = pageResult.TotalCount;
                             int pageBase = p * ApiPageSize;
                             int ridx = 0;
-                            // write page atomically into cache
+
                             var pageItems = pageResult.Items.ToList();
+
+                            // Armazena os itens no cache com índice absoluto
                             foreach (var item in pageItems)
                             {
                                 int absoluteIndex = pageBase + ridx;
@@ -305,36 +567,47 @@
                     }
                     catch
                     {
-                        // ignore page fetch failures and continue with other pages
+                        // Falha em uma página não interrompe o fluxo
                         loadError = true;
                     }
                 }
             }
             catch
             {
-                // swallow
                 loadError = true;
             }
 
-            // Evict oldest entries when cache grows beyond limit (keep most recent window around current start)
+            // ============================================================
+            // CONTROLE DE TAMANHO DO CACHE
+            // ============================================================
+            // Remove páginas antigas mantendo uma janela próxima ao índice atual
             int maxCachedItems = ApiPageSize * MaxCachedPages;
+
             if (indexCache.Count > maxCachedItems)
             {
-                // keep window centered at current start
-                var keysToKeep = Enumerable.Range(Math.Max(0, start - ApiPageSize), maxCachedItems).ToHashSet();
-                var keysToRemove = indexCache.Keys.Where(k => !keysToKeep.Contains(k)).ToList();
+                var keysToKeep = Enumerable
+                    .Range(Math.Max(0, start - ApiPageSize), maxCachedItems)
+                    .ToHashSet();
+
+                var keysToRemove = indexCache.Keys
+                    .Where(k => !keysToKeep.Contains(k))
+                    .ToList();
+
                 foreach (var k in keysToRemove)
                     indexCache.TryRemove(k, out _);
             }
 
-            // If there are known items but the cache doesn't contain the requested start, attempt one targeted retry
+            // ============================================================
+            // RETRY CONTROLADO CASO O CACHE ESTEJA INCOMPLETO
+            // ============================================================
             bool hasKnownItems = totalItemCount > 0;
+
             if (hasKnownItems && !indexCache.ContainsKey(start))
             {
                 try
                 {
-                    // small targeted fetch for the page containing 'start'
                     var retryResult = await SectorService.GetSectorsBySelection(pageIndex * ApiPageSize, ApiPageSize, search, ct);
+
                     if (retryResult?.Items != null)
                     {
                         int ridx = 0;
@@ -348,13 +621,25 @@
                 }
                 catch
                 {
-                    // ignore retry failures
                     loadError = true;
                 }
             }
 
-            // Build final response list (may be partial)
+            // ============================================================
+            // CONSTRUÇÃO DA LISTA FINAL A PARTIR DO CACHE
+            // ============================================================
+            // Nesta etapa, o método tenta montar a lista de resposta utilizando
+            // exclusivamente os dados já disponíveis no cache.
+            //
+            // A montagem é sequencial, iniciando no índice absoluto solicitado
+            // pelo Virtualize (start) e avançando até atingir a quantidade
+            // desejada (count).
+            //
+            // Caso algum índice não esteja presente no cache, a construção
+            // é interrompida imediatamente para evitar retornar itens fora
+            // de ordem ou inconsistentes.
             var finalList = new List<SectorBasicListDTO>();
+
             for (int i = 0; i < count; i++)
             {
                 if (indexCache.TryGetValue(start + i, out var it))
@@ -363,10 +648,26 @@
                     break;
             }
 
-            // If we returned nothing but there are items known to exist beyond start, try a small synchronous retry
+            // ============================================================
+            // RETRY DIRECIONADO QUANDO O CACHE NÃO POSSUI O ÍNDICE INICIAL
+            // ============================================================
+            // Se nenhum item pôde ser montado, mas o backend indica que
+            // existem registros além do índice solicitado (totalItemCount > start),
+            // significa que o cache está desalinhado ou incompleto.
+            //
+            // Este cenário pode ocorrer devido a:
+            // - Cancelamento de requisições anteriores
+            // - Falha parcial em páginas específicas
+            // - Mudança rápida de termo de busca
+            //
+            // Nesse caso, é feita uma tentativa controlada de recuperar
+            // especificamente a página que contém o índice inicial solicitado.
             if (finalList.Count == 0 && totalItemCount > start)
             {
+                // Determina a página da API correspondente ao índice inicial
                 int startPage = fetchStart / ApiPageSize;
+
+                // Realiza até duas tentativas para evitar loops infinitos
                 for (int attempt = 0; attempt < 2 && finalList.Count == 0; attempt++)
                 {
                     try
@@ -375,6 +676,8 @@
                         if (pageResult?.Items != null)
                         {
                             int ridx = 0;
+                            // Insere os itens retornados no cache utilizando
+                            // índices absolutos alinhados ao backend
                             foreach (var item in pageResult.Items)
                             {
                                 int absoluteIndex = fetchStart + ridx;
@@ -382,7 +685,7 @@
                                 ridx++;
                             }
 
-                            // rebuild
+                            // Reconstrói a lista final após atualização do cache
                             finalList.Clear();
                             for (int i = 0; i < count; i++)
                             {
@@ -395,34 +698,55 @@
                     }
                     catch
                     {
-                        // ignore
+                        // Falhas nesta etapa não interrompem o fluxo,
+                        // apenas sinalizam erro para a UI
                         loadError = true;
                     }
 
+                    // Pequeno atraso entre tentativas para permitir
+                    // liberação de recursos e evitar pressão na API
                     if (finalList.Count == 0)
                         await Task.Delay(50);
                 }
             }
 
-            // If we didn't fill the requested window but there are known items, try fetching missing pages (limited)
+            // ============================================================
+            // RECUPERAÇÃO DE "BURACOS" NO CACHE DENTRO DA JANELA SOLICITADA
+            // ============================================================
+            // Mesmo quando parte dos itens já foi obtida, o cache pode conter
+            // páginas ausentes dentro da janela [start, start + count).
+            //
+            // Este bloco identifica quais páginas da API intersectam a janela
+            // solicitada e verifica se alguma delas não possui nenhum item
+            // em cache.
+            //
+            // Apenas páginas totalmente ausentes são buscadas novamente,
+            // evitando requisições redundantes.
             if (hasKnownItems && finalList.Count < count)
             {
-                // determine which page indexes intersect requested window
+                // Determina o intervalo de páginas afetadas pela janela solicitada
                 int windowStartPage = fetchStart / ApiPageSize;
                 int windowEndPage = ((start + count - 1) / ApiPageSize);
 
-                // collect missing page indexes
                 var missingPages = new List<int>();
+
                 for (int p = windowStartPage; p <= windowEndPage; p++)
                 {
                     int pageBaseIndex = p * ApiPageSize;
+
+                    // Verifica se existe pelo menos um item da página no cache
                     bool pageHasAny = Enumerable.Range(pageBaseIndex, ApiPageSize).Any(i => indexCache.ContainsKey(i));
+
+                    // Se nenhum item da página estiver em cache,
+                    // ela é marcada para recuperação
                     if (!pageHasAny)
                         missingPages.Add(p);
                 }
 
-                // limit retries to avoid explosion
+                // Limita o número de tentativas para evitar
+                // explosão de chamadas ao backend
                 int maxRetries = Math.Min(3, missingPages.Count);
+
                 for (int i = 0; i < maxRetries; i++)
                 {
                     int pageToFetch = missingPages[i];
@@ -433,6 +757,8 @@
                         {
                             int ridx = 0;
                             int pageBase = pageToFetch * ApiPageSize;
+
+                            // Armazena os itens da página ausente no cache
                             foreach (var item in pageResult.Items)
                             {
                                 int absoluteIndex = pageBase + ridx;
@@ -443,13 +769,20 @@
                     }
                     catch
                     {
-                        // ignore failures
+                        // Falha em página individual não invalida
+                        // os dados já existentes no cache
                         loadError = true;
                     }
                 }
 
-                // rebuild finalList
+                // ========================================================
+                // RECONSTRUÇÃO FINAL APÓS PREENCHIMENTO DOS BURACOS
+                // ========================================================
+                // Após a tentativa de recuperação das páginas ausentes,
+                // a lista final é montada novamente para refletir
+                // o estado mais recente do cache.
                 finalList.Clear();
+
                 for (int i = 0; i < count; i++)
                 {
                     if (indexCache.TryGetValue(start + i, out var it))
@@ -459,20 +792,20 @@
                 }
             }
 
-            // finalize UI state
+            // ============================================================
+            // FINALIZAÇÃO DO ESTADO DA UI
+            // ============================================================
             isLoadingItems = false;
             noItems = (totalItemCount == 0);
-            if (noItems && !loadError)
-            {
-                // ensure UI updates
-                await InvokeAsync(StateHasChanged);
-            }
 
-            // Return whatever we have; include total count so Virtualize can continue fetching
+            if (noItems && !loadError)
+                await InvokeAsync(StateHasChanged);
+
             return new ItemsProviderResult<SectorBasicListDTO>(finalList, totalItemCount);
         }
         finally
         {
+            // Libera o lock independentemente do resultado
             fetchLock.Release();
         }
     }

@@ -1,7 +1,9 @@
 ﻿@using MudBlazor
 
+@* Componente Blazor responsável por alternar o estado de um usuário entre ativo einativo, com representação visual customizada e integração com validação de formulários MudBlazor. *@
 <div class="d-flex flex-column align-items-start justify-content-center gap-2">
 
+    @* Div com o switch animado e estilizado para alteranar entre os estados *@
     <div class="toggle-container"
          role="switch"
          aria-checked="@Value"
@@ -12,6 +14,7 @@
         </div>
     </div>
 
+    @* Div com o ícone e texto representando o estado atual *@
     <div class="d-flex flex-row align-center">
         <MudIcon Icon="@(Value? ActiveIcon : InactiveIcon)"
                  Color="@(Value ? ActiveColor : InactiveColor)" />
@@ -27,33 +30,89 @@
 
 @code {
 
+    /// <summary>
+    /// Referência ao formulário MudBlazor que contém este componente.
+    /// </summary>
+    /// <remarks>
+    /// Quando presente, o formulário é revalidado automaticamente
+    /// sempre que o estado do switch é alterado.
+    /// </remarks>
     [CascadingParameter] 
     public MudForm? Form { get; set; }
 
+    /// <summary>
+    /// Indica o estado atual do usuário.
+    /// <para>true = usuário ativo</para>
+    /// <para>false = usuário inativo</para>
+    /// </summary>
     [Parameter] 
     public bool Value { get; set; }
 
+    /// <summary>
+    /// Evento disparado sempre que o valor do switch é alterado.
+    /// </summary>
+    /// <remarks>
+    /// Permite o uso de <c>@bind-Value</c> no componente pai.
+    /// </remarks>
     [Parameter] 
     public EventCallback<bool> ValueChanged { get; set; }
 
+    /// <summary>
+    /// Texto exibido quando o usuário está ativo.
+    /// </summary>
     [Parameter] 
     public string ActiveText { get; set; } = "Usuário ativo";
 
+    /// <summary>
+    /// Texto exibido quando o usuário está inativo.
+    /// </summary>
     [Parameter] 
     public string InactiveText { get; set; } = "Usuário desativado";
 
+    /// <summary>
+    /// Ícone exibido quando o usuário está ativo.
+    /// </summary>
     [Parameter] 
     public string ActiveIcon { get; set; } = Icons.Material.Filled.CheckCircle;
 
+    /// <summary>
+    /// Ícone exibido quando o usuário está inativo.
+    /// </summary>
     [Parameter] 
     public string InactiveIcon { get; set; } = Icons.Material.Filled.Block;
 
+    /// <summary>
+    /// Cor aplicada ao ícone e texto quando o usuário está ativo.
+    /// </summary>
     [Parameter] 
     public Color ActiveColor { get; set; } = Color.Success;
 
+    /// <summary>
+    /// Cor aplicada ao ícone e texto quando o usuário está inativo.
+    /// </summary>
     [Parameter] 
     public Color InactiveColor { get; set; } = Color.Error;
 
+    /// <summary>
+    /// Alterna o estado do usuário entre ativo e inativo.
+    /// </summary>
+    /// <remarks>
+    /// Fluxo executado:
+    /// <list type="number">
+    /// <item>
+    /// <description>Inverte o valor atual do switch.</description>
+    /// </item>
+    /// <item>
+    /// <description>Notifica o componente pai via <see cref="ValueChanged"/>.</description>
+    /// </item>
+    /// <item>
+    /// <description>
+    /// Caso esteja dentro de um <see cref="MudForm"/>,
+    /// dispara a validação automática do formulário.
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
     private async Task Toggle()
     {
         Value = !Value;
