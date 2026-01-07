@@ -26,22 +26,19 @@
 </MudStack>
 
 @* Container principal *@
-<MudContainer 
-    MaxWidth="MaxWidth.Large" 
-    Class="my-8 px-4">
+<MudContainer MaxWidth="MaxWidth.Large"
+              Class="my-8 px-4">
 
     @* Bloco para o FAB button *@
-    <MudStack 
-        Row="true" 
-        AlignItems="AlignItems.Stretch" 
-        Class="mb-3 ml-3">
+    <MudStack Row="true"
+              AlignItems="AlignItems.Stretch"
+              Class="mb-3 ml-3">
 
         @* FAB button de (Adicionar secretaria) *@
-        <MudButton 
-            Variant="Variant.Filled" 
-            Color="Color.Primary" 
-            OnClick="ShowAddDialog" 
-            Class="@GetButtonClass()">
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   OnClick="ShowAddDialog"
+                   Class="@GetButtonClass()">
 
             <MudIcon Icon="@Icons.Material.Filled.Add" Size="Size.Medium" />
 
@@ -52,41 +49,37 @@
     </MudStack>
 
     @* Componente de organização para a tabela *@
-    <MudPaper 
-        Class="pa-4 ma-2" 
-        Elevation="1">
+    <MudPaper Class="pa-4 ma-2"
+              Elevation="1">
 
         @* Tabela *@
-        <MudTable 
-            T="SectorListItemDTO" 
-            ServerData="LoadServerData"
-            Dense="true" 
-            Hover="true" 
-            Bordered="false" 
-            @ref="table" 
-            RowsPerPage="pageSize" 
-            LoadingProgressColor="Color.Primary" 
-            Loading="@isLoading" 
-            SortLabel="sortLabel" 
-            Elevation="0" 
-            MultiSelection="true" 
-            SelectedItems="_selectedSectors"
-            SelectedItemsChanged="OnSelectedItemsChanged">
+        <MudTable T="SectorListItemDTO"
+                  ServerData="LoadServerData"
+                  Dense="true"
+                  Hover="true"
+                  Bordered="false"
+                  @ref="table"
+                  RowsPerPage="pageSize"
+                  LoadingProgressColor="Color.Primary"
+                  Loading="@isLoading"
+                  SortLabel="sortLabel"
+                  Elevation="0"
+                  MultiSelection="true"
+                  SelectedItems="_selectedSectors"
+                  SelectedItemsChanged="OnSelectedItemsChanged">
 
             @* Barra superior da tabela contendo o campo de filtragem e os botões de exportação *@
             <ToolBarContent>
 
                 @* Componente de organização da barra de recursos da tabela *@
-                <MudStack 
-                    Style="width: 100%; margin-left: -0.75rem;" 
-                    Row="true" 
-                    AlignItems="AlignItems.Center" 
-                    Justify="Justify.SpaceBetween">
+                <MudStack Style="width: 100%; margin-left: -0.75rem;"
+                          Row="true"
+                          AlignItems="AlignItems.Center"
+                          Justify="Justify.SpaceBetween">
 
                     @* Componente de organização do menu de opções *@
-                    <MudStack 
-                        Row="true" 
-                        AlignItems="AlignItems.Center">
+                    <MudStack Row="true"
+                              AlignItems="AlignItems.Center">
 
                         @* Condição para exibição dos meunus de opções *@
                         @if (_selectedSectors.Any())
@@ -98,23 +91,20 @@
                                         Placement="Placement.Right">
 
                                 @* Menu de opções *@
-                                <MudMenu 
-                                    Dense="true" 
-                                    Icon="@Icons.Material.Filled.SettingsApplications" 
-                                    Color="Color.Primary" 
-                                    AnchorOrigin="Origin.BottomRight" 
-                                    TransformOrigin="Origin.TopRight">
+                                <MudMenu Dense="true"
+                                         Icon="@Icons.Material.Filled.SettingsApplications"
+                                         Color="Color.Primary"
+                                         AnchorOrigin="Origin.BottomRight"
+                                         TransformOrigin="Origin.TopRight">
 
                                     @* Ações visíveis apenas quando exatamente UMA secretaria é selecionada *@
                                     @if (_selectedSectors.Count == 1)
                                     {
                                         @* Botão de edição *@
-                                        <MudMenuItem 
-                                            OnClick="@(() => ShowEditDialog(_selectedSectors.First()))">
+                                        <MudMenuItem OnClick="@(() => ShowEditDialog(_selectedSectors.First()))">
 
-                                            <MudStack 
-                                                Row="true" 
-                                                AlignItems="AlignItems.Center">
+                                            <MudStack Row="true"
+                                                      AlignItems="AlignItems.Center">
 
                                                 <MudIcon Icon="@Icons.Material.Filled.Edit" Size="Size.Small" />
                                                 <MudText Typo="Typo.body2">Editar</MudText>
@@ -126,13 +116,11 @@
                                         <MudDivider Class="my-2" />
 
                                         @* Botão de exclusão *@
-                                        <MudMenuItem 
-                                            OnClick="@(() => ShowDeleteDialog(_selectedSectors.First()))" 
-                                            Style="color: var(--mud-palette-error);">
+                                        <MudMenuItem OnClick="@(() => ShowDeleteDialog(_selectedSectors.First()))"
+                                                     Style="color: var(--mud-palette-error);">
 
-                                            <MudStack 
-                                                Row="true" 
-                                                AlignItems="AlignItems.Center">
+                                            <MudStack Row="true"
+                                                      AlignItems="AlignItems.Center">
 
                                                 <MudIcon Icon="@Icons.Material.Filled.Delete" Size="Size.Small" />
                                                 <MudText Typo="Typo.body2">Excluir</MudText>
@@ -145,13 +133,11 @@
                                     @if (_selectedSectors.Count > 1)
                                     {
                                         @* Botão de múltipla exclusão *@
-                                        <MudMenuItem 
-                                            OnClick="ShowDeleteSelectedSectorsDialog" 
-                                            Style="color: var(--mud-palette-error);">
+                                        <MudMenuItem OnClick="ShowDeleteSelectedSectorsDialog"
+                                                     Style="color: var(--mud-palette-error);">
 
-                                            <MudStack 
-                                                Row="true" 
-                                                AlignItems="AlignItems.Center">
+                                            <MudStack Row="true"
+                                                      AlignItems="AlignItems.Center">
 
                                                 <MudIcon Icon="@Icons.Material.Filled.Delete" Size="Size.Small" />
                                                 <MudText Typo="Typo.body2">Excluir</MudText>
@@ -167,24 +153,22 @@
                     </MudStack>
 
                     @* Componente de organização do campo de filtragem por busca *@
-                    <MudStack 
-                        Row="true" 
-                        AlignItems="AlignItems.Center" 
-                        Spacing="0">
+                    <MudStack Row="true"
+                              AlignItems="AlignItems.Center"
+                              Spacing="0">
 
                         @* Componente de filtragem de registros por busca *@
-                        <MudTextField 
-                            T="string" 
-                            ValueChanged="@OnSearch" 
-                            Immediate="false"
-                            DebounceInterval="300" 
-                            Placeholder="digite sua busca..." 
-                            Adornment="Adornment.Start" 
-                            AdornmentIcon="@Icons.Material.Filled.Search" 
-                            IconSize="Size.Medium" 
-                            Class="m-auto" 
-                            Clearable="true" 
-                            Style="max-width: 300px;" />
+                        <MudTextField T="string"
+                                      ValueChanged="@OnSearch"
+                                      Immediate="false"
+                                      DebounceInterval="300"
+                                      Placeholder="digite sua busca..."
+                                      Adornment="Adornment.Start"
+                                      AdornmentIcon="@Icons.Material.Filled.Search"
+                                      IconSize="Size.Medium"
+                                      Class="m-auto"
+                                      Clearable="true"
+                                      Style="max-width: 300px;" />
 
                         @* Tooltip customizado para dicas de funcionamento do componente *@
                         <AppTooltip Title="Exportar para"
@@ -213,63 +197,54 @@
             @* Cabeçalho da Tabela *@
             <HeaderContent>
 
-                <MudTh></MudTh>
+                <MudTh Style="width: 1%; min-width: 1%; font-weight: bold;"></MudTh>
 
-                <MudTh 
-                    Style="font-weight: bold;">
+                <MudTh Style="width: 49%; min-width: 49%; font-weight: bold;">
 
-                    <MudTableSortLabel 
-                        SortLabel="name" 
-                        InitialDirection="SortDirection.Ascending" 
-                        SortBy="new Func<SectorListItemDTO, object>(x => x.Name)">
-                            Nome
+                    <MudTableSortLabel SortLabel="name"
+                                       InitialDirection="SortDirection.Ascending"
+                                       SortBy="new Func<SectorListItemDTO, object>(x => x.Name)">
+                        Nome
                     </MudTableSortLabel>
 
                 </MudTh>
 
-                <MudTh 
-                    Style="font-weight: bold;">
+                <MudTh Style="width: 25%; min-width: 25%; font-weight: bold;">
 
-                    <MudTableSortLabel 
-                        SortLabel="acronym" 
-                        SortBy="new Func<SectorListItemDTO, object>(x => x.Acronym)">
-                            Sigla
+                    <MudTableSortLabel SortLabel="acronym"
+                                       SortBy="new Func<SectorListItemDTO, object>(x => x.Acronym)">
+                        Sigla
                     </MudTableSortLabel>
 
                 </MudTh>
 
-                <MudTh 
-                    Style="font-weight: bold;">
+                <MudTh Style="width: 25%; min-width: 25%; font-weight: bold;">
                     Telefone
                 </MudTh>
 
             </HeaderContent>
 
             @* Corpo da tabela *@
-            <RowTemplate 
-                Context="sector">
+            <RowTemplate Context="sector">
 
                 @* Componente de exibição de registros relacionais *@
-                <MudTd 
-                    Class="user-toggle-cell">
+                <MudTd Class="user-toggle-cell">
 
                     <div class="user-toggle-wrapper">
                         @if (_selectedSectors.Any(s => s.Id == sector.Id))
                         {
                             @* Tooltip customizado para dicas de funcionamento do componente *@
-                            <AppTooltip 
-                                Title="Exibir usuários"
-                                Description="Clique para expandir a visualização de usuários vinculados a este setor."
-                                Icon="@Icons.Material.Filled.People"
-                                Placement="Placement.Left">
+                            <AppTooltip Title="Exibir usuários"
+                                        Description="Clique para expandir a visualização de usuários vinculados a este setor."
+                                        Icon="@Icons.Material.Filled.People"
+                                        Placement="Placement.Left">
 
                                 @* Botão de exibição dos usuários relacionados ao setor *@
-                                <MudIconButton 
-                                    Icon="@(openSectorIds.Contains(sector.Id) ? Icons.Material.Filled.People : Icons.Material.Filled.PeopleOutline)"
-                                    Color="Color.Primary" 
-                                    Size="Size.Small" 
-                                    Class="p-0 m-0" 
-                                    OnClick="@(() => ToggleShowUsers(sector))" />
+                                <MudIconButton Icon="@(openSectorIds.Contains(sector.Id) ? Icons.Material.Filled.People : Icons.Material.Filled.PeopleOutline)"
+                                               Color="Color.Primary"
+                                               Size="Size.Small"
+                                               Class="p-0 m-0"
+                                               OnClick="@(() => ToggleShowUsers(sector))" />
 
                             </AppTooltip>
                         }
@@ -284,8 +259,7 @@
             </RowTemplate>
 
             @* Componente para exibição dos registros relacionados à entidade pai. *@
-            <ChildRowContent 
-                Context="sectorDetail">
+            <ChildRowContent Context="sectorDetail">
 
                 @if (openSectorIds.Contains(sectorDetail.Id))
                 {
@@ -296,17 +270,15 @@
                         <td colspan="5">
 
                             @* card para organização do ChildRowContent *@
-                            <MudCard 
-                                Elevation="3">
+                            <MudCard Elevation="3">
 
                                 @* Cabeçalho com informações primárias do usuário *@
                                 <MudCardHeader>
 
                                     <CardHeaderContent>
 
-                                        <MudStack 
-                                            Row="true" 
-                                            AlignItems="AlignItems.Center">
+                                        <MudStack Row="true"
+                                                  AlignItems="AlignItems.Center">
 
                                             <MudText Typo="Typo.body1" Style="font-weight: bold;">Usuários de:</MudText>
                                             <MudText Typo="Typo.body1" Color="Color.Primary" Style="font-weight: bold;">@sectorDetail.Name.ToUppercase()</MudText>
@@ -317,16 +289,14 @@
 
                                 </MudCardHeader>
 
-                                <MudCardContent 
-                                    Class="pa-0">
+                                <MudCardContent Class="pa-0">
 
                                     @* Componente de organização da tabela de relacionamentos *@
-                                    <MudTable 
-                                        T="UserBasicListDTO" 
-                                        Items="users" 
-                                        Bordered="false" 
-                                        Hover="true" 
-                                        Elevation="0">
+                                    <MudTable T="UserBasicListDTO"
+                                              Items="users"
+                                              Bordered="false"
+                                              Hover="true"
+                                              Elevation="0">
 
                                         @* Cabeçalho da tabela de usuários *@
                                         <HeaderContent>
@@ -338,11 +308,9 @@
                                         </HeaderContent>
 
                                         @* Corpo da tabela de usuários*@
-                                        <RowTemplate 
-                                            Context="user">
+                                        <RowTemplate Context="user">
 
-                                            <MudTd 
-                                                DataLabel="Status">
+                                            <MudTd DataLabel="Status">
 
                                                 @* Ícone de status do usuário *@
                                                 <ChildContent>
@@ -415,7 +383,6 @@
     private bool isLoading = false;
     private int pageSize = 15;
     private string searchString = string.Empty;
-    private string? lastSortLabel;
     private bool _isModalOpen = false;
 
     // track which sector child rows are currently open (by Id)
@@ -449,14 +416,7 @@
         string? sortLabel = state.SortLabel;
 
         if (string.IsNullOrWhiteSpace(sortLabel))
-        {
-            if (state.SortDirection != SortDirection.None)
-                sortLabel = lastSortLabel ?? "Name";
-            else
-                sortLabel = "Name";
-        }
-
-        lastSortLabel = sortLabel;
+            sortLabel = "Name";
 
         try
         {
@@ -545,8 +505,8 @@
         }
 
         // update your selection references
-        _selectedSectors = selected;           // still useful for UI/menu
-        _previousSelectedIds = newIds;        // update snapshot
+        _selectedSectors = selected;
+        _previousSelectedIds = newIds;
 
         // if selection became empty, ensure all child rows closed
         if (!newIds.Any())
@@ -558,13 +518,6 @@
         StateHasChanged();
         return Task.CompletedTask;
     }
-
-    /// <summary>
-    /// Updates the last used sort label.
-    /// </summary>
-    /// <param name="label">The sort label.</param>
-    private void OnSortLabelChanged(string? label) =>
-        lastSortLabel = label;
 
     /// <summary>
     /// Converts MudBlazor SortDirection to string.

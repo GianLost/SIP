@@ -331,7 +331,7 @@ public class UserService(ICrypt cryp, ApplicationContext context, EntityCacheMan
     public void ClearTotalCountCache() =>
         _cache.Invalidate(EntityType);
 
-  /// <summary>
+    /// <summary>
     /// Provides a generic helper for retrieving entities by their unique identifier,
     /// applying a specified projection and leveraging caching for performance optimization.
     /// </summary>
@@ -355,10 +355,10 @@ public class UserService(ICrypt cryp, ApplicationContext context, EntityCacheMan
     /// within the <see cref="UserService"/>, ensuring consistency and reusability.
     ///
     /// <b>Behavior:</b><br/>
-    /// • Executes a filtered query over <see cref="User"/> entities using the provided identifier.<br/>
-    /// • Applies the supplied projection expression (<paramref name="projector"/>) to map entities into DTOs.<br/>
-    /// • Computes and caches the total count of matching records using <see cref="EntityCacheManager"/>.<br/>
-    /// • Returns a <see cref="PagedResultDTO{T}"/> that encapsulates both the results and count, maintaining
+    /// - Executes a filtered query over <see cref="User"/> entities using the provided identifier.<br/>
+    /// - Applies the supplied projection expression (<paramref name="projector"/>) to map entities into DTOs.<br/>
+    /// - Computes and caches the total count of matching records using <see cref="EntityCacheManager"/>.<br/>
+    /// - Returns a <see cref="PagedResultDTO{T}"/> that encapsulates both the results and count, maintaining
     /// uniformity across all service-layer responses.<br/>
     ///
     /// <b>Usage Example:</b><br/>
