@@ -29,8 +29,10 @@
 
 @* Componente de renderização da lita suspensa virtualizada *@
 <MudPopover Open="showList"
-            AnchorOrigin="Origin.BottomLeft"
+            AnchorOrigin="Origin.TopRight"
             TransformOrigin="Origin.TopLeft"
+            RelativeWidth="DropdownWidth.Adaptive"
+            Fixed="true"
             Class="sector-autocomplete-popover">
 
     <div class="sector-autocomplete-scroll-container" role="listbox">
@@ -42,7 +44,7 @@
                     @key="virtualizeKey">
 
             <ItemContent Context="sector">
-                <div class="pa-2 mud-ripple" @onclick="(() => SelectItem(sector))">
+                <div class="sector-option mud-ripple" @onclick="(() => SelectItem(sector))">
                     @sector.Acronym - @sector.Name
                 </div>
             </ItemContent>

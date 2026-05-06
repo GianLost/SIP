@@ -32,6 +32,38 @@
 
                 <MudGrid Spacing="5">
 
+                    <MudItem xs="12">
+                        <MudTextField @bind-Value="User.Name"
+                                      Counter="150"
+                                      Label="Name"
+                                      Adornment="Adornment.End"
+                                      AdornmentIcon="@Icons.Material.Filled.PeopleOutline"
+                                      Required="true"
+                                      RequiredError="O nome é obrigatório!"
+                                      Variant="Variant.Outlined"
+                                      Immediate="true"
+                                      Clearable="true"
+                                      MaxLength="150"
+                                      Placeholder="Ex: Maria Souza de Assis"
+                                      HelperText="Nome completo do usuário." />
+                    </MudItem>
+
+                    <MudItem xs="12">
+                        <MudTextField @bind-Value="User.Email"
+                                      Counter="200"
+                                      Label="Email"
+                                      Adornment="Adornment.End"
+                                      AdornmentIcon="@Icons.Material.Filled.Email"
+                                      Required="true"
+                                      RequiredError="O email é obrigatório!"
+                                      Variant="Variant.Outlined"
+                                      Immediate="true"
+                                      Clearable="true"
+                                      MaxLength="200"
+                                      Placeholder="Ex: maria@gmail.com"
+                                      HelperText="Email do usuário." />
+                    </MudItem>
+
                     <MudItem xs="6">
                         <MudTextField @bind-Value="maspString"
                                       Counter="50"
@@ -47,22 +79,6 @@
                                       HelperText="Matrícula do usuário."
                                       MaxLength="50"
                                       OnBlur="SyncMaspToModel" />
-                    </MudItem>
-
-                    <MudItem xs="6">
-                        <MudTextField @bind-Value="User.Name"
-                                      Counter="150"
-                                      Label="Name" 
-                                      Adornment="Adornment.End"
-                                      AdornmentIcon="@Icons.Material.Filled.PeopleOutline" 
-                                      Required="true" 
-                                      RequiredError="O nome é obrigatório!" 
-                                      Variant="Variant.Outlined" 
-                                      Immediate="true"
-                                      Clearable="true"
-                                      MaxLength="150"
-                                      Placeholder="Ex: Maria Souza de Assis"
-                                      HelperText="Nome completo do usuário." />
                     </MudItem>
 
                     <MudItem xs="6">
@@ -82,22 +98,6 @@
                     </MudItem>
 
                     <MudItem xs="6">
-                        <MudTextField @bind-Value="User.Email" 
-                                      Counter="200"
-                                      Label="Email" 
-                                      Adornment="Adornment.End" 
-                                      AdornmentIcon="@Icons.Material.Filled.Email" 
-                                      Required="true" 
-                                      RequiredError="O email é obrigatório!" 
-                                      Variant="Variant.Outlined" 
-                                      Immediate="true"
-                                      Clearable="true"
-                                      MaxLength="200"
-                                      Placeholder="Ex: maria@gmail.com"
-                                      HelperText="Email do usuário." />
-                    </MudItem>
-
-                    <MudItem xs="12">
                         <MudTextField T="string"
                                       Value="User.Password"
                                       ValueChanged="@(async (string v) => await OnPasswordValueChanged(v))"
@@ -123,7 +123,7 @@
                         <PasswordStrengthBar @bind-Password="passwordForStrength" />
                     </MudItem>
 
-                    <MudItem xs="12">
+                    <MudItem xs="6">
                         <MudTextField T="string"
                                       Counter="255"
                                       @ref="confirmPasswordField"
@@ -132,7 +132,7 @@
                                       Variant="Variant.Outlined"
                                       InputType="@(showConfirmPassword? InputType.Text: InputType.Password)"
                                       Required="true"
-                                      RequiredError="A confirmação de senha é obrigatória!"
+                                      RequiredError="Confirmação obrigatória!"
                                       For="@(() => ConfirmPassword)"
                                       Validation="(string value) => ValidateConfirmPassword(value)"
                                       Adornment="Adornment.End"
@@ -252,7 +252,7 @@
     private string? ValidateConfirmPassword(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
-            return "A confirmação de senha é obrigatória.";
+            return "Confirmação obrigatória!";
         if (value != User.Password)
             return "As senhas não conferem.";
         return null;
