@@ -1,0 +1,201 @@
+/* LAYOUT */
+
+.login-layout-wrapper {
+    min-height: 100vh;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #f5f7fb 0%, #eef2f7 100%);
+}
+
+.login-layout-content {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* CARD */
+
+.login-page-card {
+    width: 100%;
+    max-width: 430px;
+}
+
+.login-card-paper {
+    width: 100%;
+    padding: 2.4rem;
+    border-radius: 28px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 12px 40px rgba(15, 23, 42, 0.08), 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+/* HEADER */
+
+.login-card-header {
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.login-card-title {
+    font-size: clamp(1.9rem, 2vw, 2.2rem);
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.login-card-subtitle {
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    color: #64748b;
+}
+
+/* INPUTS */
+
+.login-card-input {
+    width: 100%;
+}
+
+    .login-card-input.mud-input-control,
+    .login-card-input .mud-input-control {
+        min-height: 82px;
+    }
+
+    /* FILLED ROOT */
+
+    .login-card-input .mud-input-filled {
+        border-radius: 16px !important;
+        background: #f8fafc59 !important;
+        border: 1px solid #92969f59 !important;
+        transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+    }
+
+        .login-card-input .mud-input-filled.mud-input-focused {
+            background: #f8fafc59 !important;
+            border-color: #2563eb !important;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.10) !important;
+        }
+
+        .login-card-input .mud-input-filled::before,
+        .login-card-input .mud-input-filled::after {
+            display: none !important;
+        }
+
+    /* INPUT */
+
+    .login-card-input input {
+        padding: 22px 16px 8px 16px !important;
+        font-size: 0.96rem !important;
+        color: #0f172a !important;
+        -webkit-text-fill-color: #0f172a !important;
+    }
+
+    /* LABEL */
+
+    .login-card-input .mud-input-label,
+    .login-card-input label.mud-input-label,
+    .login-card-input .mud-input-control-input-container label.mud-input-label {
+        color: #64748b !important;
+        -webkit-text-fill-color: #64748b !important;
+        font-size: 0.9rem !important;
+        font-weight: 500 !important;
+    }
+
+    .login-card-input .mud-input-focused .mud-input-label,
+    .login-card-input .mud-input-focused label.mud-input-label {
+        color: #2563eb !important;
+        -webkit-text-fill-color: #2563eb !important;
+    }
+
+/* INFO TEXT */
+
+.login-extra-text {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1.5rem;
+    text-align: center;
+    font-size: 0.8rem;
+    color: #94a3b8;
+}
+
+.login-extra-text span {
+    margin-top: 0.1rem;
+}
+
+/* BUTTON */
+
+.login-card-button {
+    height: 3rem;
+    border-radius: 16px !important;
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    text-transform: none !important;
+    box-shadow: 0 8px 20px rgba(16, 152, 173, 0.24);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.login-card-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 28px rgba(37, 99, 235, 0.30);
+}
+
+.login-card-button.mud-disabled,
+.login-card-button:disabled,
+.login-card-button[disabled] {
+    opacity: 1 !important;
+    filter: none !important;
+}
+
+.login-card-button .mud-button-label,
+.login-card-button .mud-progress-circular,
+.login-card-button .mud-progress-circular svg
+.login-card-button span  {
+    color: var(--mud-palette-primary-text) !important;
+    fill: var(--mud-palette-primary-text) !important;
+}
+
+/* RESPONSIVIDADE */
+@media (max-width: 768px) {
+    .login-layout-wrapper {
+        padding: 18px;
+    }
+
+    .login-card-paper {
+        padding: 2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .login-layout-wrapper {
+        padding: 14px;
+    }
+
+    .login-card-paper {
+        padding: 1.6rem;
+        border-radius: 24px;
+    }
+
+    .login-card-title {
+        font-size: 1.8rem;
+    }
+
+    .login-card-subtitle {
+        font-size: 0.88rem;
+    }
+
+    .login-card-button {
+        height: 50px;
+    }
+}
+
+@media (max-width: 360px) {
+    .login-card-paper {
+        padding: 1.3rem;
+    }
+
+    .login-card-title {
+        font-size: 1.55rem;
+    }
+}

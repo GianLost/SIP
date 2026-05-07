@@ -1,6 +1,7 @@
 ﻿@using MudBlazor
 
 @* Componente responsável por padronizar a exibição de tooltips no aplicativo, garantindo consistência visual, semântica e de comportamento. *@
+
 <MudTooltip Arrow="true"
             Placement="@Placement"
             Color="@Color">
@@ -12,6 +13,7 @@
 
     @* Conteúdo visual exibido dentro do tooltip *@
     <TooltipContent>
+
         <MudPaper Class="pa-3 rounded-lg"
                   Elevation="@Elevation"
                   Style="@($"max-width: {MaxWidth};")">
@@ -44,6 +46,7 @@
             </MudText>
 
         </MudPaper>
+
     </TooltipContent>
 
 </MudTooltip>
@@ -58,7 +61,7 @@
     /// ao receber foco ou hover, exibe o tooltip padronizado.
     /// </remarks>
     [Parameter, EditorRequired] 
-    public RenderFragment ChildContent { get; set; }
+    public RenderFragment ChildContent { get; set; } = default!;
 
     /// Título exibido no topo do tooltip.
     /// </summary>
@@ -67,7 +70,7 @@
     /// funcionando como um resumo do conteúdo.
     /// </remarks>
     [Parameter, EditorRequired] 
-    public string Title { get; set; }
+    public string Title { get; set; } = string.Empty;
 
     /// <summary>
     /// Texto explicativo exibido no corpo do tooltip.
@@ -77,7 +80,7 @@
     /// relacionadas ao elemento ancorado.
     /// </remarks>
     [Parameter, EditorRequired] 
-    public string Description { get; set; }
+    public string Description { get; set; } = string.Empty;
 
     /// <summary>
     /// Ícone exibido ao lado do título do tooltip.

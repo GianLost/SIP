@@ -7,6 +7,11 @@ using SIP.API.Infrastructure.Database;
 using SIP.API.Domain.Interfaces.Hashes.Passwords;
 using SIP.API.Domain.Interfaces.Protocols;
 using SIP.API.Domain.Interfaces.Sectors;
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using SIP.API.Domain.Helpers.ApplicationHelper;
+using SIP.API.Domain.Helpers.KeysHelper;
 using SIP.API.Domain.Interfaces.Users;
 using SIP.API.Domain.Interfaces.Users.Configurations;
 using SIP.API.Domain.Services.Hashes.Passwords;
@@ -14,7 +19,6 @@ using SIP.API.Domain.Services.Protocols;
 using SIP.API.Domain.Services.Sectors;
 using SIP.API.Domain.Services.Users;
 using SIP.API.Domain.Services.Users.Configurations;
-using SIP.API.Domain.Helpers.ApplicationHelper;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,7 +26,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowBlazorClient",
         policy => policy
-            .WithOrigins("https://localhost:7236", "https://localhost:7083") // Blazor + Swagger (API)
+            .WithOrigins("https://localhost:7236", "http://localhost:5126") // Blazor + Swagger (API)
             .AllowAnyHeader()
             .AllowAnyMethod());
 });
@@ -115,11 +119,39 @@ builder.Host.UseSerilog();
 builder.Services.AddSingleton<EntityCacheManager>();
 
 builder.Services.AddScoped<IUser, UserService>();
+builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 builder.Services.AddScoped<ISector, SectorService>();
 builder.Services.AddScoped<IProtocol, ProtocolService>();
 
 builder.Services.AddScoped<ICrypt, CryptPassword>();
 builder.Services.AddScoped<IUserConfiguration, UserConfigurationService>();
+
+builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
+JwtSettings jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>() ?? new JwtSettings();
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.RequireHttpsMetadata = true;
+    options.SaveToken = true;
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtSettings.Issuer,
+        ValidAudience = jwtSettings.Audience,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey)),
+        ClockSkew = TimeSpan.Zero
+    };
+});
+
+builder.Services.AddAuthorization();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -131,7 +163,7 @@ builder.Services.AddControllers()
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 
-// Configuração do Swagger com informações da API e inclusão dos comentários XML
+// Configuraï¿½ï¿½o do Swagger com informaï¿½ï¿½es da API e inclusï¿½o dos comentï¿½rios XML
 builder.Services.AddSwaggerGen(s =>
 {
     s.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
@@ -146,7 +178,7 @@ builder.Services.AddSwaggerGen(s =>
     s.IncludeXmlComments(xmlPath);
 });
 
-// Configuração do DbContext com MySQL
+// Configuraï¿½ï¿½o do DbContext com MySQL
 builder.Services.AddDbContext<ApplicationContext>(options =>
 {
     options.UseMySql(
@@ -157,7 +189,7 @@ builder.Services.AddDbContext<ApplicationContext>(options =>
 
 WebApplication app = builder.Build();
 
-// Habilita o CORS para permitir requisições do cliente Blazor
+// Habilita o CORS para permitir requisiï¿½ï¿½es do cliente Blazor
 app.UseCors("AllowBlazorClient");
 
 // Configure the HTTP request pipeline.
@@ -169,6 +201,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

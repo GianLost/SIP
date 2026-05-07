@@ -1,6 +1,12 @@
 ﻿@using MudBlazor
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+
 @inherits LayoutComponentBase
+
+@inject NavigationManager Navigation
 @inject IJSRuntime JS
+@inject SIP.UI.Domain.Interfaces.Auth.IAuthService AuthService
 
 <MudThemeProvider @ref="_mudThemeProvider" IsDarkMode="@_isDarkMode" Theme="@(_isDarkMode? DarkTheme : LightTheme)" />
 
@@ -23,8 +29,19 @@
 
         <MudSpacer />
 
-        <MudIconButton Icon="@Icons.Material.Filled.Notifications" Color="Color.Inherit" />
-        <MudIconButton Icon="@Icons.Material.Filled.Person" Color="Color.Inherit" />
+        <AuthorizeView>
+            <Authorized>
+                <MudText Typo="Typo.subtitle2" Class="mr-3">
+                    @context.User.Identity?.Name
+                </MudText>
+                <MudIconButton Icon="@Icons.Material.Filled.Logout" Color="Color.Inherit" OnClick="Logout" />
+            </Authorized>
+            <NotAuthorized>
+                <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="@(async () => Navigation.NavigateTo("/login"))">
+                    Entrar
+                </MudButton>
+            </NotAuthorized>
+        </AuthorizeView>
     </MudAppBar>
 
     <!-- CONTAINER -->
@@ -47,37 +64,44 @@
                 }
             </MudDrawerHeader>
 
-            <MudNavMenu Class="full-width-nav" Bordered="true" Color="Color.Primary">
+            <AuthorizeView>
+                <Authorized>
+                    <MudNavMenu Class="full-width-nav" Bordered="true" Color="Color.Primary">
 
-                <MudNavLink Class="mt-1" Href="/" Icon="@Icons.Material.Filled.Home" Match="NavLinkMatch.All">
-                    Início
-                </MudNavLink>
+                        <MudNavLink Class="mt-1" Href="/" Icon="@Icons.Material.Filled.Home" Match="NavLinkMatch.All">
+                            Início
+                        </MudNavLink>
 
-                <MudDivider Light="true" Class="my-1" />
+                        <MudDivider Light="true" Class="my-1" />
 
-                <MudNavLink Href="/sectors" Icon="@Icons.Material.Filled.Business">
-                    Secretarias
-                </MudNavLink>
+                        <MudNavLink Href="/sectors" Icon="@Icons.Material.Filled.Business">
+                            Secretarias
+                        </MudNavLink>
 
-                <MudNavLink Href="/users" Icon="@Icons.Material.Filled.People">
-                    Usuários
-                </MudNavLink>
+                        <MudNavLink Href="/users" Icon="@Icons.Material.Filled.People">
+                            Usuários
+                        </MudNavLink>
 
-                <MudNavLink Href="/protocols" Icon="@Icons.Material.Filled.Book">
-                    Protocolos
-                </MudNavLink>
+                        <MudNavLink Href="/protocols" Icon="@Icons.Material.Filled.Book">
+                            Protocolos
+                        </MudNavLink>
 
-                <MudDivider Light="true" Class="my-1" />
+                        <MudDivider Light="true" Class="my-1" />
 
-                <MudNavLink Href="/settings" Icon="@Icons.Material.Filled.Settings">
-                    Configurações
-                </MudNavLink>
+                        <MudNavLink Href="/settings" Icon="@Icons.Material.Filled.Settings">
+                            Configurações
+                        </MudNavLink>
 
-                <MudNavLink Href="/help" Icon="@Icons.Material.Filled.Help">
-                    Ajuda
-                </MudNavLink>
+                        <MudNavLink Href="/help" Icon="@Icons.Material.Filled.Help">
+                            Ajuda
+                        </MudNavLink>
 
-            </MudNavMenu>
+                    </MudNavMenu>
+                </Authorized>
+                <NotAuthorized>
+                    <MudText Class="m-4">Faça login para acessar o sistema.</MudText>
+                </NotAuthorized>
+            </AuthorizeView>
 
             <MudSpacer  />
 
@@ -106,7 +130,7 @@
 
     private MudThemeProvider? _mudThemeProvider;
 
-    private MudTheme LightTheme = new()
+    private readonly MudTheme LightTheme = new()
     {
         PaletteLight = new()
         {
@@ -117,7 +141,7 @@
         }
     };
 
-    private MudTheme DarkTheme = new()
+    private readonly MudTheme DarkTheme = new()
     {
         PaletteDark = new()
         {
@@ -144,5 +168,11 @@
     {
         _isDarkMode = !_isDarkMode;
         await JS.InvokeVoidAsync("localStorage.setItem", "sip-theme", _isDarkMode ? "dark" : "light");
+    }
+
+    private async Task Logout()
+    {
+        await AuthService.LogoutAsync();
+        Navigation.NavigateTo("/login");
     }
 }

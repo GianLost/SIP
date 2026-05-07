@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SIP.API.Controllers.Errors;
 using SIP.API.Domain.Interfaces.Users;
 using SIP.API.Domain.Interfaces.Users.Configurations;
@@ -26,6 +27,7 @@ namespace SIP.API.Controllers.Users;
 /// </remarks>
 [Route("sip_api/users")]
 [ApiController]
+[Authorize]
 public class UserController(IUser user, IUserConfiguration userConfiguration, ILogger<UserController> logger) : ControllerBase
 {
     private readonly IUserConfiguration _userConfigurationService = userConfiguration;
@@ -48,6 +50,7 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
     /// - Retorna 500 (Internal Server Error) em caso de falha inesperada.  
     /// </remarks>
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(UserResponseDTO), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
@@ -519,6 +522,7 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
     /// - Retorna 500 (Internal Server Error) em caso de falha inesperada.  
     /// </remarks>
     [HttpPatch("{id}")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(UserResponseDTO), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
@@ -625,6 +629,7 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
     /// - <b>500 (Internal Server Error)</b> → Erro inesperado.  
     /// </remarks>
     [HttpPatch("{id:guid}/sector")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(UserResponseDTO), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
@@ -704,6 +709,7 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
     /// - <b>500 (Internal Server Error)</b> → Erro inesperado.  
     /// </remarks>
     [HttpPatch("password/{id:guid}")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(ChangedPasswordResponseDTO), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
@@ -865,6 +871,7 @@ public class UserController(IUser user, IUserConfiguration userConfiguration, IL
     /// - Retorna 500 (Internal Server Error) em caso de falha inesperada.  
     /// </remarks>
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
