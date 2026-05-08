@@ -1,0 +1,104 @@
+@using MudBlazor
+@inject SIP.UI.Domain.Interfaces.Auth.IAuthService AuthService
+
+<div class="session-timer-bar d-flex justify-content-center align-items-center">
+    <MudText Typo="Typo.caption" Class="mr-2">Sessão:</MudText>
+    <MudChip T="string" Color="@GetChipColor()" Variant="Variant.Outlined">@(_formattedTime)</MudChip>
+</div>
+
+@code {
+    private int _secondsRemaining = 0;
+    private string _formattedTime = "—";
+    private System.Timers.Timer? _timer;
+    // Session timeout: 20 seconds for testing (change back to 20 * 60 for production)
+    private const int SessionTimeoutMs = 20 * 1000;
+    // Warning before logout: 10 seconds
+    private const int WarningThresholdMs = 10 * 1000;
+    private DateTime? _sessionStartTime;
+
+    protected override void OnInitialized()
+    {
+        AuthService.SessionExpiring += OnSessionExpiring;
+        AuthService.SessionRenewed += OnSessionRenewed;
+        AuthService.SessionAutoRenewed += OnAutoRenewed;
+        
+        // Initialize session start time
+        _sessionStartTime = DateTime.UtcNow;
+        StartLocalTimer();
+    }
+
+    private void OnSessionExpiring(int seconds)
+    {
+        // Synchronize with the warning value from server
+        _secondsRemaining = seconds;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void OnSessionRenewed()
+    {
+        // Reset session start time when user explicitly renews session
+        _sessionStartTime = DateTime.UtcNow;
+        _secondsRemaining = SessionTimeoutMs / 1000;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void OnAutoRenewed()
+    {
+        // Reset session start time when auto-renewed due to activity
+        _sessionStartTime = DateTime.UtcNow;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void StartLocalTimer()
+    {
+        _timer?.Stop();
+        _timer?.Dispose();
+        _timer = new System.Timers.Timer(1000);
+        _timer.Elapsed += (s, e) =>
+        {
+            if (_sessionStartTime.HasValue)
+            {
+                var elapsed = DateTime.UtcNow - _sessionStartTime.Value;
+                _secondsRemaining = Math.Max(0, (SessionTimeoutMs - (int)elapsed.TotalMilliseconds) / 1000);
+                _formattedTime = FormatTime(_secondsRemaining);
+            }
+            InvokeAsync(StateHasChanged);
+        };
+        _timer.Start();
+    }
+
+    private string FormatTime(int seconds)
+    {
+        if (seconds <= 0)
+            return "—";
+        
+        int minutes = seconds / 60;
+        int secs = seconds % 60;
+        
+        if (minutes > 0)
+            return $"{minutes}:{secs:D2}";
+        else
+            return $"{secs}s";
+    }
+
+    private Color GetChipColor()
+    {
+        // Red when less than 10 seconds
+        if (_secondsRemaining <= 10)
+            return Color.Error;
+        // Orange/Warning when less than 60 seconds
+        if (_secondsRemaining <= 60)
+            return Color.Warning;
+        // Default color otherwise
+        return Color.Default;
+    }
+
+    public void Dispose()
+    {
+        AuthService.SessionExpiring -= OnSessionExpiring;
+        AuthService.SessionRenewed -= OnSessionRenewed;
+        AuthService.SessionAutoRenewed -= OnAutoRenewed;
+        _timer?.Stop();
+        _timer?.Dispose();
+    }
+}

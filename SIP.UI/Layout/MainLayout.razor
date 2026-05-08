@@ -11,6 +11,7 @@
 <MudThemeProvider @ref="_mudThemeProvider" IsDarkMode="@_isDarkMode" Theme="@(_isDarkMode? DarkTheme : LightTheme)" />
 
 <MudDialogProvider />
+<SessionTimeout />
 <MudSnackbarProvider />
 <MudPopoverProvider />
 
@@ -29,6 +30,12 @@
 
         <MudSpacer />
 
+        <div class="session-timer">
+            <SessionTimerBar />
+        </div>
+
+        <MudSpacer />
+
         <AuthorizeView>
             <Authorized>
                 <MudText Typo="Typo.subtitle2" Class="mr-3">
@@ -36,11 +43,11 @@
                 </MudText>
                 <MudIconButton Icon="@Icons.Material.Filled.Logout" Color="Color.Inherit" OnClick="Logout" />
             </Authorized>
-            <NotAuthorized>
-                <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="@(async () => Navigation.NavigateTo("/login"))">
+            @* <NotAuthorized>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(async () => Navigation.NavigateTo("/login"))">
                     Entrar
                 </MudButton>
-            </NotAuthorized>
+            </NotAuthorized> *@
         </AuthorizeView>
     </MudAppBar>
 
@@ -98,9 +105,7 @@
 
                     </MudNavMenu>
                 </Authorized>
-                <NotAuthorized>
-                    <MudText Class="m-4">Faça login para acessar o sistema.</MudText>
-                </NotAuthorized>
+
             </AuthorizeView>
 
             <MudSpacer  />
