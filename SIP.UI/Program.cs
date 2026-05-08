@@ -14,7 +14,13 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-builder.Services.AddMudServices();
+builder.Services.AddMudServices(config =>
+{
+    // Ajusta o delay dos snackbars para uma experiência mais fluida
+    config.SnackbarConfiguration.ShowTransitionDuration = 300; // ms para aparecer
+    config.SnackbarConfiguration.VisibleStateDuration = 2500; // ms visível
+    config.SnackbarConfiguration.HideTransitionDuration = 300; // ms para desaparecer
+});
 builder.Services.AddAuthorizationCore();
 
 /* URL de comunicação com a API */
