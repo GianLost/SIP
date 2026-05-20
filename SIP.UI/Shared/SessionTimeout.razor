@@ -1,10 +1,12 @@
 @using MudBlazor
+
 @inject SIP.UI.Domain.Interfaces.Auth.IAuthService AuthService
 @inject IDialogService DialogService
 
 @implements IDisposable
 
 @code {
+
     private IDialogReference? _dialogRef;
 
     protected override void OnInitialized()
@@ -34,4 +36,5 @@
     {
         AuthService.SessionExpiring -= OnSessionExpiring;
     }
+
 }

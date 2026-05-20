@@ -1,5 +1,7 @@
 /* --- blazor styles --- */
 
+@import url('components/session-timer-final.css');
+
 html, body, #app {
     height: 100vh;
     margin: 0;
@@ -92,7 +94,7 @@ body {
     overscroll-behavior: contain;
 }
 
-/* N√O usar transform aqui, pois pode causar travamento visual no Virtualize */
+/* N√ÉO usar transform aqui, pois pode causar travamento visual no Virtualize */
 .sector-option {
     display: block;
     width: 100%;

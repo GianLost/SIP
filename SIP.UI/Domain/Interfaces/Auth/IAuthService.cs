@@ -11,6 +11,8 @@ public interface IAuthService
     event Action? SessionRenewed;
     // Event raised when session is auto-renewed due to activity (silent renewal at timeout).
     event Action? SessionAutoRenewed;
+    // Event raised when user activity is detected (throttled) from JS.
+    event Action? UserActivityDetected;
 
     Task InitializeAsync();
     Task<bool> LoginAsync(string login, string password);
@@ -19,4 +21,7 @@ public interface IAuthService
     CurrentUser? CurrentUser { get; }
     // Keep the session alive (resets inactivity timers). Implementations may also refresh tokens.
     Task KeepAliveAsync();
+
+    // Called by JS to notify of user activity (throttled)
+    Task OnUserActivityAsync();
 }

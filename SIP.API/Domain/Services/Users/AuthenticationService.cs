@@ -32,4 +32,11 @@ public class AuthenticationService(ICrypt crypt, ApplicationContext context) : I
 
         return user;
     }
+
+    public async Task<User?> GetUserByIdAsync(Guid userId)
+    {
+        return await _context.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Id == userId && u.IsActive);
+    }
 }

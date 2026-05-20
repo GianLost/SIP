@@ -16,6 +16,7 @@
 
 	<ItemGroup>
 		<Folder Include="Domain\DTOs\Protocols\Default\" />
+		<Folder Include="Domain\Services\Session\" />
 	</ItemGroup>
 
 </Project>

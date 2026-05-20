@@ -1,0 +1,281 @@
+/* =============================================== */
+/* TIMER DE SESSÃO - DESIGN MODERNO PROFISSIONAL */
+/* =============================================== */
+
+.session-timer-container {
+    display: flex;
+    align-items: center;
+    height: 100%;
+}
+
+.session-timer-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 600;
+    font-family: 'Courier New', monospace;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.3px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    white-space: nowrap;
+}
+
+.session-timer-badge .timer-icon {
+    font-size: 18px;
+    display: inline-flex;
+    align-items: center;
+}
+
+.session-timer-badge .timer-text {
+    font-weight: 700;
+    min-width: 50px;
+}
+
+/* Estados do Timer */
+.session-timer-badge.timer-default {
+    background: linear-gradient(135deg, rgba(33, 150, 243, 0.1) 0%, rgba(25, 118, 210, 0.08) 100%);
+    color: #1565c0;
+    border: 1.5px solid rgba(25, 118, 210, 0.25);
+}
+
+.session-timer-badge.timer-default .timer-icon {
+    color: #1976d2;
+}
+
+.session-timer-badge.timer-warning {
+    background: linear-gradient(135deg, rgba(255, 167, 38, 0.15) 0%, rgba(255, 152, 0, 0.12) 100%);
+    color: #e65100;
+    border: 1.5px solid rgba(255, 152, 0, 0.4);
+    box-shadow: 0 2px 8px rgba(255, 152, 0, 0.15);
+    animation: timer-pulse-warning 2s infinite;
+}
+
+.session-timer-badge.timer-warning .timer-icon {
+    color: #ff9800;
+    animation: timer-pulse-icon-warning 2s infinite;
+}
+
+.session-timer-badge.timer-critical {
+    background: linear-gradient(135deg, rgba(229, 57, 53, 0.15) 0%, rgba(211, 47, 47, 0.12) 100%);
+    color: #b71c1c;
+    border: 1.5px solid rgba(211, 47, 47, 0.4);
+    box-shadow: 0 2px 8px rgba(211, 47, 47, 0.2);
+    animation: timer-pulse-critical 1s infinite;
+}
+
+.session-timer-badge.timer-critical .timer-icon {
+    color: #d32f2f;
+    animation: timer-pulse-icon-critical 1s infinite;
+}
+
+@keyframes timer-pulse-warning {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.85; }
+}
+
+@keyframes timer-pulse-icon-warning {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+@keyframes timer-pulse-critical {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.75; }
+}
+
+@keyframes timer-pulse-icon-critical {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+}
+
+/* Dark Mode */
+.mud-theme-dark .session-timer-badge.timer-default {
+    background: linear-gradient(135deg, rgba(66, 165, 245, 0.15) 0%, rgba(33, 150, 243, 0.12) 100%);
+    color: #64b5f6;
+    border-color: rgba(66, 165, 245, 0.3);
+}
+
+.mud-theme-dark .session-timer-badge.timer-default .timer-icon {
+    color: #90caf9;
+}
+
+.mud-theme-dark .session-timer-badge.timer-warning {
+    background: linear-gradient(135deg, rgba(255, 183, 77, 0.15) 0%, rgba(255, 167, 38, 0.12) 100%);
+    color: #ffb74d;
+    border-color: rgba(255, 183, 77, 0.35);
+    box-shadow: 0 2px 8px rgba(255, 152, 0, 0.2);
+}
+
+.mud-theme-dark .session-timer-badge.timer-warning .timer-icon {
+    color: #ffb74d;
+}
+
+.mud-theme-dark .session-timer-badge.timer-critical {
+    background: linear-gradient(135deg, rgba(239, 83, 80, 0.15) 0%, rgba(229, 57, 53, 0.12) 100%);
+    color: #ef5350;
+    border-color: rgba(239, 83, 80, 0.35);
+    box-shadow: 0 2px 8px rgba(229, 57, 53, 0.2);
+}
+
+.mud-theme-dark .session-timer-badge.timer-critical .timer-icon {
+    color: #ff7043;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .session-timer-badge {
+        padding: 6px 12px;
+        font-size: 14px;
+    }
+    
+    .session-timer-badge .timer-icon {
+        font-size: 16px;
+    }
+}
+
+/* Modal de aviso de sessão - design moderno */
+.session-warning-modal .mud-dialog-content {
+    padding: 32px 24px 16px 24px;
+    background: var(--mud-palette-background-paper, #fff);
+    border-radius: 14px 14px 0 0;
+    box-shadow: 0 8px 32px rgba(33, 150, 243, 0.08), 0 1.5px 6px rgba(0,0,0,0.07);
+}
+.session-warning-header {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 18px;
+}
+.session-warning-icon {
+    color: #ff9800;
+    background: rgba(255, 152, 0, 0.08);
+    border-radius: 50%;
+    padding: 8px;
+    font-size: 2.5rem;
+    box-shadow: 0 2px 8px rgba(255, 152, 0, 0.08);
+}
+.session-warning-title {
+    font-weight: 700;
+    color: #e65100;
+    letter-spacing: 0.2px;
+}
+.session-warning-desc {
+    color: #757575;
+    font-size: 1rem;
+}
+.session-warning-timer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 18px 0 0 0;
+}
+.session-warning-caption {
+    color: #ff9800;
+    font-weight: 500;
+    margin-top: 4px;
+    letter-spacing: 0.5px;
+}
+.session-warning-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 16px 24px 24px 24px;
+    background: transparent;
+    border-radius: 0 0 14px 14px;
+}
+.session-warning-btn {
+    min-width: 120px;
+    font-weight: 600;
+    font-size: 1rem;
+    border-radius: 8px;
+    text-transform: none;
+}
+.mud-theme-dark .session-warning-modal .mud-dialog-content {
+    background: #23272f;
+}
+.mud-theme-dark .session-warning-title {
+
+/* Minimalista: contador circular e texto */
+.session-timer-minimal {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+.session-timer-circular {
+    margin-right: 0;
+}
+.session-timer-label {
+    font-size: 0.95rem;
+    color: #757575;
+    margin-bottom: 2px;
+    letter-spacing: 0.1px;
+}
+.session-timer-time {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #222;
+
+/* Circular timer bar (barra superior) */
+.session-timer-circularbar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 70px;
+    padding: 2px 0;
+}
+.session-timer-label {
+    font-size: 0.95rem;
+    color: #fff;
+    font-weight: 500;
+    margin-bottom: 2px;
+    letter-spacing: 0.1px;
+    text-align: center;
+}
+.session-timer-circular-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.session-timer-circular-time {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #fff;
+    font-family: 'Segoe UI', 'Arial', sans-serif;
+    letter-spacing: 0.2px;
+    pointer-events: none;
+}
+.mud-theme-dark .session-timer-label,
+.mud-theme-dark .session-timer-circular-time {
+    color: #fff;
+}
+    font-family: 'Segoe UI', 'Arial', sans-serif;
+    letter-spacing: 0.2px;
+}
+.mud-theme-dark .session-timer-label {
+    color: #bdbdbd;
+}
+.mud-theme-dark .session-timer-time {
+    color: #fff;
+}
+    color: #ffb300;
+}
+.mud-theme-dark .session-warning-desc {
+    color: #bdbdbd;
+}
+.mud-theme-dark .session-warning-caption {
+    color: #ffb300;
+}

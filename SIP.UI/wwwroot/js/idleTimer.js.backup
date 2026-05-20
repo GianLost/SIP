@@ -6,14 +6,12 @@
     let timeoutId = null;
     let warningId = null;
     let dotNetRef = null;
-    let timeoutMs = 5 * 60 * 1000; // default 5 minutes
-    let warningMs = 60 * 1000; // default 1 minute warning
+    let timeoutMs = 20 * 1000; // default 20 minutes
+    let warningMs = 10 * 1000; // default 10 seconds warning
     let lastActivityTime = null;
     let sessionStartTime = null;
     let hasActiveRenewal = false; // flag to prevent multiple renewals
     let warningShown = false; // flag to prevent multiple warnings
-    let lastActivityNotify = 0;
-    const notifyIntervalMs = 1000; // throttle notifications to .NET (ms)
 
     function resetTimer() {
         lastActivityTime = Date.now();
@@ -29,58 +27,17 @@
 
         if (timeoutMs <= 0) return;
 
-        // Notify .NET (throttled) that user activity occurred so UI can update immediately
-        try {
-            const now = Date.now();
-            if (dotNetRef && now - lastActivityNotify >= notifyIntervalMs) {
-                lastActivityNotify = now;
-                dotNetRef.invokeMethodAsync('OnUserActivityAsync').catch(() => { });
-            }
-        } catch {}
-
         console.log('[idleTimer] Timer reset. Session will timeout in ' + (timeoutMs / 1000) + 's');
 
         // Schedule warning check at (timeoutMs - warningMs)
-        const warnDelay = Math.max(0, timeoutMs - warningMs);
         warningId = setTimeout(() => {
             checkSessionStatus();
-        }, warnDelay);
+        }, timeoutMs - warningMs);
 
         // Schedule final logout at timeoutMs
         timeoutId = setTimeout(() => {
-            // Before forcing logout, re-check whether there was recent activity
-            // that happened after the sessionStartTime. If so, attempt an
-            // automatic renewal instead of immediate logout. This handles the
-            // race where user interacts right around the timeout moment.
-            if (!dotNetRef) return;
-
-            const now = Date.now();
-            const timeSinceLastActivity = now - lastActivityTime;
-
-            console.log('[idleTimer] FINAL TIMEOUT fired, timeSinceLastActivity=' + timeSinceLastActivity + 'ms, hasActiveRenewal=' + hasActiveRenewal);
-
-            if (lastActivityTime > sessionStartTime && !hasActiveRenewal) {
-                console.log('[idleTimer] Final timeout: recent activity detected, attempting auto-renewal');
-                hasActiveRenewal = true;
-                dotNetRef.invokeMethodAsync('OnActivityRenewal')
-                    .then(() => {
-                        console.log('[idleTimer] Auto-renewal completed from final timeout');
-                        hasActiveRenewal = false;
-                        sessionStartTime = Date.now();
-                        lastActivityTime = sessionStartTime;
-                        warningShown = false;
-                        resetTimer();
-                    })
-                    .catch(e => {
-                        console.error('Error invoking OnActivityRenewal at final timeout:', e);
-                        hasActiveRenewal = false;
-                        // fallback to logout if renewal fails
-                        dotNetRef.invokeMethodAsync('OnInactivityTimeout')
-                            .catch(err => console.error('Error invoking OnInactivityTimeout:', err));
-                    });
-            }
-            else {
-                console.log('[idleTimer] Final timeout: no recent activity - invoking OnInactivityTimeout');
+            if (dotNetRef) {
+                console.log('[idleTimer] TIMEOUT - invoking OnInactivityTimeout');
                 dotNetRef.invokeMethodAsync('OnInactivityTimeout')
                     .catch(e => console.error('Error invoking OnInactivityTimeout:', e));
             }
@@ -146,8 +103,6 @@
             document.addEventListener('mousemove', resetTimer);
             document.addEventListener('mousedown', resetTimer);
             document.addEventListener('keypress', resetTimer);
-            // include scroll as activity (capturing to catch scroll on containers)
-            document.addEventListener('scroll', resetTimer, true);
             document.addEventListener('touchstart', resetTimer);
             document.addEventListener('click', resetTimer);
 
@@ -174,7 +129,6 @@
         document.removeEventListener('keypress', resetTimer);
         document.removeEventListener('touchstart', resetTimer);
         document.removeEventListener('click', resetTimer);
-        document.removeEventListener('scroll', resetTimer, true);
 
         if (dotNetRef) {
             try {
@@ -186,44 +140,8 @@
     }
 
     function reset() {
-        // Reset session tracking and flags to allow modal to appear again
-        sessionStartTime = Date.now();
-        lastActivityTime = sessionStartTime;
-        warningShown = false;
-        hasActiveRenewal = false;
         resetTimer();
     }
-
-    // Listen for storage events to synchronize renewals and logout across tabs.
-    window.addEventListener('storage', function (e) {
-        try {
-            if (!e) return;
-            // Token key changed in another tab -> external renewal or logout
-            if (e.key === 'sip-token') {
-                // If token was removed -> logout in another tab
-                if (e.newValue === null) {
-                    console.log('[idleTimer] storage: token removed in another tab -> forcing logout');
-                    if (dotNetRef) dotNetRef.invokeMethodAsync('OnInactivityTimeout').catch(() => { });
-                }
-                else {
-                    console.log('[idleTimer] storage: token updated in another tab -> external renewal');
-                    // Reset timers locally and notify managed code to update UI without calling backend
-                    sessionStartTime = Date.now();
-                    lastActivityTime = sessionStartTime;
-                    warningShown = false;
-                    hasActiveRenewal = false;
-                    resetTimer();
-                    if (dotNetRef) {
-                        // Call a lightweight handler on the .NET side that only notifies UI of renewal
-                        // (AuthService implements OnExternalRenewal for this purpose)
-                        dotNetRef.invokeMethodAsync('OnExternalRenewal').catch(() => { });
-                    }
-                }
-            }
-        } catch (ex) {
-            console.error('idleTimer storage handler error', ex);
-        }
-    });
 
     window.idleTimer = {
         start: start,

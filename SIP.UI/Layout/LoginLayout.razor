@@ -1,24 +1,39 @@
 @using MudBlazor
 @using Microsoft.JSInterop
+
 @inherits LayoutComponentBase
+
 @inject IJSRuntime JS
 
-<MudThemeProvider @ref="_mudThemeProvider" IsDarkMode="_isDarkMode" Theme="@(_isDarkMode? DarkTheme : LightTheme)" />
+<!-- Provedor global de tema utilizado na tela de login -->
+<MudThemeProvider @ref="_mudThemeProvider"
+                  IsDarkMode="_isDarkMode"
+                  Theme="@(_isDarkMode ? DarkTheme : LightTheme)" />
 
+<!-- Provedores globais necessários para os componentes MudBlazor -->
 <MudSnackbarProvider />
 <MudDialogProvider />
 <MudPopoverProvider />
 
+<!-- Estrutura visual exclusiva das páginas de autenticação -->
 <div class="login-layout-wrapper">
+
+    <!-- Área central onde o conteúdo da página de login será renderizado -->
     <div class="login-layout-content">
         @Body
     </div>
+
 </div>
 
 @code {
+
+    // Controla se o layout de login está utilizando o tema escuro.
     private bool _isDarkMode = true;
+
+    // Referência ao provedor de tema do MudBlazor.
     private MudThemeProvider? _mudThemeProvider;
 
+    // Configuração visual aplicada quando o tema claro estiver ativo.
     private readonly MudTheme LightTheme = new()
     {
         PaletteLight = new()
@@ -35,6 +50,7 @@
         }
     };
 
+    // Configuração visual aplicada quando o tema escuro estiver ativo.
     private readonly MudTheme DarkTheme = new()
     {
         PaletteDark = new()
@@ -51,6 +67,7 @@
         }
     };
 
+    // Após a primeira renderização, recupera a preferência de tema salva no navegador.
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;

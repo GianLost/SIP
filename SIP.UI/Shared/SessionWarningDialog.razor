@@ -1,74 +1,61 @@
 @using MudBlazor
-@using MudBlazor.Services
 @inject SIP.UI.Domain.Interfaces.Auth.IAuthService AuthService
 
-<MudDialog>
+<MudDialog paperClass="session-warning-paper" maxWidth="MaxWidth.Small" disableBackdropClick="true" disableEscapeKey="true">
     <DialogContent>
-        <MudPaper Class="pa-4" Elevation="0" Style="background:transparent;">
-            <div class="d-flex align-center">
-                <MudAvatar Color="Color.Warning" Size="Size.Medium" Class="mr-3">
-                    <MudIcon Class="margin:auto" Icon="@Icons.Material.Filled.Warning" />
-                </MudAvatar>
-                <div>
-                    <MudText Typo="Typo.h6">Sessão quase expirada</MudText>
-                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Por motivos de segurança sua sessão será encerrada em breve.</MudText>
+        <div style="display:flex; gap:16px; align-items:center;">
+            <MudProgressCircular diameter="56" thickness="6" Value="@ProgressPercent" Color="@GetProgressColor()" />
+            <div style="display:flex; flex-direction:column;">
+                <MudText Typo="Typo.h6" Class="session-warning-title">Sua sessão está prestes a expirar</MudText>
+                <MudText Typo="Typo.body2" Class="session-warning-subtitle">Por motivos de segurança, a sessão será encerrada se não houver atividade.</MudText>
+                <div style="margin-top:8px;">
+                    <MudText Typo="Typo.subtitle2" Class="session-timer-countdown">Tempo restante: <b>@SecondsRemainingString</b>s</MudText>
                 </div>
             </div>
-
-            <div class="mt-4">
-                <MudText Typo="Typo.h3" Align="Align.Center">@SecondsRemainingString</MudText>
-                <MudProgressLinear Color="Color.Error" Value="@ProgressPercent" Class="mt-2" />
-            </div>
-
-            <div class="d-flex justify-end mt-4">
-                <MudButton Variant="Variant.Text" Color="Color.Secondary" OnClick="LogoutNow">Encerrar sessão</MudButton>
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ContinueSession" Class="ml-2">Continuar sessão</MudButton>
-            </div>
-        </MudPaper>
+        </div>
     </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="ContinueSession" Variant="Variant.Filled" Color="Color.Primary" Class="session-continue-btn">Manter sessão</MudButton>
+        <MudButton OnClick="LogoutNow" Variant="Variant.Text" Color="Color.Error" Class="session-logout-btn">Sair</MudButton>
+    </DialogActions>
 </MudDialog>
 
 @code {
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
 
     [Parameter]
-    public int InitialSeconds { get; set; } = 60;
+    public int InitialSeconds { get; set; } = 10;
 
     private int _secondsRemaining;
     private System.Timers.Timer? _timer;
 
     protected override void OnInitialized()
     {
-        AuthService.SessionExpiring += UpdateSeconds;
-
         _secondsRemaining = InitialSeconds;
-
         _timer = new System.Timers.Timer(1000);
-        _timer.Elapsed += (s, e) =>
+        _timer.Elapsed += async (s, e) =>
         {
             if (_secondsRemaining > 0)
             {
                 _secondsRemaining--;
-                InvokeAsync(StateHasChanged);
+                await InvokeAsync(StateHasChanged);
             }
             else
             {
-                // no more time, ensure dialog closes
                 try { MudDialog.Close(); } catch { }
             }
         };
         _timer.Start();
     }
 
-    private void UpdateSeconds(int seconds)
+    private string SecondsRemainingString => _secondsRemaining > 0 ? _secondsRemaining.ToString() : "0";
+    private double ProgressPercent => InitialSeconds > 0 ? 100.0 * _secondsRemaining / InitialSeconds : 0;
+    private Color GetProgressColor()
     {
-        _secondsRemaining = seconds;
-        InvokeAsync(StateHasChanged);
+        if (_secondsRemaining <= 5) return Color.Error;
+        if (_secondsRemaining <= 15) return Color.Warning;
+        return Color.Primary;
     }
-
-    private string SecondsRemainingString => _secondsRemaining > 0 ? $"{_secondsRemaining}s" : "—";
-
-    private double ProgressPercent => InitialSeconds > 0 ? Math.Min(100.0, 100.0 * (InitialSeconds - _secondsRemaining) / InitialSeconds) : 100.0;
 
     private async Task ContinueSession()
     {
@@ -88,6 +75,5 @@
     {
         _timer?.Stop();
         _timer?.Dispose();
-        AuthService.SessionExpiring -= UpdateSeconds;
     }
 }

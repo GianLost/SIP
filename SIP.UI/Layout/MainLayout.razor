@@ -1,6 +1,5 @@
 ﻿@using MudBlazor
 @using Microsoft.AspNetCore.Components.Authorization
-@using System.Security.Claims
 
 @inherits LayoutComponentBase
 
@@ -8,54 +7,70 @@
 @inject IJSRuntime JS
 @inject SIP.UI.Domain.Interfaces.Auth.IAuthService AuthService
 
-<MudThemeProvider @ref="_mudThemeProvider" IsDarkMode="@_isDarkMode" Theme="@(_isDarkMode? DarkTheme : LightTheme)" />
+<!-- Provedor global de tema da aplicação -->
+<MudThemeProvider @ref="_mudThemeProvider"
+                  IsDarkMode="@_isDarkMode"
+                  Theme="@(_isDarkMode ? DarkTheme : LightTheme)" />
 
+<!-- Provedores globais utilizados pelos componentes MudBlazor -->
 <MudDialogProvider />
 <SessionTimeout />
 <MudSnackbarProvider />
 <MudPopoverProvider />
 
+<!-- Estrutura principal do layout da aplicação -->
 <MudLayout Class="mud-height-full">
 
-    <!-- APPBAR -->
+    <!-- Barra superior da aplicação -->
     <MudAppBar Elevation="1">
+
+        <!-- Aciona a abertura ou fechamento do menu lateral -->
         <MudIconButton Icon="@Icons.Material.Filled.Menu"
                        Color="Color.Inherit"
                        Edge="Edge.Start"
                        OnClick="ToggleDrawer" />
 
+        <!-- Identificação da aplicação -->
         <MudText Typo="Typo.h6" Class="ml-4">
             SIP - SISTEMA INTERNO DE PROTOCOLO
         </MudText>
 
         <MudSpacer />
 
-        <div class="session-timer">
-            <SessionTimerBar />
-        </div>
+        <!-- Indicador visual do tempo restante da sessão -->
+        <SessionTimerBar />
 
         <MudSpacer />
 
+        <!-- Área exibida somente para usuários autenticados -->
         <AuthorizeView>
             <Authorized>
+
+                <!-- Nome do usuário autenticado -->
                 <MudText Typo="Typo.subtitle2" Class="mr-3">
                     @context.User.Identity?.Name
                 </MudText>
-                <MudIconButton Icon="@Icons.Material.Filled.Logout" Color="Color.Inherit" OnClick="Logout" />
+
+                <!-- Encerra a sessão do usuário atual -->
+                <MudIconButton Icon="@Icons.Material.Filled.Logout"
+                               Color="Color.Inherit"
+                               OnClick="Logout" />
+
             </Authorized>
-            @* <NotAuthorized>
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(async () => Navigation.NavigateTo("/login"))">
-                    Entrar
-                </MudButton>
-            </NotAuthorized> *@
+
+            <!-- Redireciona usuários não autenticados para a tela de login -->
+            <NotAuthorized>
+                <RedirectToLogin />
+            </NotAuthorized>
         </AuthorizeView>
+
     </MudAppBar>
 
-    <!-- CONTAINER -->
+    <!-- Container responsável por agrupar o menu lateral e o conteúdo principal -->
     <MudDrawerContainer Class="mud-height-full">
 
-        <!-- DRAWER MINI -->
-        <MudDrawer @bind-Open="_isDrawerOpen" 
+        <!-- Menu lateral em modo mini, com expansão ao passar o mouse -->
+        <MudDrawer @bind-Open="_isDrawerOpen"
                    Color="Color.Inherit"
                    Variant="DrawerVariant.Mini"
                    OpenMiniOnHover="true"
@@ -64,6 +79,7 @@
                    Elevation="2"
                    Breakpoint="Breakpoint.None">
 
+            <!-- Cabeçalho do menu lateral -->
             <MudDrawerHeader>
                 @if (_isDrawerOpen)
                 {
@@ -71,46 +87,80 @@
                 }
             </MudDrawerHeader>
 
+            <!-- Itens de navegação disponíveis para usuários autenticados -->
             <AuthorizeView>
-                <Authorized>
-                    <MudNavMenu Class="full-width-nav" Bordered="true" Color="Color.Primary">
 
-                        <MudNavLink Class="mt-1" Href="/" Icon="@Icons.Material.Filled.Home" Match="NavLinkMatch.All">
+                <Authorized>
+
+                    <MudNavMenu Class="full-width-nav"
+                                Bordered="true"
+                                Color="Color.Primary">
+
+                        <!-- Página inicial -->
+                        <MudNavLink Class="mt-1"
+                                    Href="/"
+                                    Icon="@Icons.Material.Filled.Home"
+                                    Match="NavLinkMatch.All">
                             Início
                         </MudNavLink>
 
-                        <MudDivider Light="true" Class="my-1" />
+                        <MudDivider 
+                            Light="true" 
+                            Class="my-1" />
 
-                        <MudNavLink Href="/sectors" Icon="@Icons.Material.Filled.Business">
+                        <!-- Cadastros e módulos principais do sistema -->
+                        <MudNavLink 
+                            Href="/sectors" 
+                            Icon="@Icons.Material.Filled.Business">
                             Secretarias
                         </MudNavLink>
 
-                        <MudNavLink Href="/users" Icon="@Icons.Material.Filled.People">
+                        <MudNavLink 
+                            Href="/users" 
+                            Icon="@Icons.Material.Filled.People">
                             Usuários
                         </MudNavLink>
 
-                        <MudNavLink Href="/protocols" Icon="@Icons.Material.Filled.Book">
+                        <MudNavLink 
+                            Href="/protocols" 
+                            Icon="@Icons.Material.Filled.Book">
                             Protocolos
                         </MudNavLink>
 
-                        <MudDivider Light="true" Class="my-1" />
+                        <MudDivider 
+                            Light="true" 
+                            Class="my-1" />
 
-                        <MudNavLink Href="/settings" Icon="@Icons.Material.Filled.Settings">
+                        <!-- Opções auxiliares da aplicação -->
+                        <MudNavLink 
+                            Href="/settings" 
+                            Icon="@Icons.Material.Filled.Settings">
                             Configurações
                         </MudNavLink>
 
-                        <MudNavLink Href="/help" Icon="@Icons.Material.Filled.Help">
+                        <MudNavLink 
+                            Href="/help" 
+                            Icon="@Icons.Material.Filled.Help">
                             Ajuda
                         </MudNavLink>
 
                     </MudNavMenu>
+
                 </Authorized>
+
+                <!-- Proteção contra acesso não autenticado ao menu -->
+                <NotAuthorized>
+                    <RedirectToLogin />
+                </NotAuthorized>
 
             </AuthorizeView>
 
-            <MudSpacer  />
+            <MudSpacer />
 
-            <MudContainer Class="m-auto p-1">
+            <!-- Alternância entre tema claro e escuro -->
+            <MudContainer 
+                Class="m-auto p-1">
+
                 <MudIconButton Icon="@Icons.Material.Filled.Brightness4"
                                OnClick="ToggleTheme"
                                Class="mb-2 toggle-theme"
@@ -119,8 +169,9 @@
 
         </MudDrawer>
 
-        <!-- CONTEÚDO -->
-        <MudMainContent Class="main-content">
+        <!-- Área principal onde as páginas da aplicação são renderizadas -->
+        <MudMainContent 
+            Class="main-content">
             @Body
         </MudMainContent>
 
@@ -130,11 +181,16 @@
 
 @code {
 
+    // Controla o estado de abertura do menu lateral.
     private bool _isDrawerOpen = false;
+
+    // Define se a aplicação está utilizando o tema escuro.
     private bool _isDarkMode = true;
 
+    // Referência ao provedor de tema do MudBlazor.
     private MudThemeProvider? _mudThemeProvider;
 
+    // Configuração visual do tema claro da aplicação.
     private readonly MudTheme LightTheme = new()
     {
         PaletteLight = new()
@@ -146,6 +202,7 @@
         }
     };
 
+    // Configuração visual do tema escuro da aplicação.
     private readonly MudTheme DarkTheme = new()
     {
         PaletteDark = new()
@@ -157,6 +214,7 @@
         }
     };
 
+    // Inicializa o tema da aplicação com base na preferência salva no navegador.
     protected override async Task OnInitializedAsync()
     {
         var theme = await JS.InvokeAsync<string>("localStorage.getItem", "sip-theme");
@@ -167,17 +225,21 @@
             _isDarkMode = await _mudThemeProvider.GetSystemDarkModeAsync();
     }
 
+    // Alterna a visibilidade do menu lateral.
     private void ToggleDrawer() => _isDrawerOpen = !_isDrawerOpen;
 
+    // Alterna entre tema claro e escuro e salva a preferência no navegador.
     private async Task ToggleTheme()
     {
         _isDarkMode = !_isDarkMode;
         await JS.InvokeVoidAsync("localStorage.setItem", "sip-theme", _isDarkMode ? "dark" : "light");
     }
 
+    // Encerra a sessão do usuário e redireciona para a tela de login.
     private async Task Logout()
     {
         await AuthService.LogoutAsync();
         Navigation.NavigateTo("/login");
     }
+
 }

@@ -75,6 +75,40 @@ public class AuthController(IAuthenticationService authenticationService, IOptio
         });
     }
 
+    [HttpPost("keepalive")]
+    [Authorize]
+    public async Task<IActionResult> KeepAlive()
+    {
+        string? userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userIdString) || !Guid.TryParse(userIdString, out Guid userId))
+            return Unauthorized(new { error = "Usuário não autenticado." });
+
+        User? user = await _authenticationService.GetUserByIdAsync(userId);
+        if (user == null)
+            return Unauthorized(new { error = "Usuário não encontrado." });
+
+        string token = BuildToken(user);
+
+        var response = new AuthResponseDTO
+        {
+            AccessToken = token,
+            ExpiresIn = _jwtSettings.AccessTokenExpirationMinutes * 60,
+            Role = user.Role.ToString(),
+            User = new UserResponseDTO
+            {
+                Id = user.Id,
+                Status = user.IsActive,
+                Masp = user.Masp,
+                Name = user.Name,
+                Login = user.Login,
+                Email = user.Email,
+                SectorId = user.SectorId
+            }
+        };
+
+        return Ok(response);
+    }
+
     private string BuildToken(User user)
     {
         var claims = new List<Claim>

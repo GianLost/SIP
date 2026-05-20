@@ -18,10 +18,10 @@ public class AuthService(IJSRuntime jsRuntime, HttpClient http, NavigationManage
     private CurrentUser? _currentUser;
     private const string TokenStorageKey = "sip-token";
     private DotNetObjectReference<AuthService>? _dotNetRef;
-    // Session timeout: 20 seconds for testing (change back to 20 * 60 for production)
-    private const int InactivityTimeoutMs = 20 * 1000;
-    // Warning before logout: 10 seconds
-    private const int WarningTimeoutMs = 10 * 1000;
+    // Session timeout: 5 minutes (in milliseconds)
+    private static readonly int InactivityTimeoutMs = 5 * 60 * 1000;
+    // Warning before logout: 1 minute
+    private static readonly int WarningTimeoutMs = 60 * 1000;
 
     public event Action? AuthenticationStateChanged;
 
@@ -30,6 +30,8 @@ public class AuthService(IJSRuntime jsRuntime, HttpClient http, NavigationManage
 
     // Event raised when session is auto-renewed due to activity (silent renewal at timeout).
     public event Action? SessionAutoRenewed;
+    // Event raised when JS notifies of user activity (throttled)
+    public event Action? UserActivityDetected;
 
     public CurrentUser? CurrentUser => _currentUser;
 
@@ -156,6 +158,18 @@ public class AuthService(IJSRuntime jsRuntime, HttpClient http, NavigationManage
         await LogoutAsync();
     }
 
+    // Called from JS when user activity is detected (throttled)
+    [JSInvokable]
+    public Task OnUserActivityAsync()
+    {
+        try
+        {
+            UserActivityDetected?.Invoke();
+        }
+        catch { }
+        return Task.CompletedTask;
+    }
+
     // Event raised when a warning should be shown before session expires.
     public event Action<int>? SessionExpiring;
 
@@ -169,10 +183,45 @@ public class AuthService(IJSRuntime jsRuntime, HttpClient http, NavigationManage
 
     // Called from JS when session auto-renews due to activity during session period.
     [JSInvokable]
-    public Task OnActivityRenewal()
+    public async Task OnActivityRenewal()
     {
-        SessionAutoRenewed?.Invoke();
-        return Task.CompletedTask;
+        // When activity is detected during the session period, attempt a silent keep-alive
+        // so the server session (or token) is refreshed. KeepAliveAsync will also
+        // reset the JS idle timer via idleTimer.reset.
+        try
+        {
+            await KeepAliveAsync();
+            // Notify UI that an automatic renewal occurred due to activity
+            SessionAutoRenewed?.Invoke();
+        }
+        catch
+        {
+            // ignore failures here; if keep-alive fails nothing else to do
+        }
+
+        return;
+    }
+
+    // Called from JS when another tab updated the token in localStorage (external renewal)
+    [JSInvokable]
+    public async Task OnExternalRenewal()
+    {
+        try
+        {
+            var token = await _jsRuntime.InvokeAsync<string?>("localStorage.getItem", TokenStorageKey);
+            if (!string.IsNullOrWhiteSpace(token))
+            {
+                _token = token;
+                SetAuthorizationHeader(_token);
+                _currentUser = GetUserFromToken(_token);
+                // Notify UI that session was renewed externally
+                SessionAutoRenewed?.Invoke();
+            }
+        }
+        catch
+        {
+            // ignore
+        }
     }
 
     // Called by UI to keep the session alive (resets JS timers). Optionally here you could
@@ -181,6 +230,30 @@ public class AuthService(IJSRuntime jsRuntime, HttpClient http, NavigationManage
     {
         try
         {
+            // Call API to get new token
+            HttpResponseMessage response = await _http.PostAsync("sip_api/auth/keepalive", null);
+
+            if (response.IsSuccessStatusCode)
+            {
+                AuthResponseDTO? authResponse = await response.Content.ReadFromJsonAsync<AuthResponseDTO>();
+                if (authResponse != null && !string.IsNullOrWhiteSpace(authResponse.AccessToken))
+                {
+                    _token = authResponse.AccessToken;
+                    await _jsRuntime.InvokeVoidAsync("localStorage.setItem", TokenStorageKey, _token);
+                    SetAuthorizationHeader(_token);
+
+                    // Update current user if needed
+                    _currentUser = new CurrentUser
+                    {
+                        Id = authResponse.User.Id,
+                        Name = authResponse.User.Name,
+                        Login = authResponse.User.Login,
+                        Email = authResponse.User.Email,
+                        Role = authResponse.Role
+                    };
+                }
+            }
+
             await _jsRuntime.InvokeVoidAsync("idleTimer.reset");
             // Dispatch event to notify components that session was renewed
             SessionRenewed?.Invoke();
