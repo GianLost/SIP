@@ -23,7 +23,7 @@
         var options = new DialogOptions
         {
             CloseButton = false,
-            MaxWidth = MaxWidth.Small
+            MaxWidth = MaxWidth.Small 
         };
         var parameters = new DialogParameters { ["InitialSeconds"] = seconds };
         _dialogRef = await DialogService.ShowAsync<SessionWarningDialog>("Sua sessão está prestes a expirar", parameters, options);

@@ -2,69 +2,96 @@
 <html lang="pt-br">
 
 <head>
-
-    <!-- Meta tags -->
+    <!-- Configurações básicas do documento -->
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=0.5, maximum-scale=2.0" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="author" content="Gianluca Vialli">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 
-    <title>SIP.UI</title>
+    <!-- Responsividade em dispositivos móveis -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+    <!-- Informações principais para mecanismos de busca -->
+    <meta name="author" content="Gianluca Vialli" />
+    <meta name="description" content="SIP - Sistema Interno de Estágio Probatório para gestão, acompanhamento e avaliação de servidores em estágio probatório." />
+    <meta name="robots" content="index, follow" />
+
+    <!-- Metadados para compartilhamento em redes sociais -->
+    <meta property="og:title" content="SIP - Sistema Interno de Estágio Probatório" />
+    <meta property="og:description" content="Sistema para gestão, acompanhamento e avaliação de servidores em estágio probatório." />
+    <meta property="og:type" content="website" />
+
+    <!-- (** Descomente em produção **) -->
+    <!--<meta property="og:url" content="https://sip.gvsolutions.site/" />
+    <meta property="og:image" content="https://sip.gvsolutions.site/img/og-image.png" /> -->
+
+    <meta property="og:locale" content="pt_BR" />
+
+    <!-- Título exibido na aba do navegador e nos resultados de busca -->
+    <title>SIP - Sistema Interno de Estágio Probatório</title>
+
+    <!-- URL base da aplicação Blazor -->
     <base href="/" />
 
-    <!-- Link de importação do bootstrap local -->
+    <!-- URL canônica da aplicação (** Descomente em produção **) -->
+    <!-- <link rel="canonical" href="https://sip.gvsolutions.site/" /> -->
+    <!-- Bootstrap local -->
     <link href="/css/bootstrap/bootstrap.min.css" rel="stylesheet" />
 
-    <!-- Link de importação do estilo de fonte -->
+    <!-- Fonte Roboto utilizada pela interface -->
     <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
 
-    <!-- Link de importação do css utilizado pelo mudblazor -->
+    <!-- Estilos gerados pela aplicação Blazor -->
     <link href="SIP.UI.styles.css" rel="stylesheet" />
+
+    <!-- Estilos base do MudBlazor -->
     <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
 
-    <!-- CSS default do aplicativo -->
+    <!-- Estilos globais da aplicação -->
     <link rel="stylesheet" href="css/app.css" />
-    <link rel="stylesheet" href="css/login.css" />
+    <link rel="stylesheet" href="css/login/login.css" />
 
-    <!-- CSS do layout -->
+    <!-- Estilos específicos dos layouts -->
     <link rel="stylesheet" href="css/layout/loading/loading.css" />
     <link rel="stylesheet" href="css/layout/navbar/nav-styles.css" />
 
-    <!-- CSS customizado de componentes -->
+    <!-- Estilos customizados dos componentes -->
     <link rel="stylesheet" href="css/components/tables/table-styles.css" />
     <link rel="stylesheet" href="css/components/dialogs/dialog-styles.css" />
     <link rel="stylesheet" href="css/components/buttons/button-styles.css" />
     <link rel="stylesheet" href="css/components/tooltips/tooltip-styles.css" />
     <link rel="stylesheet" href="css/components/switches/switch-styles.css" />
 
-    <!-- ícone visível na aba do navegador -->
-    <link rel="icon" type="image/png" href="favicon.png" />
-
+    <!-- Ícones exibidos pelo navegador e por dispositivos Apple -->
+    <link rel="icon" href="/favicon.png" sizes="48x48" />
+    <link rel="apple-touch-icon" href="/favicon.png" />
 </head>
 
 <body>
-
-    <!-- container com a animação de carregamento -->
+    <!-- Ponto de montagem da aplicação Blazor WebAssembly -->
     <div id="app">
         <div id="spin">
             <div class="loading-spinner"></div>
-            <div class="loading-text ml-4">Carregando ...</div>
+            <div class="loading-text ml-4">Carregando...</div>
         </div>
     </div>
 
-    <!-- container com a animação de carregamento -->
+    <!-- Mensagem padrão exibida em caso de erro não tratado no Blazor -->
     <div id="blazor-error-ui">
-        An unhandled error has occurred.
-        <a href="" class="reload">Reload</a>
+        Ocorreu um erro inesperado na aplicação.
+        <a href="" class="reload">Recarregar</a>
         <a class="dismiss">🗙</a>
     </div>
 
-    <!-- Importações do Js base do mudblazor -->
-    <script src="_framework/blazor.webassembly.js"></script>
-    <script src="_content/MudBlazor/MudBlazor.min.js"></script>
-    <script src="js/idleTimer.js"></script>
+    <!-- Script utilizado pelo dotnet watch durante o desenvolvimento -->
+    <script src="/_framework/aspnetcore-browser-refresh.js"></script>
 
+    <!-- Runtime principal do Blazor WebAssembly -->
+    <script src="_framework/blazor.webassembly.js"></script>
+
+    <!-- Scripts de apoio do MudBlazor -->
+    <script src="_content/MudBlazor/MudBlazor.min.js"></script>
+
+    <!-- Script responsável pelo controle de inatividade da sessão -->
+    <script src="js/idleTimer.js"></script>
 </body>
 
 </html>

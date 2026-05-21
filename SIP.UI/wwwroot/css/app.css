@@ -1,6 +1,6 @@
 /* --- blazor styles --- */
 
-@import url('components/session-timer-final.css');
+@import url('components/timer/session-timer.css');
 
 html, body, #app {
     height: 100vh;
