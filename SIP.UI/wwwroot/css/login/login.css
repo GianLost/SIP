@@ -1,33 +1,41 @@
-/* LAYOUT */
+/* LOGIN - BASE */
 
 .login-layout-wrapper {
+    --login-bg: #f4f6f8;
+    --login-card-bg: #ffffff;
+    --login-title: #102237;
+    --login-text: #717171;
+    --login-border: #71717178;
+    --login-input-height: 54px;
+    --login-radius: 12px;
+    --login-icon-left: 1rem;
+    --login-icon-size: 1.5rem;
+    --login-icon-gap: 0.75rem;
+    --login-input-left-padding: calc(var(--login-icon-left) + var(--login-icon-size) + var(--login-icon-gap));
+
     min-height: 100vh;
     width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #f5f7fb 0%, #eef2f7 100%);
+    background: var(--login-bg) !important;
 }
 
 .login-layout-content {
     width: 100%;
     display: flex;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
 }
 
 /* CARD */
 
-.login-page-card {
-    width: 100%;
-    max-width: 430px;
-}
-
 .login-card-paper {
     width: 100%;
-    padding: 2.4rem;
+    max-width: 430px;
+    padding: 3rem;
     border-radius: 28px;
-    background: #ffffff;
+    background: var(--login-card-bg);
     border: 1px solid #e5e7eb;
     box-shadow: 0 12px 40px rgba(15, 23, 42, 0.08), 0 2px 8px rgba(15, 23, 42, 0.04);
 }
@@ -39,106 +47,191 @@
     margin-bottom: 1rem;
 }
 
+.login-card-logo,
+.login-card-logo img {
+    width: 110px;
+    height: 110px;
+}
+
+.login-card-logo {
+    margin: auto;
+}
+
+.login-card-main-title,
 .login-card-title {
-    font-size: clamp(1.9rem, 2vw, 2.2rem);
-    font-weight: 700;
-    color: #0f172a;
+    margin-top: 1rem;
+    font-size: 2.6rem;
+    font-weight: 800;
+    color: var(--login-title);
+}
+
+.login-card-main-subtitle {
+    font-size: 0.85rem;
+    letter-spacing: 0.15rem;
+    text-transform: uppercase;
+    color: var(--login-text);
 }
 
 .login-card-subtitle {
-    margin-top: 0.5rem;
-    font-size: 0.9rem;
-    color: #64748b;
+    margin-top: 0.8rem;
+    font-size: 0.8rem;
+    color: var(--login-text);
 }
 
-/* INPUTS */
+.login-card-divider {
+    width: 5rem;
+    height: 0.15rem;
+    margin: 10px auto 6px;
+    border-radius: 2px;
+    background: var(--mud-palette-primary);
+}
 
+/* FORM */
+
+.login-form-container,
 .login-card-input {
     width: 100%;
 }
 
-    .login-card-input.mud-input-control,
-    .login-card-input .mud-input-control {
-        min-height: 82px;
-    }
-
-    /* FILLED ROOT */
-
-    .login-card-input .mud-input-filled {
-        border-radius: 16px !important;
-        background: #f8fafc59 !important;
-        border: 1px solid #92969f59 !important;
-        transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
-    }
-
-        .login-card-input .mud-input-filled.mud-input-focused {
-            background: #f8fafc59 !important;
-            border-color: #2563eb !important;
-            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.10) !important;
-        }
-
-        .login-card-input .mud-input-filled::before,
-        .login-card-input .mud-input-filled::after {
-            display: none !important;
-        }
-
-    /* INPUT */
-
-    .login-card-input input {
-        padding: 22px 16px 8px 16px !important;
-        font-size: 0.96rem !important;
-        color: #0f172a !important;
-        -webkit-text-fill-color: #0f172a !important;
-    }
-
-    /* LABEL */
-
-    .login-card-input .mud-input-label,
-    .login-card-input label.mud-input-label,
-    .login-card-input .mud-input-control-input-container label.mud-input-label {
-        color: #64748b !important;
-        -webkit-text-fill-color: #64748b !important;
-        font-size: 0.9rem !important;
-        font-weight: 500 !important;
-    }
-
-    .login-card-input .mud-input-focused .mud-input-label,
-    .login-card-input .mud-input-focused label.mud-input-label {
-        color: #2563eb !important;
-        -webkit-text-fill-color: #2563eb !important;
-    }
-
-/* INFO TEXT */
-
-.login-extra-text {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-top: 1.5rem;
-    text-align: center;
-    font-size: 0.8rem;
-    color: #94a3b8;
+.input-with-left-icon {
+    position: relative;
+    margin-bottom: 2rem;
 }
 
-.login-extra-text span {
-    margin-top: 0.1rem;
+.left-input-icon {
+    position: absolute;
+    left: var(--login-icon-left);
+    top: 1.65rem;
+    transform: translateY(-50%);
+    width: var(--login-icon-size);
+    height: var(--login-icon-size);
+    color: var(--login-text);
+    pointer-events: none;
+    z-index: 5;
+    opacity: 0.85;
+}
+
+/* MUDBLAZOR INPUT */
+
+.login-card-input {
+    position: relative;
+    margin-bottom: 0.35rem !important;
+}
+
+.login-card-input.mud-input-control {
+    min-height: var(--login-input-height);
+}
+
+.login-card-input .mud-input-filled {
+    min-height: var(--login-input-height) !important;
+    border-radius: var(--login-radius) !important;
+    background: transparent !important;
+    border: 1px solid var(--login-border) !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.login-card-input .mud-input-filled::before,
+.login-card-input .mud-input-filled::after {
+    display: none !important;
+}
+
+.login-card-input .mud-input-filled.mud-input-focused,
+.login-card-input .mud-input-root.mud-input-focused {
+    border-color: var(--login-text) !important;
+    box-shadow: 0 0 0 1px var(--mud-palette-primary) !important;
+}
+
+/* INPUT TEXT */
+
+.login-card-input input {
+    height: 1.5rem !important;
+    padding: 0 44px 0 var(--login-input-left-padding) !important;
+    font-size: 0.9rem !important;
+    font-weight: 500 !important;
+    line-height: var(--login-input-height) !important;
+    color: var(--login-text) !important;
+    -webkit-text-fill-color: var(--login-text) !important;
+}
+
+/* LABEL */
+
+.login-card-input .mud-input-label,
+.login-card-input label.mud-input-label {
+    position: absolute !important;
+    left: -0.5rem !important;
+    top: 20px !important;
+    transform: translateX(var(--login-input-left-padding)) !important;
+    padding: 0 5px !important;
+    font-size: 0.9rem !important;
+    font-weight: bold !important;
+    line-height: 1rem !important;
+    color: var(--login-text) !important;
+    -webkit-text-fill-color: #717171aa !important;
+    background: transparent !important;
+    pointer-events: none !important;
+    z-index: 6 !important;
+    transition: top 0.18s ease, transform 0.18s ease, font-size 0.18s ease, color 0.18s ease, background-color 0.18s ease;
+}
+
+.login-card-input .mud-input-control-input-container:focus-within .mud-input-label,
+.login-card-input.is-filled .mud-input-label,
+.login-card-input.is-filled label.mud-input-label {
+    top: -7px !important;
+    left: 14px !important;
+    transform: none !important;
+    font-size: 0.75rem !important;
+    color: var(--login-text) !important;
+    -webkit-text-fill-color: var(--mud-palette-primary) !important;
+    background: var(--login-card-bg) !important;
+}
+
+/* ERROR */
+
+.login-card-input .mud-input-helper-text,
+.login-card-input .mud-input-helper-text.mud-error {
+    position: absolute !important;
+    left: 4px !important;
+    bottom: -18px !important;
+    margin: 0 !important;
+    font-size: 0.74rem !important;
+    font-weight: 400 !important;
+    color: var(--mud-palette-error, #f44336) !important;
+}
+
+/* ADORNMENT */
+
+.login-card-input .mud-input-adornment {
+    color: var(--login-text) !important;
+    z-index: 7;
+}
+
+.login-card-input .mud-input-adornment-end {
+    margin-right: 0.6rem !important;
+    cursor: pointer;
+}
+
+.login-card-input .mud-input-adornment .mud-icon-root,
+.login-card-input .mud-input-adornment svg {
+    color: inherit !important;
+    fill: currentColor !important;
 }
 
 /* BUTTON */
 
 .login-card-button {
     height: 3rem;
+    margin-top: 0.25rem;
     border-radius: 16px !important;
     font-size: 1rem !important;
     font-weight: 600 !important;
     text-transform: none !important;
-    box-shadow: 0 8px 20px rgba(16, 152, 173, 0.24);
-    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    transition: transform 0.2s ease;
 }
 
 .login-card-button:hover {
     transform: translateY(-1px);
-    box-shadow: 0 12px 28px rgba(37, 99, 235, 0.30);
 }
 
 .login-card-button.mud-disabled,
@@ -150,13 +243,38 @@
 
 .login-card-button .mud-button-label,
 .login-card-button .mud-progress-circular,
-.login-card-button .mud-progress-circular svg
-.login-card-button span  {
+.login-card-button .mud-progress-circular svg,
+.login-card-button span {
     color: var(--mud-palette-primary-text) !important;
     fill: var(--mud-palette-primary-text) !important;
 }
 
-/* RESPONSIVIDADE */
+/* INFO */
+
+.login-extra-text {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1.5rem;
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--login-text);
+}
+
+.login-extra-text span {
+    margin-top: 0.1rem;
+}
+
+.mr-1 {
+    margin-right: 0.25rem;
+}
+
+.mr-2 {
+    margin-right: 0.5rem;
+}
+
+/* RESPONSIVE */
+
 @media (max-width: 768px) {
     .login-layout-wrapper {
         padding: 18px;
@@ -177,6 +295,7 @@
         border-radius: 24px;
     }
 
+    .login-card-main-title,
     .login-card-title {
         font-size: 1.8rem;
     }
@@ -195,6 +314,7 @@
         padding: 1.3rem;
     }
 
+    .login-card-main-title,
     .login-card-title {
         font-size: 1.55rem;
     }

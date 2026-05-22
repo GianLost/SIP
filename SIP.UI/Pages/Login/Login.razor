@@ -1,25 +1,31 @@
 @using System.ComponentModel.DataAnnotations
 
 @page "/login"
+
 @layout LoginLayout
+
 @attribute [AllowAnonymous]
 
-@inject SIP.UI.Domain.Interfaces.Auth.IAuthService AuthService
+@inject IAuthService AuthService
 @inject NavigationManager Navigation
-@inject MudBlazor.ISnackbar Snackbar
+@inject ISnackbar Snackbar
 
-<div class="login-page-card">
+<div class="">
+
     <MudPaper Class="login-card-paper" Elevation="0">
 
         <!-- HEADER -->
         <div class="login-card-header">
-            <MudText Class="login-card-title" Align="Align.Center">
-                SIP Login
-            </MudText>
+            <div class="login-card-logo" role="img" aria-label="Placeholder para imagem">
+                <img src="/images/logo.png" alt="Alternate Text" />
+            </div>
 
-            <MudText Class="login-card-subtitle" Align="Align.Center">
-                Faça login com suas credenciais corporativas.
-            </MudText>
+            <MudText Class="login-card-main-title" Align="Align.Center">SIP</MudText>
+            <MudText Class="login-card-main-subtitle" Align="Align.Center">SISTEMA INTERNO DE PROTOCOLO</MudText>
+
+            <div class="login-card-divider"></div>
+
+            <MudText Class="login-card-subtitle" Align="Align.Center">Faça login com suas credenciais corporativas.</MudText>
         </div>
 
         <!-- FORM -->
@@ -29,40 +35,43 @@
             <div class="login-form-container">
 
                 <!-- LOGIN -->
-                <MudTextField 
-                    T="string" 
-                    Label="Login do usuário" 
-                    @bind-Value="_loginModel.Login"
-                    For="() => _loginModel.Login" 
-                    Variant="Variant.Filled" 
-                    FullWidth="true" 
-                    Immediate="false"
-                    Margin="Margin.Dense" 
-                    Class="login-card-input" />
+                <div class="input-with-left-icon">
+                    <MudIcon Icon="@Icons.Material.Filled.Person" Class="left-input-icon" Size="Size.Small" />
+                    <MudTextField T="string"
+                                  Label="Login do usuário"
+                                  @bind-Value="_loginModel.Login"
+                                  For="() => _loginModel.Login"
+                                  Variant="Variant.Filled"
+                                  FullWidth="true"
+                                  Immediate="false"
+                                  Margin="Margin.Dense"
+                                  Class="@($"login-card-input with-left-icon {(!string.IsNullOrWhiteSpace(_loginModel.Login) ? "is-filled" : "")}")" />
+                </div>
 
                 <!-- SENHA -->
-                <MudTextField 
-                    T="string" 
-                    Label="Senha" 
-                    @bind-Value="_loginModel.Password" 
-                    For="() => _loginModel.Password" 
-                    InputType="@(_showPassword? InputType.Text: InputType.Password)" 
-                    Variant="Variant.Filled" 
-                    FullWidth="true" 
-                    Immediate="false" 
-                    Margin="Margin.Dense" 
-                    Adornment="Adornment.End" 
-                    AdornmentIcon="@(_showPassword ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)" 
-                    OnAdornmentClick="TogglePasswordVisibility" Class="login-card-input" />
+                <div class="input-with-left-icon">
+                    <MudIcon Icon="@Icons.Material.Filled.Lock" Class="left-input-icon" Size="Size.Small" />
+                    <MudTextField T="string"
+                                  Label="Senha"
+                                  @bind-Value="_loginModel.Password"
+                                  For="() => _loginModel.Password"
+                                  InputType="@(_showPassword? InputType.Text: InputType.Password)"
+                                  Variant="Variant.Filled"
+                                  FullWidth="true"
+                                  Immediate="false"
+                                  Margin="Margin.Dense"
+                                  Adornment="Adornment.End"
+                                  AdornmentIcon="@(_showPassword ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"
+                                  OnAdornmentClick="TogglePasswordVisibility" Class="@($"login-card-input with-left-icon {(!string.IsNullOrWhiteSpace(_loginModel.Password) ? "is-filled" : "")}")" />
+                </div>
 
                 <!-- BUTTON -->
-                <MudButton 
-                    Variant="Variant.Filled" 
-                    Color="Color.Primary" 
-                    ButtonType="ButtonType.Submit" 
-                    Disabled="_isSubmitting" 
-                    FullWidth 
-                    Class="login-card-button">
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           ButtonType="ButtonType.Submit"
+                           Disabled="_isSubmitting"
+                           FullWidth
+                           Class="login-card-button">
 
                     @if (_isSubmitting)
                     {
@@ -71,6 +80,7 @@
                     }
                     else
                     {
+                        <MudIcon Icon="@Icons.Material.Filled.LockOpen" Class="mr-2" />
                         <span>Entrar</span>
                     }
                 </MudButton>
