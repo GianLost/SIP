@@ -1,67 +1,111 @@
 @using MudBlazor
-@inject SIP.UI.Domain.Interfaces.Auth.IAuthService AuthService
 
-<div class="session-timer-bar" role="status" aria-live="polite">
-    <div style="display:flex; align-items:center; gap:10px;">
-        <div class="session-timer-label">
-            <MudText Typo="Typo.subtitle2" Class="mud-text">Sessão</MudText>
+@inject IAuthService AuthService
+
+@implements IDisposable
+
+<div class="@TimerCssClass" role="status" aria-live="polite">
+    <div class="session-timer-content">
+        <div class="session-timer-icon-box">
+            <MudIcon Icon="@TimerIcon" Size="Size.Small" />
         </div>
 
-        <div>
-        <MudProgressCircular diameter="44" thickness="4" Value="@ProgressPercent" Color="@GetProgressColor()" Class="session-timer-circular">
-                <ChildContent>
-                    <span class="session-timer-circular-time" style="color:white">@_formattedTime</span>
-                </ChildContent>
-            </MudProgressCircular>
+        <div class="session-timer-info">
+            <span class="session-timer-title">Sessão</span>
+            <span class="session-timer-status">@TimerStatusText</span>
         </div>
+
+        <span class="session-timer-time">@_formattedTime</span>
+    </div>
+
+    <div class="session-timer-progress">
+        <div class="session-timer-progress-fill" style="width:@ProgressPercent%"></div>
     </div>
 </div>
 
 @code {
-    // Estado local do timer exibido
     private int _secondsRemaining = 0;
-    private int _initialWarningSeconds = 10; // valor padrão usado para o modal
+    private int _initialWarningSeconds = 10;
     private string _formattedTime = "0:00";
     private System.Timers.Timer? _timer;
     private bool _inWarningState = false;
     private bool _isRenewing = false;
 
-    // Valores apenas para visual (representa 5 minutos em segundos)
+    // Deve refletir o mesmo valor usado no start do idleTimer.js.
+    // Se futuramente o backend enviar outro tempo, substitua por configuração compartilhada.
     private const int VisualSessionSeconds = 5 * 60;
+
+    private string TimerStatusText
+    {
+        get
+        {
+            if (_inWarningState || _secondsRemaining <= 10)
+                return "Expirando";
+
+            if (ProgressPercent <= 30)
+                return "Atenção";
+
+            return "Ativa";
+        }
+    }
+
+    private string TimerIcon
+    {
+        get
+        {
+            if (_inWarningState || _secondsRemaining <= 10)
+                return Icons.Material.Filled.WarningAmber;
+
+            if (ProgressPercent <= 30)
+                return Icons.Material.Filled.Schedule;
+
+            return Icons.Material.Filled.VerifiedUser;
+        }
+    }
+
+    private string TimerCssClass
+    {
+        get
+        {
+            if (_inWarningState || _secondsRemaining <= 10)
+                return "session-timer-card session-timer-critical";
+
+            if (ProgressPercent <= 30)
+                return "session-timer-card session-timer-warning";
+
+            return "session-timer-card session-timer-active";
+        }
+    }
 
     protected override void OnInitialized()
     {
         AuthService.SessionExpiring += OnSessionExpiring;
         AuthService.SessionRenewed += OnSessionRenewed;
         AuthService.SessionAutoRenewed += OnAutoRenewed;
-        // Notify when JS detects user activity (throttled) so UI can reset immediately
-        try { AuthService.UserActivityDetected += OnUserActivityDetected; } catch { }
+        AuthService.UserActivityDetected += OnUserActivityDetected;
 
-        // Estado inicial: sessão ativa, mostra tempo completo
         ResetToActiveState();
     }
 
     private void OnSessionExpiring(int seconds)
     {
-        // Entrou no estado de aviso: mostra o countdown e o modal será aberto por outro componente.
         _inWarningState = true;
         _initialWarningSeconds = seconds > 0 ? seconds : _initialWarningSeconds;
         _secondsRemaining = _initialWarningSeconds;
         _formattedTime = FormatTime(_secondsRemaining);
+
         StartLocalTimer();
         InvokeAsync(StateHasChanged);
     }
 
     private void OnSessionRenewed()
     {
-        // Sessão renovada explicitamente: volta ao estado ativo silenciosamente
         ResetToActiveState();
         InvokeAsync(StateHasChanged);
     }
 
     private void OnAutoRenewed()
     {
-        // Sessão renovada automaticamente por atividade: volta ao estado ativo
         ResetToActiveState();
         InvokeAsync(StateHasChanged);
     }
@@ -69,53 +113,56 @@
     private void ResetToActiveState()
     {
         _inWarningState = false;
+        _isRenewing = false;
         _secondsRemaining = VisualSessionSeconds;
         _formattedTime = FormatTime(_secondsRemaining);
-        DisposeTimer();
-        // start local countdown so UI reflects remaining time until inactivity/warning
+
         StartLocalTimer();
     }
 
     private void StartLocalTimer()
     {
         DisposeTimer();
+
         _timer = new System.Timers.Timer(1000);
-        _timer.Elapsed += async (s, e) =>
+        _timer.AutoReset = true;
+        _timer.Elapsed += async (_, _) =>
         {
             if (_secondsRemaining > 0)
             {
                 _secondsRemaining--;
                 _formattedTime = FormatTime(_secondsRemaining);
                 await InvokeAsync(StateHasChanged);
+                return;
             }
-            else
+
+            if (_formattedTime != "0:00")
             {
-                // stay at zero
-                if (_formattedTime != "0:00")
-                {
-                    _formattedTime = "0:00";
-                    await InvokeAsync(StateHasChanged);
-                }
+                _formattedTime = "0:00";
+                await InvokeAsync(StateHasChanged);
             }
         };
+
         _timer.Start();
     }
 
     private void DisposeTimer()
     {
-        if (_timer != null)
-        {
-            _timer.Stop();
-            _timer.Dispose();
-            _timer = null;
-        }
+        if (_timer is null)
+            return;
+
+        _timer.Stop();
+        _timer.Dispose();
+        _timer = null;
     }
 
-    private string FormatTime(int seconds)
+    private static string FormatTime(int seconds)
     {
         if (seconds <= 0) return "0:00";
+
         int minutes = seconds / 60;
         int secs = seconds % 60;
+
         return $"{minutes}:{secs:D2}";
     }
 
@@ -124,53 +171,43 @@
         get
         {
             var denom = _inWarningState ? _initialWarningSeconds : VisualSessionSeconds;
-            if (denom <= 0) return 0;
-            return 100.0 * _secondsRemaining / denom;
+            return denom <= 0 ? 0 : 100.0 * _secondsRemaining / denom;
         }
     }
 
     private Color GetProgressColor()
     {
-        // Determine color by percentage remaining so the circular bar always
-        // reflects how much time is left. Use thresholds: >66% = Success,
-        // >33% = Warning, <=33% = Error. When in warning state favor Warning/Error.
         var denom = _inWarningState ? _initialWarningSeconds : VisualSessionSeconds;
+
         if (denom <= 0) return Color.Default;
+
         var pct = (double)_secondsRemaining / denom;
 
         if (pct <= 0.33) return Color.Error;
         if (pct <= 0.66) return Color.Warning;
-        return Color.Success;
-    }
 
-    public void Dispose()
-    {
-        AuthService.SessionExpiring -= OnSessionExpiring;
-        AuthService.SessionRenewed -= OnSessionRenewed;
-        AuthService.SessionAutoRenewed -= OnAutoRenewed;
-        try { AuthService.UserActivityDetected -= OnUserActivityDetected; } catch { }
-        DisposeTimer();
+        return Color.Success;
     }
 
     private void OnUserActivityDetected()
     {
-        // Run on UI thread
         InvokeAsync(async () =>
         {
-            // If we were in warning or already at zero, attempt a controlled keep-alive
-            // Do NOT reset UI timer here to allow the local countdown to continue
-            // while the user interacts. UI reset must happen only after a real
-            // session renewal (SessionRenewed/SessionAutoRenewed).
+            // Não reinicia o contador visual a cada interação.
+            // A renovação deve acontecer somente quando:
+            // - o JS chegar ao fim do ciclo e chamar OnActivityRenewal; ou
+            // - o usuário estiver no warning/zerado e interagir de forma explícita.
             if ((_inWarningState || _secondsRemaining <= 0) && !_isRenewing)
             {
                 _isRenewing = true;
+
                 try
                 {
                     await AuthService.KeepAliveAsync();
                 }
                 catch
                 {
-                    // ignore, KeepAliveAsync handles failures
+                    // KeepAliveAsync deve tratar falhas/logoff conforme implementação atual.
                 }
                 finally
                 {
@@ -178,8 +215,17 @@
                 }
             }
 
-            // minimal UI update so any state changes are reflected
             await InvokeAsync(StateHasChanged);
         });
+    }
+
+    public void Dispose()
+    {
+        AuthService.SessionExpiring -= OnSessionExpiring;
+        AuthService.SessionRenewed -= OnSessionRenewed;
+        AuthService.SessionAutoRenewed -= OnAutoRenewed;
+        AuthService.UserActivityDetected -= OnUserActivityDetected;
+
+        DisposeTimer();
     }
 }

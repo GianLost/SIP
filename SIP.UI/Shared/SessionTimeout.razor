@@ -1,12 +1,11 @@
 @using MudBlazor
 
-@inject SIP.UI.Domain.Interfaces.Auth.IAuthService AuthService
+@inject IAuthService AuthService
 @inject IDialogService DialogService
 
 @implements IDisposable
 
 @code {
-
     private IDialogReference? _dialogRef;
 
     protected override void OnInitialized()
@@ -16,25 +15,37 @@
 
     private async void OnSessionExpiring(int seconds)
     {
-        // If dialog already open, do nothing (dialog subscribes to updates).
-        if (_dialogRef != null)
+        if (_dialogRef is not null)
             return;
+
+        var parameters = new DialogParameters
+        {
+            ["InitialSeconds"] = seconds
+        };
 
         var options = new DialogOptions
         {
             CloseButton = false,
-            MaxWidth = MaxWidth.Small 
+            BackdropClick = false,
+            CloseOnEscapeKey = false,
+            MaxWidth = MaxWidth.Small,
+            FullWidth = true
         };
-        var parameters = new DialogParameters { ["InitialSeconds"] = seconds };
-        _dialogRef = await DialogService.ShowAsync<SessionWarningDialog>("Sua sessão está prestes a expirar", parameters, options);
 
-        // When dialog closes, clear reference
-        _ = _dialogRef.Result.ContinueWith(t => _dialogRef = null);
+        _dialogRef = await DialogService.ShowAsync<SessionWarningDialog>(
+            "Sua sessão está prestes a expirar",
+            parameters,
+            options
+        );
+
+        _ = _dialogRef.Result.ContinueWith(_ =>
+        {
+            _dialogRef = null;
+        });
     }
 
     public void Dispose()
     {
         AuthService.SessionExpiring -= OnSessionExpiring;
     }
-
 }

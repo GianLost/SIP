@@ -21,7 +21,7 @@ public class AuthService(IJSRuntime jsRuntime, HttpClient http, NavigationManage
     // Session timeout: 5 minutes (in milliseconds)
     private static readonly int InactivityTimeoutMs = 5 * 60 * 1000;
     // Warning before logout: 1 minute
-    private static readonly int WarningTimeoutMs = 60 * 1000;
+    private static readonly int WarningTimeoutMs = 10 * 1000;
 
     public event Action? AuthenticationStateChanged;
 

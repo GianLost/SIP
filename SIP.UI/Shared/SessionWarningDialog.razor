@@ -1,5 +1,8 @@
 @using MudBlazor
-@inject SIP.UI.Domain.Interfaces.Auth.IAuthService AuthService
+
+@inject IAuthService AuthService
+
+@implements IDisposable
 
 <MudDialog paperClass="session-warning-paper" maxWidth="MaxWidth.Small" disableBackdropClick="true" disableEscapeKey="true">
     <DialogContent>
@@ -28,52 +31,96 @@
 
     private int _secondsRemaining;
     private System.Timers.Timer? _timer;
+    private bool _isClosing;
 
     protected override void OnInitialized()
     {
-        _secondsRemaining = InitialSeconds;
+        _secondsRemaining = InitialSeconds > 0 ? InitialSeconds : 10;
+
         _timer = new System.Timers.Timer(1000);
-        _timer.Elapsed += async (s, e) =>
+        _timer.AutoReset = true;
+        _timer.Elapsed += async (_, _) =>
         {
             if (_secondsRemaining > 0)
             {
                 _secondsRemaining--;
                 await InvokeAsync(StateHasChanged);
+                return;
             }
-            else
-            {
-                try { MudDialog.Close(); } catch { }
-            }
+
+            CloseDialogOnly();
         };
+
         _timer.Start();
     }
 
     private string SecondsRemainingString => _secondsRemaining > 0 ? _secondsRemaining.ToString() : "0";
-    private double ProgressPercent => InitialSeconds > 0 ? 100.0 * _secondsRemaining / InitialSeconds : 0;
+
+    private double ProgressPercent => InitialSeconds > 0
+        ? 100.0 * _secondsRemaining / InitialSeconds
+        : 0;
+
     private Color GetProgressColor()
     {
         if (_secondsRemaining <= 5) return Color.Error;
         if (_secondsRemaining <= 15) return Color.Warning;
+
         return Color.Primary;
     }
 
     private async Task ContinueSession()
     {
+        if (_isClosing) return;
+
+        _isClosing = true;
+        DisposeTimer();
+
         await AuthService.KeepAliveAsync();
-        _timer?.Stop();
-        MudDialog.Close();
+
+        CloseDialogOnly();
     }
 
     private async Task LogoutNow()
     {
-        _timer?.Stop();
-        try { await AuthService.LogoutAsync(); } catch { }
-        MudDialog.Close();
+        if (_isClosing) return;
+
+        _isClosing = true;
+        DisposeTimer();
+
+        try
+        {
+            await AuthService.LogoutAsync();
+        }
+        catch
+        {
+            // Mantém comportamento atual: a falha de logout não quebra o diálogo.
+        }
+
+        CloseDialogOnly();
+    }
+
+    private void CloseDialogOnly()
+    {
+        try
+        {
+            DisposeTimer();
+            MudDialog.Close();
+        }
+        catch { }
+    }
+
+    private void DisposeTimer()
+    {
+        if (_timer is null)
+            return;
+
+        _timer.Stop();
+        _timer.Dispose();
+        _timer = null;
     }
 
     public void Dispose()
     {
-        _timer?.Stop();
-        _timer?.Dispose();
+        DisposeTimer();
     }
 }

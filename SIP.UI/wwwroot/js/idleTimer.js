@@ -1,233 +1,394 @@
-(function(){
-    // idleTimer.js - SESSION TIMEOUT MANAGEMENT
-    // Corrects timer logic: only renews if activity occurred during session
-    // Shows warning dialog only if user was idle for the entire period
+(function () {
+
+    // ================================
+    // SESSION / IDLE TIMER
+    // ================================
+
+    let dotNetRef = null;
+
+    let timeoutMs = 40 * 1000;
+    let warningMs = 10 * 1000;
 
     let timeoutId = null;
     let warningId = null;
-    let dotNetRef = null;
-    let timeoutMs = 5 * 60 * 1000; // default 5 minutes
-    let warningMs = 60 * 1000; // default 1 minute warning
-    let lastActivityTime = null;
-    let sessionStartTime = null;
-    let hasActiveRenewal = false; // flag to prevent multiple renewals
-    let warningShown = false; // flag to prevent multiple warnings
-    let lastActivityNotify = 0;
-    const notifyIntervalMs = 1000; // throttle notifications to .NET (ms)
 
-    function resetTimer() {
-        lastActivityTime = Date.now();
+    let sessionStartTime = null;
+    let lastActivityTime = null;
+
+    let renewalInProgress = false;
+    let warningVisible = false;
+
+    // ================================
+    // HELPERS
+    // ================================
+
+    function now() {
+        return Date.now();
+    }
+
+    function normalizeDuration(value) {
+
+        if (typeof value !== 'number' || value <= 0)
+            return 0;
+
+        // Se vier em segundos (10, 40, 300)
+        // converte para ms
+        if (value < 1000)
+            return value * 1000;
+
+        // já está em ms
+        return value;
+    }
+
+    function clearTimers() {
 
         if (timeoutId) {
             clearTimeout(timeoutId);
             timeoutId = null;
         }
+
         if (warningId) {
             clearTimeout(warningId);
             warningId = null;
         }
+    }
 
-        if (timeoutMs <= 0) return;
+    // ================================
+    // USER ACTIVITY
+    // ================================
 
-        // Notify .NET (throttled) that user activity occurred so UI can update immediately
-        try {
-            const now = Date.now();
-            if (dotNetRef && now - lastActivityNotify >= notifyIntervalMs) {
-                lastActivityNotify = now;
-                dotNetRef.invokeMethodAsync('OnUserActivityAsync').catch(() => { });
+    function registerActivity() {
+
+        lastActivityTime = now();
+
+        console.log(
+            '[idleTimer] activity detected:',
+            new Date(lastActivityTime).toLocaleTimeString()
+        );
+
+        // fecha warning automaticamente
+        if (warningVisible) {
+
+            warningVisible = false;
+
+            if (dotNetRef) {
+
+                dotNetRef.invokeMethodAsync('CloseWarning')
+                    .catch(() => { });
+
+                console.log('[idleTimer] warning closed due activity');
             }
-        } catch {}
+        }
+    }
 
-        console.log('[idleTimer] Timer reset. Session will timeout in ' + (timeoutMs / 1000) + 's');
+    // ================================
+    // WARNING
+    // ================================
 
-        // Schedule warning check at (timeoutMs - warningMs)
-        const warnDelay = Math.max(0, timeoutMs - warningMs);
+    function showWarning() {
+        const idleTime = now() - lastActivityTime;
+
+        console.log(
+            '[idleTimer] warning check:',
+            'idleTime=',
+            idleTime / 1000,
+            'warningMs=',
+            warningMs / 1000
+        );
+
+        if (idleTime < warningMs) {
+            console.log('[idleTimer] warning ignored: user is active recently');
+            return;
+        }
+
+        warningVisible = true;
+
+        console.warn('[idleTimer] INATIVIDADE DETECTADA - exibindo modal');
+
+        dotNetRef.invokeMethodAsync(
+            'OnInactivityWarning',
+            Math.ceil(warningMs / 1000)
+        ).catch(err => {
+            console.error('[idleTimer] warning invoke error', err);
+        });
+    }
+
+    // ================================
+    // SESSION END
+    // ================================
+
+    function handleSessionTimeout() {
+        const idleTime = now() - lastActivityTime;
+
+        console.log(
+            '[idleTimer] session timeout check:',
+            'idleTime=',
+            idleTime / 1000,
+            'warningMs=',
+            warningMs / 1000
+        );
+
+        if (idleTime < warningMs) {
+            renewSession();
+            return;
+        }
+
+        console.warn('[idleTimer] INATIVIDADE CONFIRMADA - encerrando sessão');
+
+        dotNetRef.invokeMethodAsync('OnInactivityTimeout')
+            .catch(err => {
+                console.error('[idleTimer] timeout invoke error', err);
+            });
+    }
+
+    // ================================
+    // SESSION RENEW
+    // ================================
+
+    function renewSession() {
+
+        if (renewalInProgress)
+            return;
+
+        renewalInProgress = true;
+
+        console.log(
+            '[idleTimer] renewing session automatically'
+        );
+
+        if (!dotNetRef)
+            return;
+
+        dotNetRef.invokeMethodAsync('OnActivityRenewal')
+            .then(() => {
+
+                console.log(
+                    '[idleTimer] session renewed'
+                );
+
+                renewalInProgress = false;
+                warningVisible = false;
+
+                sessionStartTime = now();
+                lastActivityTime = now();
+
+                startTimers();
+            })
+            .catch(err => {
+
+                renewalInProgress = false;
+
+                console.error(
+                    '[idleTimer] renewal error',
+                    err
+                );
+            });
+    }
+
+    // ================================
+    // TIMERS
+    // ================================
+
+    function startTimers() {
+
+        clearTimers();
+
+        const warnDelay =
+            timeoutMs - warningMs;
+
+        console.log(
+            '[idleTimer] timers started:',
+            'timeout=',
+            timeoutMs / 1000,
+            'warning=',
+            warningMs / 1000,
+            'warnDelay=',
+            warnDelay / 1000
+        );
+
+        // ================================
+        // WARNING TIMER
+        // ================================
+
         warningId = setTimeout(() => {
-            checkSessionStatus();
+
+            showWarning();
+
         }, warnDelay);
 
-        // Schedule final logout at timeoutMs
+        // ================================
+        // FINAL TIMEOUT
+        // ================================
+
         timeoutId = setTimeout(() => {
-            // Before forcing logout, re-check whether there was recent activity
-            // that happened after the sessionStartTime. If so, attempt an
-            // automatic renewal instead of immediate logout. This handles the
-            // race where user interacts right around the timeout moment.
-            if (!dotNetRef) return;
 
-            const now = Date.now();
-            const timeSinceLastActivity = now - lastActivityTime;
+            handleSessionTimeout();
 
-            console.log('[idleTimer] FINAL TIMEOUT fired, timeSinceLastActivity=' + timeSinceLastActivity + 'ms, hasActiveRenewal=' + hasActiveRenewal);
-
-            if (lastActivityTime > sessionStartTime && !hasActiveRenewal) {
-                console.log('[idleTimer] Final timeout: recent activity detected, attempting auto-renewal');
-                hasActiveRenewal = true;
-                dotNetRef.invokeMethodAsync('OnActivityRenewal')
-                    .then(() => {
-                        console.log('[idleTimer] Auto-renewal completed from final timeout');
-                        hasActiveRenewal = false;
-                        sessionStartTime = Date.now();
-                        lastActivityTime = sessionStartTime;
-                        warningShown = false;
-                        resetTimer();
-                    })
-                    .catch(e => {
-                        console.error('Error invoking OnActivityRenewal at final timeout:', e);
-                        hasActiveRenewal = false;
-                        // fallback to logout if renewal fails
-                        dotNetRef.invokeMethodAsync('OnInactivityTimeout')
-                            .catch(err => console.error('Error invoking OnInactivityTimeout:', err));
-                    });
-            }
-            else {
-                console.log('[idleTimer] Final timeout: no recent activity - invoking OnInactivityTimeout');
-                dotNetRef.invokeMethodAsync('OnInactivityTimeout')
-                    .catch(e => console.error('Error invoking OnInactivityTimeout:', e));
-            }
         }, timeoutMs);
     }
 
-    function checkSessionStatus() {
-        if (!dotNetRef) return;
-
-        const now = Date.now();
-        const sessionDuration = now - sessionStartTime;
-        const timeSinceLastActivity = now - lastActivityTime;
-
-        console.log('[idleTimer] checkSessionStatus: sessionDuration=' + sessionDuration + 'ms, timeSinceLastActivity=' + timeSinceLastActivity + 'ms, hasActiveRenewal=' + hasActiveRenewal);
-
-        // If activity occurred during THIS session period AND we haven't already renewed
-        if (lastActivityTime > sessionStartTime && !hasActiveRenewal && !warningShown) {
-            console.log('[idleTimer] Activity detected during session - auto-renewing');
-            hasActiveRenewal = true;
-            warningShown = false;
-
-            dotNetRef.invokeMethodAsync('OnActivityRenewal')
-                .then(() => {
-                    console.log('[idleTimer] OnActivityRenewal completed');
-                    hasActiveRenewal = false;
-                    sessionStartTime = Date.now();
-                    lastActivityTime = sessionStartTime;
-                    warningShown = false;
-                    resetTimer();
-                })
-                .catch(e => {
-                    console.error('Error invoking OnActivityRenewal:', e);
-                    hasActiveRenewal = false;
-                });
-        }
-        // No activity during session - show warning dialog (only once)
-        else if (!warningShown) {
-            const secondsRemaining = Math.ceil(warningMs / 1000);
-            console.log('[idleTimer] No activity - showing warning dialog. Seconds remaining: ' + secondsRemaining);
-            warningShown = true;
-            dotNetRef.invokeMethodAsync('OnInactivityWarning', secondsRemaining)
-                .catch(e => console.error('Error invoking OnInactivityWarning:', e));
-        }
-    }
+    // ================================
+    // START
+    // ================================
 
     function start(reference, ms, warnMs) {
-        try {
-            stop();
 
-            dotNetRef = reference;
-            if (ms && typeof ms === 'number') {
-                timeoutMs = ms;
-            }
-            if (warnMs && typeof warnMs === 'number') {
-                warningMs = warnMs;
-            }
+        stop();
 
-            sessionStartTime = Date.now();
-            lastActivityTime = sessionStartTime;
-            hasActiveRenewal = false;
-            warningShown = false;
+        dotNetRef = reference;
 
-            document.addEventListener('mousemove', resetTimer);
-            document.addEventListener('mousedown', resetTimer);
-            document.addEventListener('keypress', resetTimer);
-            // include scroll as activity (capturing to catch scroll on containers)
-            document.addEventListener('scroll', resetTimer, true);
-            document.addEventListener('touchstart', resetTimer);
-            document.addEventListener('click', resetTimer);
+        const normalizedTimeout =
+            normalizeDuration(ms);
 
-            resetTimer();
-            console.log('[idleTimer] started - timeout=' + (timeoutMs/1000) + 's, warning=' + (warningMs/1000) + 's');
+        const normalizedWarning =
+            normalizeDuration(warnMs);
+
+        if (normalizedTimeout > 0)
+            timeoutMs = normalizedTimeout;
+
+        if (normalizedWarning > 0)
+            warningMs = normalizedWarning;
+
+        // segurança
+        if (warningMs >= timeoutMs) {
+
+            warningMs = Math.floor(timeoutMs / 4);
+
+            console.warn(
+                '[idleTimer] warningMs >= timeoutMs. Adjusted:',
+                warningMs / 1000
+            );
         }
-        catch (e) {
-            console.error('idleTimer.start error', e);
-        }
+
+        sessionStartTime = now();
+        lastActivityTime = now();
+
+        renewalInProgress = false;
+        warningVisible = false;
+
+        // ================================
+        // EVENTS
+        // ================================
+
+        document.addEventListener(
+            'mousemove',
+            registerActivity
+        );
+
+        document.addEventListener(
+            'mousedown',
+            registerActivity
+        );
+
+        document.addEventListener(
+            'keypress',
+            registerActivity
+        );
+
+        document.addEventListener(
+            'scroll',
+            registerActivity,
+            true
+        );
+
+        document.addEventListener(
+            'touchstart',
+            registerActivity
+        );
+
+        document.addEventListener(
+            'click',
+            registerActivity
+        );
+
+        startTimers();
+
+        console.log(
+            '[idleTimer] started successfully'
+        );
     }
+
+    // ================================
+    // STOP
+    // ================================
 
     function stop() {
-        if (timeoutId) {
-            clearTimeout(timeoutId);
-            timeoutId = null;
-        }
-        if (warningId) {
-            clearTimeout(warningId);
-            warningId = null;
-        }
 
-        document.removeEventListener('mousemove', resetTimer);
-        document.removeEventListener('mousedown', resetTimer);
-        document.removeEventListener('keypress', resetTimer);
-        document.removeEventListener('touchstart', resetTimer);
-        document.removeEventListener('click', resetTimer);
-        document.removeEventListener('scroll', resetTimer, true);
+        clearTimers();
+
+        document.removeEventListener(
+            'mousemove',
+            registerActivity
+        );
+
+        document.removeEventListener(
+            'mousedown',
+            registerActivity
+        );
+
+        document.removeEventListener(
+            'keypress',
+            registerActivity
+        );
+
+        document.removeEventListener(
+            'scroll',
+            registerActivity,
+            true
+        );
+
+        document.removeEventListener(
+            'touchstart',
+            registerActivity
+        );
+
+        document.removeEventListener(
+            'click',
+            registerActivity
+        );
 
         if (dotNetRef) {
+
             try {
                 dotNetRef.dispose();
-            } catch { }
-            dotNetRef = null;
+            }
+            catch { }
         }
-        console.log('[idleTimer] stopped');
+
+        dotNetRef = null;
+
+        console.log(
+            '[idleTimer] stopped'
+        );
     }
+
+    // ================================
+    // RESET MANUAL
+    // ================================
 
     function reset() {
-        // Reset session tracking and flags to allow modal to appear again
-        sessionStartTime = Date.now();
-        lastActivityTime = sessionStartTime;
-        warningShown = false;
-        hasActiveRenewal = false;
-        resetTimer();
+
+        console.log(
+            '[idleTimer] manual reset'
+        );
+
+        sessionStartTime = now();
+        lastActivityTime = now();
+
+        renewalInProgress = false;
+        warningVisible = false;
+
+        startTimers();
     }
 
-    // Listen for storage events to synchronize renewals and logout across tabs.
-    window.addEventListener('storage', function (e) {
-        try {
-            if (!e) return;
-            // Token key changed in another tab -> external renewal or logout
-            if (e.key === 'sip-token') {
-                // If token was removed -> logout in another tab
-                if (e.newValue === null) {
-                    console.log('[idleTimer] storage: token removed in another tab -> forcing logout');
-                    if (dotNetRef) dotNetRef.invokeMethodAsync('OnInactivityTimeout').catch(() => { });
-                }
-                else {
-                    console.log('[idleTimer] storage: token updated in another tab -> external renewal');
-                    // Reset timers locally and notify managed code to update UI without calling backend
-                    sessionStartTime = Date.now();
-                    lastActivityTime = sessionStartTime;
-                    warningShown = false;
-                    hasActiveRenewal = false;
-                    resetTimer();
-                    if (dotNetRef) {
-                        // Call a lightweight handler on the .NET side that only notifies UI of renewal
-                        // (AuthService implements OnExternalRenewal for this purpose)
-                        dotNetRef.invokeMethodAsync('OnExternalRenewal').catch(() => { });
-                    }
-                }
-            }
-        } catch (ex) {
-            console.error('idleTimer storage handler error', ex);
-        }
-    });
+    // ================================
+    // PUBLIC API
+    // ================================
 
     window.idleTimer = {
-        start: start,
-        stop: stop,
-        reset: reset
+        start,
+        stop,
+        reset
     };
+
 })();
