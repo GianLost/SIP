@@ -1,4 +1,4 @@
-namespace SIP.UI.Models.Auth;
+namespace SIP.UI.Models.Users.Auth;
 
 public class CurrentUser
 {

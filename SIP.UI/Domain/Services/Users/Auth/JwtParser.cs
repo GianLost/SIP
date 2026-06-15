@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using System.Text.Json;
 
-namespace SIP.UI.Domain.Services.Auth;
+namespace SIP.UI.Domain.Services.Users.Auth;
 
 public static class JwtParser
 {

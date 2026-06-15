@@ -19,7 +19,7 @@
     </div>
 
     <div class="session-timer-progress">
-        <div class="session-timer-progress-fill" style="width:@ProgressPercent%"></div>
+        <div class="session-timer-progress-fill" style="width:@ProgressPercentCss"></div>
     </div>
 </div>
 
@@ -172,6 +172,21 @@
         {
             var denom = _inWarningState ? _initialWarningSeconds : VisualSessionSeconds;
             return denom <= 0 ? 0 : 100.0 * _secondsRemaining / denom;
+        }
+    }
+
+    // Garante formatação invariante (ponto decimal) e clamp entre 0 e 100 para uso em CSS inline
+    private string ProgressPercentCss
+    {
+        get
+        {
+            var pct = ProgressPercent;
+            if (double.IsNaN(pct) || double.IsInfinity(pct)) pct = 0;
+            if (pct < 0) pct = 0;
+            if (pct > 100) pct = 100;
+
+            // Usa '.' como separador decimal independentemente da cultura
+            return string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0:0.##}%", pct);
         }
     }
 

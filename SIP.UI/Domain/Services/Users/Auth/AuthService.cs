@@ -4,10 +4,10 @@ using System.Security.Claims;
 using Microsoft.JSInterop;
 using Microsoft.AspNetCore.Components;
 using SIP.UI.Domain.DTOs.Users.Auth;
-using SIP.UI.Domain.Interfaces.Auth;
-using SIP.UI.Models.Auth;
+using SIP.UI.Domain.Interfaces.Users.Auth;
+using SIP.UI.Models.Users.Auth;
 
-namespace SIP.UI.Domain.Services.Auth;
+namespace SIP.UI.Domain.Services.Users.Auth;
 
 public class AuthService(IJSRuntime jsRuntime, HttpClient http, NavigationManager navigation) : IAuthService
 {

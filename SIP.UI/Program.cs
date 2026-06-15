@@ -3,11 +3,11 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.AspNetCore.Components.Authorization;
 using MudBlazor.Services;
 using SIP.UI;
-using SIP.UI.Domain.Services.Auth;
 using SIP.UI.Domain.Services.Protocols;
 using SIP.UI.Domain.Services.Sectors;
 using SIP.UI.Domain.Services.Users;
-using SIP.UI.Domain.Interfaces.Auth;
+using SIP.UI.Domain.Services.Users.Auth;
+using SIP.UI.Domain.Interfaces.Users.Auth;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 

@@ -1,8 +1,8 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Components.Authorization;
-using SIP.UI.Domain.Interfaces.Auth;
+using SIP.UI.Domain.Interfaces.Users.Auth;
 
-namespace SIP.UI.Domain.Services.Auth;
+namespace SIP.UI.Domain.Services.Users.Auth;
 
 public class JwtAuthenticationStateProvider : AuthenticationStateProvider
 {

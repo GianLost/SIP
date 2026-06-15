@@ -1,6 +1,6 @@
-using SIP.UI.Models.Auth;
+using SIP.UI.Models.Users.Auth;
 
-namespace SIP.UI.Domain.Interfaces.Auth;
+namespace SIP.UI.Domain.Interfaces.Users.Auth;
 
 public interface IAuthService
 {

@@ -19,6 +19,8 @@
     align-items: center;
     justify-content: center;
     background: var(--login-bg) !important;
+    /* Espaçamento vertical para evitar que o card ocupe 100% da altura em telas grandes */
+    padding: 24px 0;
 }
 
 .login-layout-content {
@@ -33,24 +35,33 @@
 .login-card-paper {
     width: 100%;
     max-width: 430px;
-    padding: 3rem;
-    border-radius: 28px;
+    padding: 2rem; /* reduz padding para diminuir proporções do conteúdo */
+    border-radius: 24px;
     background: var(--login-card-bg);
     border: 1px solid #e5e7eb;
     box-shadow: 0 12px 40px rgba(15, 23, 42, 0.08), 0 2px 8px rgba(15, 23, 42, 0.04);
+    box-sizing: border-box;
+}
+
+/* Limita altura do card para que ele não ocupe toda a viewport em telas maiores
+   e permite rolagem interna caso o conteúdo seja maior. Mantém margem vertical. */
+.login-card-paper {
+    max-height: calc(100vh - 96px);
+    overflow: visible; /* evita scrollbar interno */
+    margin: 20px 0;
 }
 
 /* HEADER */
 
 .login-card-header {
     text-align: center;
-    margin-bottom: 1rem;
+    margin-bottom: 0.8rem;
 }
 
 .login-card-logo,
 .login-card-logo img {
-    width: 110px;
-    height: 110px;
+    width: 96px;
+    height: 96px;
 }
 
 .login-card-logo {
@@ -59,8 +70,8 @@
 
 .login-card-main-title,
 .login-card-title {
-    margin-top: 1rem;
-    font-size: 2.6rem;
+    margin-top: 0.8rem;
+    font-size: 2.2rem;
     font-weight: 800;
     color: var(--login-title);
 }
@@ -79,9 +90,9 @@
 }
 
 .login-card-divider {
-    width: 5rem;
-    height: 0.15rem;
-    margin: 10px auto 6px;
+    width: 4.5rem;
+    height: 0.12rem;
+    margin: 8px auto 6px;
     border-radius: 2px;
     background: var(--mud-palette-primary);
 }
@@ -95,7 +106,7 @@
 
 .input-with-left-icon {
     position: relative;
-    margin-bottom: 2rem;
+    margin-bottom: 1.25rem;
 }
 
 .left-input-icon {
@@ -146,9 +157,9 @@
 /* INPUT TEXT */
 
 .login-card-input input {
-    height: 1.5rem !important;
-    padding: 0 44px 0 var(--login-input-left-padding) !important;
-    font-size: 0.9rem !important;
+    height: 1.4rem !important;
+    padding: 0 40px 0 var(--login-input-left-padding) !important;
+    font-size: 0.88rem !important;
     font-weight: 500 !important;
     line-height: var(--login-input-height) !important;
     color: var(--login-text) !important;
@@ -222,12 +233,12 @@
 
 .login-card-button {
     height: 3rem;
-    margin-top: 0.25rem;
-    border-radius: 16px !important;
-    font-size: 1rem !important;
+    margin-top: 0.5rem;
+    border-radius: 14px !important;
+    font-size: 0.98rem !important;
     font-weight: 600 !important;
     text-transform: none !important;
-    transition: transform 0.2s ease;
+    transition: transform 0.18s ease;
 }
 
 .login-card-button:hover {
