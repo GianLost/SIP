@@ -40,7 +40,7 @@ public class AuthService(IJSRuntime jsRuntime, HttpClient http, NavigationManage
         if (_token != null)
             return;
 
-        _token = await _jsRuntime.InvokeAsync<string?>("localStorage.getItem", TokenStorageKey);
+        _token = await _jsRuntime.InvokeAsync<string?>("sessionStorage.getItem", TokenStorageKey);
 
         if (string.IsNullOrWhiteSpace(_token))
             return;
@@ -95,7 +95,7 @@ public class AuthService(IJSRuntime jsRuntime, HttpClient http, NavigationManage
                 Role = authResponse.Role
             };
 
-            await _jsRuntime.InvokeVoidAsync("localStorage.setItem", TokenStorageKey, _token);
+            await _jsRuntime.InvokeVoidAsync("sessionStorage.setItem", TokenStorageKey, _token);
 
             SetAuthorizationHeader(_token);
 
@@ -125,7 +125,7 @@ public class AuthService(IJSRuntime jsRuntime, HttpClient http, NavigationManage
         _token = null;
         _currentUser = null;
         _http.DefaultRequestHeaders.Authorization = null;
-        await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", TokenStorageKey);
+        await _jsRuntime.InvokeVoidAsync("sessionStorage.removeItem", TokenStorageKey);
         try
         {
             await _jsRuntime.InvokeVoidAsync("idleTimer.stop");
@@ -202,13 +202,13 @@ public class AuthService(IJSRuntime jsRuntime, HttpClient http, NavigationManage
         return;
     }
 
-    // Called from JS when another tab updated the token in localStorage (external renewal)
+    // Called from JS when another tab updated the token in sessionStorage (external renewal)
     [JSInvokable]
     public async Task OnExternalRenewal()
     {
         try
         {
-            var token = await _jsRuntime.InvokeAsync<string?>("localStorage.getItem", TokenStorageKey);
+            var token = await _jsRuntime.InvokeAsync<string?>("sessionStorage.getItem", TokenStorageKey);
             if (!string.IsNullOrWhiteSpace(token))
             {
                 _token = token;
@@ -239,7 +239,7 @@ public class AuthService(IJSRuntime jsRuntime, HttpClient http, NavigationManage
                 if (authResponse != null && !string.IsNullOrWhiteSpace(authResponse.AccessToken))
                 {
                     _token = authResponse.AccessToken;
-                    await _jsRuntime.InvokeVoidAsync("localStorage.setItem", TokenStorageKey, _token);
+                    await _jsRuntime.InvokeVoidAsync("sessionStorage.setItem", TokenStorageKey, _token);
                     SetAuthorizationHeader(_token);
 
                     // Update current user if needed

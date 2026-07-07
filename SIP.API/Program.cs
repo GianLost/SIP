@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
 using System.Reflection;
+using System.Threading.RateLimiting;
 using Serilog;
 using SIP.API.Infrastructure.Caching;
 using SIP.API.Infrastructure.Database;
@@ -9,6 +10,7 @@ using SIP.API.Domain.Interfaces.Protocols;
 using SIP.API.Domain.Interfaces.Sectors;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using SIP.API.Domain.Helpers.ApplicationHelper;
 using SIP.API.Domain.Helpers.KeysHelper;
@@ -26,7 +28,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowBlazorClient",
         policy => policy
-            .WithOrigins("https://localhost:7236", "http://localhost:5126") // Blazor + Swagger (API)
+            .WithOrigins("https://localhost:7236", "https://localhost:7083") // Blazor + Swagger (API)
             .AllowAnyHeader()
             .AllowAnyMethod());
 });
@@ -153,6 +155,33 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddPolicy("login", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault()
+                          ?? httpContext.Connection.RemoteIpAddress?.ToString()
+                          ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(1),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0
+            }
+        )
+    );
+
+    options.OnRejected = async (context, cancellationToken) =>
+    {
+        context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+        context.HttpContext.Response.Headers.RetryAfter = "60";
+        await context.HttpContext.Response.WriteAsJsonAsync(
+            new { error = "Muitas tentativas de login. Tente novamente em 1 minuto." },
+            cancellationToken);
+    };
+});
+
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
 {
@@ -198,6 +227,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseRateLimiter();
 
 app.UseHttpsRedirection();
 
