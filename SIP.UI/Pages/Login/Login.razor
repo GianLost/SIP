@@ -1,10 +1,13 @@
 @using System.ComponentModel.DataAnnotations
+@using SIP.UI.Domain.Enums
 
 @page "/login"
 
 @layout LoginLayout
 
 @attribute [AllowAnonymous]
+
+@implements IDisposable
 
 @inject IAuthService AuthService
 @inject NavigationManager Navigation
@@ -69,7 +72,7 @@
                 <MudButton Variant="Variant.Filled"
                            Color="Color.Primary"
                            ButtonType="ButtonType.Submit"
-                           Disabled="_isSubmitting"
+                           Disabled="@(_isSubmitting || _isBlocked)"
                            FullWidth
                            Class="login-card-button">
 
@@ -77,6 +80,11 @@
                     {
                         <MudProgressCircular Indeterminate Size="Size.Small" Class="mr-2" />
                         <span>Entrando...</span>
+                    }
+                    else if (_isBlocked)
+                    {
+                        <MudIcon Icon="@Icons.Material.Filled.Block" Class="mr-2" />
+                        <span>Bloqueado (@_blockCountdown s)</span>
                     }
                     else
                     {
@@ -100,6 +108,9 @@
 @code {
     private bool _isSubmitting;
     private bool _showPassword;
+    private bool _isBlocked;
+    private int _blockCountdown;
+    private System.Threading.CancellationTokenSource? _blockCts;
 
     private LoginModel _loginModel = new();
 
@@ -107,28 +118,73 @@
     {
         _isSubmitting = true;
 
+        LoginResult result = LoginResult.Error;
+
         try
         {
-            var success = await AuthService.LoginAsync(_loginModel.Login, _loginModel.Password);
+            result = await AuthService.LoginAsync(_loginModel.Login, _loginModel.Password);
+        }
+        catch
+        {
+            result = LoginResult.Error;
+        }
 
-            if (success)
-            {
+        _isSubmitting = false;
+
+        switch (result)
+        {
+            case LoginResult.Success:
                 Snackbar.Add("Login efetuado com sucesso.", Severity.Success);
                 Navigation.NavigateTo("/");
-            }
-            else
-            {
+                break;
+
+            case LoginResult.TooManyRequests:
+                Snackbar.Add("Muitas tentativas de login. Aguarde antes de tentar novamente.", Severity.Warning);
+                await StartBlockCountdownAsync(60);
+                break;
+
+            case LoginResult.InvalidCredentials:
                 Snackbar.Add("Credenciais de acesso inválidas!", Severity.Error);
+                break;
+
+            default:
+                Snackbar.Add("Não foi possível efetuar o login. Tente novamente.", Severity.Error);
+                break;
+        }
+    }
+
+    private async Task StartBlockCountdownAsync(int seconds)
+    {
+        _blockCts?.Cancel();
+        _blockCts = new System.Threading.CancellationTokenSource();
+        var token = _blockCts.Token;
+
+        _isBlocked = true;
+        _blockCountdown = seconds;
+        StateHasChanged();
+
+        try
+        {
+            while (_blockCountdown > 0 && !token.IsCancellationRequested)
+            {
+                await Task.Delay(1000, token);
+                _blockCountdown--;
+                StateHasChanged();
             }
         }
-        catch (Exception ex)
-        {
-            Snackbar.Add($"Erro ao efetuar login: {ex.Message}", Severity.Error);
-        }
+        catch (TaskCanceledException) { }
         finally
         {
-            _isSubmitting = false;
+            _isBlocked = false;
+            _blockCountdown = 0;
+            StateHasChanged();
         }
+    }
+
+    public void Dispose()
+    {
+        _blockCts?.Cancel();
+        _blockCts?.Dispose();
     }
 
     private void TogglePasswordVisibility()

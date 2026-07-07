@@ -1,9 +1,11 @@
+using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Security.Claims;
 using Microsoft.JSInterop;
 using Microsoft.AspNetCore.Components;
 using SIP.UI.Domain.DTOs.Users.Auth;
+using SIP.UI.Domain.Enums;
 using SIP.UI.Domain.Interfaces.Users.Auth;
 using SIP.UI.Models.Users.Auth;
 
@@ -64,7 +66,7 @@ public class AuthService(IJSRuntime jsRuntime, HttpClient http, NavigationManage
         }
     }
 
-    public async Task<bool> LoginAsync(string login, string password)
+    public async Task<LoginResult> LoginAsync(string login, string password)
     {
         try
         {
@@ -76,13 +78,19 @@ public class AuthService(IJSRuntime jsRuntime, HttpClient http, NavigationManage
 
             HttpResponseMessage response = await _http.PostAsJsonAsync("sip_api/auth/login", request);
 
+            if (response.StatusCode == HttpStatusCode.TooManyRequests)
+                return LoginResult.TooManyRequests;
+
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+                return LoginResult.InvalidCredentials;
+
             if (!response.IsSuccessStatusCode)
-                return false;
+                return LoginResult.Error;
 
             AuthResponseDTO? authResponse = await response.Content.ReadFromJsonAsync<AuthResponseDTO>();
 
             if (authResponse == null || string.IsNullOrWhiteSpace(authResponse.AccessToken))
-                return false;
+                return LoginResult.Error;
 
             _token = authResponse.AccessToken;
 
@@ -111,12 +119,11 @@ public class AuthService(IJSRuntime jsRuntime, HttpClient http, NavigationManage
 
             AuthenticationStateChanged?.Invoke();
 
-            return true;
+            return LoginResult.Success;
         }
         catch
         {
-            await LogoutAsync();
-            return false;
+            return LoginResult.Error;
         }
     }
 

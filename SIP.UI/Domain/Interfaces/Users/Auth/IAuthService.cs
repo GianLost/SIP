@@ -1,3 +1,4 @@
+using SIP.UI.Domain.Enums;
 using SIP.UI.Models.Users.Auth;
 
 namespace SIP.UI.Domain.Interfaces.Users.Auth;
@@ -15,7 +16,7 @@ public interface IAuthService
     event Action? UserActivityDetected;
 
     Task InitializeAsync();
-    Task<bool> LoginAsync(string login, string password);
+    Task<LoginResult> LoginAsync(string login, string password);
     Task LogoutAsync();
     Task<string?> GetTokenAsync();
     CurrentUser? CurrentUser { get; }
